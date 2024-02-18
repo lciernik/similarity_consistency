@@ -1,3 +1,0 @@
-[submodule "CLIP_benchmark"]
-	path = CLIP_benchmark
-	url = https://github.com/LAION-AI/CLIP_benchmark
