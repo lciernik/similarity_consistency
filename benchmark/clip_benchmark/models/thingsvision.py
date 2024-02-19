@@ -7,7 +7,7 @@ class ThingsvisionModel:
         self._extractor = extractor
         self._module_name = module_name
 
-    def __call__(self, x):
+    def encode_image(self, x):
         features = self._extractor.extract_features(
             batches=[x],
             module_name=self._module_name,
