@@ -74,7 +74,7 @@ def get_parser_args():
                              help="dump templates to the results json file.")
 
     parser_eval.add_argument('--output', default="result.json", type=str,
-                             help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{pretrained}_{model}_{language}_{task}.json'")
+                             help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{pretrained}_{model}_{task}.json'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
     parser_eval.add_argument('--save_clf', default=None, type=str,
                              help="optionally save the classification layer output by the text tower")
@@ -187,14 +187,13 @@ def main_eval(base):
             "proportion": proportions[i] if proportions is not None else None
         }
 
-    # Get list of languages to evaluate on
-    languages = _as_list(base.language)
+
 
     if base.verbose:
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
-        print(f"Languages: {languages}")
-    runs = product(models, datasets, languages)
+
+    runs = product(models, datasets)
     if base.distributed:
         local_rank, rank, world_size = world_info_from_env()
         runs = list(runs)
@@ -202,13 +201,12 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
-    for (model, pretrained), (dataset), (language) in runs:
-        # We iterative over all possible model/dataset/languages
+    for (model, pretrained), (dataset) in runs:
+        # We iterative over all possible model/dataset/
         args = copy(base)
         args.model = model
         args.pretrained = pretrained
         args.dataset = dataset
-        args.language = language
         args.train_split = dataset_info[dataset]["train_split"]
         args.val_split = dataset_info[dataset]["val_split"]
         args.val_proportion = dataset_info[dataset]["proportion"]
@@ -264,15 +262,14 @@ def run(args):
         pretrained=pretrained_slug,
         pretrained_full_path=pretrained_slug_full_path,
         task=task,
-        dataset=dataset_slug,
-        language=args.language
+        dataset=dataset_slug
     )
     if os.path.exists(output) and args.skip_existing:
         if args.verbose:
             print(f"Skip {output}, exists already.")
         return
     if args.verbose:
-        print(f"Running '{task}' on '{dataset_name}' with the model '{args.pretrained}' on language '{args.language}'")
+        print(f"Running '{task}' on '{dataset_name}' with the model '{args.pretrained}'")
     dataset_root = args.dataset_root.format(dataset=dataset_name, dataset_cleaned=dataset_name.replace("/", "-"))
     if args.skip_load:
         model, transform, collate_fn, dataloader = None, None, None, None
@@ -292,7 +289,6 @@ def run(args):
             split=args.split,
             annotation_file=args.annotation_file,
             download=True,
-            language=args.language,
             task=task,
             custom_template_file=args.custom_template_file,
             custom_classname_file=args.custom_classname_file,
@@ -389,7 +385,6 @@ def run(args):
         "pretrained": args.pretrained,
         "task": task,
         "metrics": metrics,
-        "language": args.language,
     }
     if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
         dump["classnames"] = dataset.classes
