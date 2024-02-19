@@ -7,8 +7,8 @@ class ThingsvisionModel:
     def __init__(self, extractor, module_name):
         self._extractor = extractor
         self._module_name = module_name
-        self.model = self._extractor.to(extractor.device)
-        self.activations = {}
+        self._extractor.model = self._extractor.model.to(extractor.device)
+        self._extractor.activations = {}
         self._extractor.register_hook(module_name=module_name)
 
     def encode_image(self, x):
