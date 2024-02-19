@@ -40,9 +40,9 @@ def get_parser_args():
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
     parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
                              help="Model architecture to use from OpenCLIP")
-    parser_eval.add_argument('--model_source', type=str, nargs="+", default="ssl",
+    parser_eval.add_argument('--model_source', type=str, default="ssl",
                              help="Model source")
-    parser_eval.add_argument('--module_name', type=str, nargs="+", default="avgpool",
+    parser_eval.add_argument('--module_name', type=str, default="avgpool",
                              help="Module name")
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
