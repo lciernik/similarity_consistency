@@ -49,8 +49,6 @@ def get_parser_args():
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
                              help="whether to use mixed precision")
     parser_eval.add_argument('--num_workers', default=4, type=int)
-    parser_eval.add_argument('--recall_k', default=[5], type=int,
-                             help="for retrieval, select the k for Recall@K metric. ", nargs="+", )
     parser_eval.add_argument('--fewshot_k', default=-1, type=int,
                              help="for linear probe, how many shots. -1 = whole dataset.")
     parser_eval.add_argument('--fewshot_epochs', default=10, type=int, help="for linear probe, how many epochs.")
@@ -66,8 +64,6 @@ def get_parser_args():
                              help="directory to where downloaded models are cached")
     parser_eval.add_argument('--feature_root', default="features", type=str,
                              help="feature root folder where the features are stored.")
-    parser_eval.add_argument('--annotation_file', default="", type=str,
-                             help="text annotation file for retrieval datasets. Only needed  for when `--task` is `zeroshot_retrieval`.")
     parser_eval.add_argument('--custom_classname_file', default=None, type=str,
                              help="use custom json file with classnames for each dataset, where keys are dataset names and values are list of classnames.")
     parser_eval.add_argument('--custom_template_file', default=None, type=str,
@@ -77,8 +73,6 @@ def get_parser_args():
     parser_eval.add_argument('--dump_templates', default=False, action="store_true",
                              help="dump templates to the results json file.")
 
-    parser_eval.add_argument('--language', default="en", type=str, nargs="+",
-                             help="language(s) of classname and prompts to use for zeroshot classification.")
     parser_eval.add_argument('--output', default="result.json", type=str,
                              help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{pretrained}_{model}_{language}_{task}.json'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
