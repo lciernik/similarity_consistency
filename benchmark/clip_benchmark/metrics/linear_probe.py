@@ -86,6 +86,31 @@ class FeatureDataset(Dataset):
         return self.features[i], self.targets[i]
 
 
+class CombinedFeaturesDataset(Dataset):
+    def __init__(self, list_features, targets, fearture_combiner):
+        if not isinstance(list_features, list):
+            self.list_features = [list_features]
+        else:
+            self.list_features = list_features
+        self.targets = targets
+        self.nr_comb_feats = len(list_features)
+        self.fearture_combiner = fearture_combiner(self.list_features)
+
+    def __len__(self):
+        return len(self.list_features[0])
+
+    def __getitem__(self, i):
+        return self.fearture_combiner(i), self.targets[i]
+
+
+class ConcatFeatureCombiner:
+    def __init__(self, list_features):
+        self.list_features = list_features
+
+    def __getitem__(self, i):
+        return torch.concat([feat[i] for feat in self.list_features])
+
+
 def train(dataloader, input_shape, output_shape, weight_decay, lr, epochs, autocast, device, seed):
     torch.manual_seed(seed)
     model = torch.nn.Linear(input_shape, output_shape)
@@ -170,12 +195,43 @@ def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape
     return best_wd_idx
 
 
+def _evalute(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
+             lr, epochs, seed, device, autocast, normalize=True, verbose=False):
+    final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
+    logits, target = infer(final_model, feature_test_loader, autocast, device)
+    pred = logits.argmax(axis=1)
+
+    # measure accuracy
+    if target.max() >= 5:
+        acc1, acc5 = accuracy(logits.float(), target.float(), topk=(1, 5))
+    else:
+        acc1, = accuracy(logits.float(), target.float(), topk=(1,))
+        acc5 = float("nan")
+    mean_per_class_recall = balanced_accuracy_score(target, pred)
+    fair_info = {
+        "weight_decay": best_wd,
+        "acc1": acc1,
+        "acc5": acc5,
+        "mean_per_class_recall": mean_per_class_recall,
+        "classification_report": classification_report(target, pred, digits=3)
+    }
+    if verbose:
+        print(fair_info["classification_report"])
+        print(f"Test acc1: {acc1} with weight_decay: {best_wd}")
+
+    return {"lp_acc1": fair_info["acc1"], "lp_acc5": fair_info["acc5"],
+            "lp_mean_per_class_recall": fair_info["mean_per_class_recall"],
+            "weight_decay": fair_info['weight_decay'], 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
+            'normalized': normalize}
+
+
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
              model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True, verbose=False):
     assert device == 'cuda'  # need to use cuda for this else too slow
     # first we need to featurize the dataset, and store the result in feature_root
     if not os.path.exists(feature_root):
         os.mkdir(feature_root)
+
     feature_dir = os.path.join(feature_root, model_id)
     if not os.path.exists(feature_dir):
         os.mkdir(feature_dir)
@@ -241,7 +297,6 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
     features = torch.load(os.path.join(feature_dir, 'features_train.pt'))
     targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
 
-    # second, make a dataloader with k features per class. if k = -1, use all features.
     length = len(features)
     perm = [p.item() for p in torch.randperm(length)]
     idxs = []
@@ -316,28 +371,129 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         best_wd = 0
         train_loader = feature_train_loader
 
-    final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
-    logits, target = infer(final_model, feature_test_loader, autocast, device)
-    pred = logits.argmax(axis=1)
+    return _evalute(train_loader=train_loader,
+                    input_shape=input_shape,
+                    output_shape=output_shape,
+                    best_wd=best_wd,
+                    fewshot_k=fewshot_k,
+                    feature_test_loader=feature_test_loader,
+                    lr=lr,
+                    epochs=epochs,
+                    seed=seed,
+                    device=device,
+                    autocast=autocast,
+                    normalize=normalize,
+                    verbose=verbose)
 
-    # measure accuracy
-    if target.max() >= 5:
-        acc1, acc5 = accuracy(logits.float(), target.float(), topk=(1, 5))
+
+def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
+                      val_dataloader=None, amp=True, verbose=False, feature_combiner=ConcatFeatureCombiner):
+    assert device == 'cuda'
+
+    assert os.path.exists(feature_root), "Feature root path non-existant"
+
+    feature_dirs = [os.path.join(feature_root, model_id) for model_id in model_ids]
+
+    assert all([os.path.exists(feature_dir) for feature_dir in feature_dirs])
+
+    autocast = torch.cuda.amp.autocast if amp else suppress
+
+    list_features = [torch.load(os.path.join(feature_dir, 'features_train.pt')) for feature_dir in feature_dirs]
+    targets = torch.load(os.path.join(feature_dirs[0], 'targets_train.pt'))
+
+    assert all([len(feat) == len(list_features[0]) for feat in list_features])
+
+    length = len(list_features[0])
+    perm = [p.item() for p in torch.randperm(length)]
+    idxs = []
+    counts = {}
+    num_classes = 0
+
+    for p in perm:
+        target = targets[p].item()
+        if target not in counts:
+            counts[target] = 0
+            num_classes += 1
+
+        if fewshot_k < 0 or counts[target] < fewshot_k:
+            counts[target] += 1
+            idxs.append(p)
+
+    for c in counts:
+        if fewshot_k > 0 and counts[c] != fewshot_k:
+            print('insufficient data for this eval')
+            return
+
+    list_train_features = [features[idxs] for features in list_features]
+    train_labels = targets[idxs]
+    if val_dataloader is not None:
+        list_features_val = [torch.load(os.path.join(feature_dir, 'features_val.pt')) for feature_dir in feature_dirs]
+        targets_val = torch.load(os.path.join(feature_dirs[0], 'targets_val.pt'))
+
+        feature_val_dset = CombinedFeaturesDataset(list_features_val, targets_val, feature_combiner)
+        feature_val_loader = DataLoader(
+            feature_val_dset, batch_size=batch_size,
+            shuffle=True, num_workers=num_workers,
+            pin_memory=True,
+        )
+        list_train_val_features = [np.concatenate((feat_train, feat_val)) for feat_train, feat_val in
+                                   zip(list_train_features, list_features_val)]
+        feature_train_val_dset = CombinedFeaturesDataset(list_train_val_features,
+                                                         np.concatenate((train_labels, targets_val)),
+                                                         feature_combiner)
+        feature_train_val_loader = DataLoader(
+            feature_train_val_dset, batch_size=batch_size,
+            shuffle=True, num_workers=num_workers,
+            pin_memory=True,
+        )
+    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner)
+    feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
+                                      shuffle=True, num_workers=num_workers,
+                                      pin_memory=True,
+                                      )
+
+    list_features_test = [torch.load(os.path.join(feature_dir, 'features_test.pt')) for feature_dir in feature_dirs]
+    targets_test = torch.load(os.path.join(feature_dirs[0], 'targets_test.pt'))
+
+    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner)
+    feature_test_loader = DataLoader(
+        feature_test_dset, batch_size=batch_size,
+        shuffle=True, num_workers=num_workers,
+        pin_memory=True,
+    )
+
+    input_shape, output_shape = feature_train_dset[0].shape[0], targets.max().item() + 1
+
+    if val_dataloader is not None:
+        # perform openAI-like hyperparameter sweep
+        # https://arxiv.org/pdf/2103.00020.pdf A.3
+        # instead of scikit-learn LBFGS use FCNNs with AdamW
+        wd_list = np.logspace(-6, 2, num=97).tolist()
+        wd_list_init = np.logspace(-6, 2, num=7).tolist()
+        wd_init_idx = [i for i, val in enumerate(wd_list) if val in wd_list_init]
+        peak_idx = find_peak(wd_list, wd_init_idx, feature_train_loader, feature_val_loader, input_shape, output_shape,
+                             lr, epochs, autocast, device, verbose, seed)
+        step_span = 8
+        while step_span > 0:
+            left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(wd_list) - 1)
+            peak_idx = find_peak(wd_list, [left, peak_idx, right], feature_train_loader, feature_val_loader,
+                                 input_shape, output_shape, lr, epochs, autocast, device, verbose, seed)
+            step_span //= 2
+        best_wd = wd_list[peak_idx]
+        train_loader = feature_train_val_loader
     else:
-        acc1, = accuracy(logits.float(), target.float(), topk=(1,))
-        acc5 = float("nan")
-    mean_per_class_recall = balanced_accuracy_score(target, pred)
-    fair_info = {
-        "weight_decay": best_wd,
-        "acc1": acc1,
-        "acc5": acc5,
-        "mean_per_class_recall": mean_per_class_recall,
-        "classification_report": classification_report(target, pred, digits=3)
-    }
-    if verbose:
-        print(fair_info["classification_report"])
-        print(f"Test acc1: {acc1} with weight_decay: {best_wd}")
-    return {"lp_acc1": fair_info["acc1"], "lp_acc5": fair_info["acc5"],
-            "lp_mean_per_class_recall": fair_info["mean_per_class_recall"],
-            "weight_decay": fair_info['weight_decay'], 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
-            'normalized': normalize}
+        best_wd = 0
+        train_loader = feature_train_loader
+
+    return _evalute(train_loader=train_loader,
+                    input_shape=input_shape,
+                    output_shape=output_shape,
+                    best_wd=best_wd,
+                    fewshot_k=fewshot_k,
+                    feature_test_loader=feature_test_loader,
+                    lr=lr,
+                    epochs=epochs,
+                    seed=seed,
+                    device=device,
+                    autocast=autocast,
+                    verbose=verbose)
