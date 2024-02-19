@@ -1,23 +1,19 @@
-from typing import Union
+from typing import Union, Dict
 import torch
-from .open_clip import load_open_clip
-from .japanese_clip import load_japanese_clip
-
-# loading function must return (model, transform, tokenizer)
-TYPE2FUNC = {
-    "open_clip": load_open_clip,
-    "ja_clip": load_japanese_clip
-}
-MODEL_TYPES = list(TYPE2FUNC.keys())
+from .thingsvision import load_thingsvision_model
 
 
-def load_clip(
-        model_type: str,
+def load_model(
+        source: str,
         model_name: str,
-        pretrained: str,
-        cache_dir: str,
+        module_name: str,
+        model_parameters: Union[Dict, None] = None,
         device: Union[str, torch.device] = "cuda"
 ):
-    assert model_type in MODEL_TYPES, f"model_type={model_type} is invalid!"
-    load_func = TYPE2FUNC[model_type]
-    return load_func(model_name=model_name, pretrained=pretrained, cache_dir=cache_dir, device=device)
+    return load_thingsvision_model(
+        model_name=model_name,
+        source=source,
+        model_parameters=model_parameters,
+        device=device,
+        module_name=module_name
+    )

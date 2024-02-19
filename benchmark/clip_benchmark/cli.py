@@ -17,7 +17,7 @@ from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
 from clip_benchmark.metrics import linear_probe
 from clip_benchmark.model_collection import (get_model_collection_from_file,
                                              model_collection)
-from clip_benchmark.models import MODEL_TYPES, load_clip
+from clip_benchmark.models import MODEL_TYPES, load_model
 
 
 def get_parser_args():
@@ -40,6 +40,10 @@ def get_parser_args():
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
     parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
                              help="Model architecture to use from OpenCLIP")
+    parser_eval.add_argument('--model_source', type=str, nargs="+", default="ssl",
+                             help="Model source")
+    parser_eval.add_argument('--module_name', type=str, nargs="+", default="avgpool",
+                             help="Module name")
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
     parser_eval.add_argument('--pretrained_model', type=str, default="", nargs="+",
@@ -187,8 +191,6 @@ def main_eval(base):
             "proportion": proportions[i] if proportions is not None else None
         }
 
-
-
     if base.verbose:
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
@@ -274,14 +276,13 @@ def run(args):
     if args.skip_load:
         model, transform, collate_fn, dataloader = None, None, None, None
     else:
-        model, transform, tokenizer = load_clip(
-            model_type=args.model_type,
+        model, transform = load_model(
             model_name=args.model,
-            pretrained=args.pretrained,
-            cache_dir=args.model_cache_dir,
+            source=args.model_source,
+            model_parameters={},
+            module_name=args.module_name,
             device=args.device
         )
-        model.eval()
         dataset = build_dataset(
             dataset_name=args.dataset,
             root=dataset_root,
