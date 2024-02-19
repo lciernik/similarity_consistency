@@ -287,7 +287,6 @@ def run(args):
             root=dataset_root,
             transform=transform,
             split=args.split,
-            annotation_file=args.annotation_file,
             download=True,
             task=task,
             custom_template_file=args.custom_template_file,
@@ -327,7 +326,6 @@ def run(args):
             root=dataset_root,
             transform=transform,
             split=args.train_split,
-            annotation_file=args.annotation_file,
             download=True,
         )
         if args.val_split is not None:
@@ -336,7 +334,6 @@ def run(args):
                 root=dataset_root,
                 transform=transform,
                 split=args.val_split,
-                annotation_file=args.annotation_file,
                 download=True,
             )
         elif args.val_proportion is not None:
