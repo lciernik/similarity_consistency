@@ -285,11 +285,6 @@ def run(args):
             device=args.device
         )
         model.eval()
-        if args.model.count("nllb-clip") > 0:
-            # for NLLB-CLIP models, we need to set the language prior to running the tests
-            from clip_benchmark.models.nllb_clip import set_language
-
-            set_language(tokenizer, args.language)
         dataset = build_dataset(
             dataset_name=args.dataset,
             root=dataset_root,

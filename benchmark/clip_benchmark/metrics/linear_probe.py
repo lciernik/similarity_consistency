@@ -6,20 +6,48 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader, Sampler
 import numpy as np
-from .zeroshot_classification import accuracy
 
 from sklearn.metrics import classification_report, balanced_accuracy_score
+
+
+def accuracy(output, target, topk=(1,)):
+    """
+    Compute top-k accuracy
+
+    output: torch.Tensor
+        shape (N, C) where N is the number of examples, C the number of classes.
+        these are the logits.
+
+    target: torch.Tensor
+        shape (N,) where N is the number of examples. Groundtruth class id of each example.
+
+    topk: tuple
+        which topk to compute, e.g., topk=(1,5) will compute top-1 and top-5 accuracies
+
+    Returns
+    -------
+
+    list of top-k accuracies in the same order as `topk`
+    """
+    pred = output.topk(max(topk), 1, True, True)[1].t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+    n = len(target)
+    return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) / n for k in topk]
+
 
 def assign_learning_rate(param_group, new_lr):
     param_group["lr"] = new_lr
 
+
 def _warmup_lr(base_lr, warmup_length, step):
     return base_lr * (step + 1) / warmup_length
+
 
 def cosine_lr(optimizer, base_lrs, warmup_length, steps):
     if not isinstance(base_lrs, list):
         base_lrs = [base_lrs for _ in optimizer.param_groups]
     assert len(base_lrs) == len(optimizer.param_groups)
+
     def _lr_adjuster(step):
         for param_group, base_lr in zip(optimizer.param_groups, base_lrs):
             if step < warmup_length:
@@ -29,6 +57,7 @@ def cosine_lr(optimizer, base_lrs, warmup_length, steps):
                 es = steps - warmup_length
                 lr = 0.5 * (1 + np.cos(np.pi * e / es)) * base_lr
             assign_learning_rate(param_group, lr)
+
     return _lr_adjuster
 
 
@@ -43,6 +72,7 @@ class Featurizer(torch.nn.Module):
         if self.normalize:
             image_features = F.normalize(image_features, dim=-1)
         return image_features
+
 
 class FeatureDataset(Dataset):
     def __init__(self, features, targets):
@@ -119,13 +149,14 @@ def infer(model, dataloader, autocast, device):
 
             pred.append(logits.cpu())
             true.append(y.cpu())
-            
+
     logits = torch.cat(pred)
     target = torch.cat(true)
     return logits, target
 
 
-def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape, lr, epochs, autocast, device, verbose, seed):
+def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape, lr, epochs, autocast, device, verbose,
+              seed):
     best_wd_idx, max_acc = 0, 0
     for idx in idxs:
         weight_decay = wd_list[idx]
@@ -139,16 +170,16 @@ def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape
     return best_wd_idx
 
 
-def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs, 
+def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
              model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True, verbose=False):
-    assert device == 'cuda' # need to use cuda for this else too slow
+    assert device == 'cuda'  # need to use cuda for this else too slow
     # first we need to featurize the dataset, and store the result in feature_root
     if not os.path.exists(feature_root):
         os.mkdir(feature_root)
     feature_dir = os.path.join(feature_root, model_id)
     if not os.path.exists(feature_dir):
         os.mkdir(feature_dir)
-    
+
     featurizer = Featurizer(model, normalize).cuda()
     autocast = torch.cuda.amp.autocast if amp else suppress
     if not os.path.exists(os.path.join(feature_dir, 'targets_train.pt')):
@@ -170,7 +201,7 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
 
                     with autocast():
                         feature = featurizer(images)
-                    
+
                     features.append(feature.cpu())
                     targets.append(target)
 
@@ -178,13 +209,13 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
                     if (num_batches_tracked % 100) == 0:
                         features = torch.cat(features)
                         targets = torch.cat(targets)
-                        
+
                         torch.save(features, os.path.join(feature_dir, f'features{save_str}_cache_{num_cached}.pt'))
                         torch.save(targets, os.path.join(feature_dir, f'targets{save_str}_cache_{num_cached}.pt'))
                         num_cached += 1
                         features = []
                         targets = []
-            
+
             if len(features) > 0:
                 features = torch.cat(features)
                 targets = torch.cat(targets)
@@ -239,27 +270,28 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         targets_val = torch.load(os.path.join(feature_dir, 'targets_val.pt'))
         feature_val_dset = FeatureDataset(features_val, targets_val)
         feature_val_loader = DataLoader(
-            feature_val_dset, batch_size=batch_size, 
-            shuffle=True, num_workers=num_workers, 
+            feature_val_dset, batch_size=batch_size,
+            shuffle=True, num_workers=num_workers,
             pin_memory=True,
         )
-        feature_train_val_dset = FeatureDataset(np.concatenate((train_features, features_val)), np.concatenate((train_labels, targets_val)))
+        feature_train_val_dset = FeatureDataset(np.concatenate((train_features, features_val)),
+                                                np.concatenate((train_labels, targets_val)))
         feature_train_val_loader = DataLoader(
-            feature_train_val_dset, batch_size=batch_size, 
-            shuffle=True, num_workers=num_workers, 
+            feature_train_val_dset, batch_size=batch_size,
+            shuffle=True, num_workers=num_workers,
             pin_memory=True,
         )
     feature_train_dset = FeatureDataset(train_features, train_labels)
-    feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size, 
-                                    shuffle=True, num_workers=num_workers, 
-                                    pin_memory=True,
-                                )
+    feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
+                                      shuffle=True, num_workers=num_workers,
+                                      pin_memory=True,
+                                      )
     features_test = torch.load(os.path.join(feature_dir, 'features_test.pt'))
     targets_test = torch.load(os.path.join(feature_dir, 'targets_test.pt'))
     feature_test_dset = FeatureDataset(features_test, targets_test)
     feature_test_loader = DataLoader(
-        feature_test_dset, batch_size=batch_size, 
-        shuffle=True, num_workers=num_workers, 
+        feature_test_dset, batch_size=batch_size,
+        shuffle=True, num_workers=num_workers,
         pin_memory=True,
     )
     input_shape, output_shape = features[0].shape[0], targets.max().item() + 1
@@ -270,11 +302,13 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         wd_list = np.logspace(-6, 2, num=97).tolist()
         wd_list_init = np.logspace(-6, 2, num=7).tolist()
         wd_init_idx = [i for i, val in enumerate(wd_list) if val in wd_list_init]
-        peak_idx = find_peak(wd_list, wd_init_idx, feature_train_loader, feature_val_loader, input_shape, output_shape, lr, epochs, autocast, device, verbose, seed)
+        peak_idx = find_peak(wd_list, wd_init_idx, feature_train_loader, feature_val_loader, input_shape, output_shape,
+                             lr, epochs, autocast, device, verbose, seed)
         step_span = 8
         while step_span > 0:
-            left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(wd_list)-1)
-            peak_idx = find_peak(wd_list, [left, peak_idx, right], feature_train_loader, feature_val_loader, input_shape, output_shape, lr, epochs, autocast, device, verbose, seed)
+            left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(wd_list) - 1)
+            peak_idx = find_peak(wd_list, [left, peak_idx, right], feature_train_loader, feature_val_loader,
+                                 input_shape, output_shape, lr, epochs, autocast, device, verbose, seed)
             step_span //= 2
         best_wd = wd_list[peak_idx]
         train_loader = feature_train_val_loader
@@ -283,15 +317,15 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         train_loader = feature_train_loader
 
     final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
-    logits, target = infer(final_model, feature_test_loader, autocast, device)       
+    logits, target = infer(final_model, feature_test_loader, autocast, device)
     pred = logits.argmax(axis=1)
-    
+
     # measure accuracy
     if target.max() >= 5:
         acc1, acc5 = accuracy(logits.float(), target.float(), topk=(1, 5))
     else:
         acc1, = accuracy(logits.float(), target.float(), topk=(1,))
-        acc5 = float("nan") 
+        acc5 = float("nan")
     mean_per_class_recall = balanced_accuracy_score(target, pred)
     fair_info = {
         "weight_decay": best_wd,
@@ -303,5 +337,7 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
     if verbose:
         print(fair_info["classification_report"])
         print(f"Test acc1: {acc1} with weight_decay: {best_wd}")
-    return {"lp_acc1": fair_info["acc1"], "lp_acc5": fair_info["acc5"], "lp_mean_per_class_recall": fair_info["mean_per_class_recall"], 
-            "weight_decay": fair_info['weight_decay'], 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k, 'normalized': normalize}
+    return {"lp_acc1": fair_info["acc1"], "lp_acc5": fair_info["acc5"],
+            "lp_mean_per_class_recall": fair_info["mean_per_class_recall"],
+            "weight_decay": fair_info['weight_decay'], 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
+            'normalized': normalize}
