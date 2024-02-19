@@ -17,7 +17,7 @@ from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
 from clip_benchmark.metrics import linear_probe
 from clip_benchmark.model_collection import (get_model_collection_from_file,
                                              model_collection)
-from clip_benchmark.models import MODEL_TYPES, load_model
+from clip_benchmark.models import  load_model
 
 
 def get_parser_args():
@@ -86,7 +86,7 @@ def get_parser_args():
                              help="optionally load and average mutliple layers output by text towers.")
     parser_eval.add_argument('--skip_existing', default=False, action="store_true",
                              help="whether to skip an evaluation if the output file exists.")
-    parser_eval.add_argument('--model_type', default="open_clip", type=str, choices=MODEL_TYPES, help="clip model type")
+    parser_eval.add_argument('--model_type', default="open_clip", type=str, help="clip model type")
     parser_eval.add_argument('--wds_cache_dir', default=None, type=str,
                              help="optional cache directory for webdataset only")
     parser_eval.set_defaults(which='eval')
