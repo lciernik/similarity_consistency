@@ -1,4 +1,5 @@
 from thingsvision import get_extractor
+import torch
 
 
 class ThingsvisionModel:
@@ -6,15 +7,20 @@ class ThingsvisionModel:
     def __init__(self, extractor, module_name):
         self._extractor = extractor
         self._module_name = module_name
+        self.model = self._extractor.to(extractor.device)
+        self.activations = {}
+        self._extractor.register_hook(module_name=module_name)
 
     def encode_image(self, x):
-        features = self._extractor.extract_features(
-            batches=[x],
+        features = self._extractor._extract_batch(
+            batch=x,
             module_name=self._module_name,
             flatten_acts=True,
-            output_type="tensor",  # or "tensor" (only applicable to PyTorch models of which CLIP is one!)
         )
-        return features
+        return features.to(torch.float32)
+
+    def cleanup(self):
+        self._extractor._unregister_hook()
 
 
 def load_thingsvision_model(model_name, source, device, model_parameters, module_name):
