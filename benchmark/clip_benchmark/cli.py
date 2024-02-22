@@ -208,7 +208,7 @@ def main_eval(base):
         }
     assert len(models)==len(base.modle_source), "The number of model_source should be the same as the number of models"
     assert len(models)==len(base.model_parameters), "The number of model_parameters should be the same as the number of models"
-    tot_model_info = [(models[i], base.model_source[i], base.model_parameters[i]) for i in range(len(models))]
+    tot_model_info = list(zip(models, base.model_source, base.model_parameters))
 
     if base.verbose:
         print(f"Models: {models}")
@@ -222,7 +222,7 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
-    for ((model, model_source, model_parameters), pretrained), (dataset) in runs:
+    for ((model, pretrained), model_source, model_parameters), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)
         args.model = model
