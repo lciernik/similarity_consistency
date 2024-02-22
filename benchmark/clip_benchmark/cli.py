@@ -9,7 +9,6 @@ from copy import copy
 from itertools import product
 
 import torch
-
 from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
                                              get_dataset_collate_fn,
                                              get_dataset_collection_from_file,
@@ -17,7 +16,21 @@ from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
 from clip_benchmark.metrics import linear_probe
 from clip_benchmark.model_collection import (get_model_collection_from_file,
                                              model_collection)
-from clip_benchmark.models import  load_model
+from clip_benchmark.models import load_model
+
+
+def parse_list_of_dicts(s):
+    try:
+        # Convert string to list of dictionaries or a single dictionary
+        list_of_dicts = json.loads(s)
+        if not isinstance(list_of_dicts, list):
+            list_of_dicts = [list_of_dicts]
+        for item in list_of_dicts:
+            if not isinstance(item, dict):
+                raise ValueError("Input contains non-dictionary elements.")
+        return list_of_dicts
+    except ValueError:
+        raise argparse.ArgumentTypeError("Input is not a valid list of Python dictionaries or a single Python dictionary.")
 
 
 def get_parser_args():
@@ -38,14 +51,17 @@ def get_parser_args():
                                     help="Dataset(s) validation split names. Mutually exclusive with val_proportion.")
     mutually_exclusive.add_argument('--val_proportion', default=None, type=float, nargs="+",
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
+
     parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
                              help="Model architecture to use from OpenCLIP")
-    parser_eval.add_argument('--model_source', type=str, default="ssl",
-                             help="Model source")
-    parser_eval.add_argument('--module_name', type=str, default="avgpool",
-                             help="Module name")
+    parser_eval.add_argument('--model_source', type=str, nargs="+", default=["ssl"], help="For each model, indicate the source of the model. See thingsvision for more details.")
+    parser_eval.add_argument('--model_parameters', action=parse_list_of_dicts, metavar="[{'KEY1':'VAL1','KEY2':'VAL2',...}]",
+                             help='A dictionary of key-value pairs')
+
+    parser_eval.add_argument('--module_name', type=str, default="avgpool", help="Module name")
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
+
     parser_eval.add_argument('--pretrained_model', type=str, default="", nargs="+",
                              help="Pre-trained model(s) to use. Can be the full model name where `model` and `pretrained` are comma separated (e.g., --pretrained_model='ViT-B-32-quickgelu,laion400m_e32'), a model collection name ('openai' or 'openclip_base' or 'openclip_multilingual' or 'openclip_all'), or path of a text file where each line is a model fullname where model and pretrained are comma separated (e.g., ViT-B-32-quickgelu,laion400m_e32). --model and --pretrained are ignored if --pretrained_model is used.")
     parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
@@ -190,12 +206,15 @@ def main_eval(base):
             "val_split": val_splits[i] if val_splits is not None else None,
             "proportion": proportions[i] if proportions is not None else None
         }
+    assert len(models)==len(base.modle_source), "The number of model_source should be the same as the number of models"
+    assert len(models)==len(base.model_parameters), "The number of model_parameters should be the same as the number of models"
+    tot_model_info = [(models[i], base.model_source[i], base.model_parameters[i]) for i in range(len(models))]
 
     if base.verbose:
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
 
-    runs = product(models, datasets)
+    runs = product(tot_model_info, datasets)
     if base.distributed:
         local_rank, rank, world_size = world_info_from_env()
         runs = list(runs)
@@ -203,10 +222,12 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
-    for (model, pretrained), (dataset) in runs:
+    for ((model, model_source, model_parameters), pretrained), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)
         args.model = model
+        args.model_source = model_source
+        args.model_parameters = model_parameters
         args.pretrained = pretrained
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
@@ -273,13 +294,15 @@ def run(args):
     if args.verbose:
         print(f"Running '{task}' on '{dataset_name}' with the model '{args.pretrained}'")
     dataset_root = args.dataset_root.format(dataset=dataset_name, dataset_cleaned=dataset_name.replace("/", "-"))
-    if args.skip_load:
+
+    if args.skip_load or isinstance(args.model, list):
         model, transform, collate_fn, dataloader = None, None, None, None
     else:
+        assert isinstance(args.model, str), "model should be a string"
         model, transform = load_model(
             model_name=args.model,
             source=args.model_source,
-            model_parameters={},
+            model_parameters=args.model_parameters,
             module_name=args.module_name,
             device=args.device
         )
@@ -319,6 +342,7 @@ def run(args):
                 shuffle=False, num_workers=args.num_workers,
                 collate_fn=collate_fn
             )
+
     if task == "linear_probe":
         # we also need the train and validation splits for linear probing.
         train_dataset = None
@@ -380,6 +404,8 @@ def run(args):
     dump = {
         "dataset": args.dataset,
         "model": args.model,
+        "model_source": args.model_source,
+        "model_parameters": args.model_parameters,
         "pretrained": args.pretrained,
         "task": task,
         "metrics": metrics,
