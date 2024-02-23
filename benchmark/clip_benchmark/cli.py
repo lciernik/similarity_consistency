@@ -57,8 +57,10 @@ def get_parser_args():
     parser_eval.add_argument('--model_source', type=str, nargs="+", default=["ssl"], help="For each model, indicate the source of the model. See thingsvision for more details.")
     parser_eval.add_argument('--model_parameters', action=parse_list_of_dicts, metavar="[{'KEY1':'VAL1','KEY2':'VAL2',...}]",
                              help='A dictionary of key-value pairs')
+    parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
 
-    parser_eval.add_argument('--module_name', type=str, default="avgpool", help="Module name")
+
+
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
 
@@ -173,8 +175,18 @@ def main_eval(base):
                 # if not, assume it is in the form of `model,pretrained`
                 model, pretrained = name.split(',')
                 models.append((model, pretrained))
+
     else:
-        models = list(product(base.model, base.pretrained))
+        models = _as_list(base.model)
+        assert len(models) == len(
+            base.modle_source), "The number of model_source should be the same as the number of models"
+        assert len(models) == len(
+            base.model_parameters), "The number of model_parameters should be the same as the number of models"
+        assert len(models) == len(
+            base.module_name), "The number of module_name should be the same as the number of models"
+
+        models_with_configs = list(zip(models, base.model_source, base.model_parameters, base.module_name))
+        models = list(product(models_with_configs, base.pretrained))
 
     # Ge list of datasets to evaluate on
     datasets = []
@@ -206,15 +218,12 @@ def main_eval(base):
             "val_split": val_splits[i] if val_splits is not None else None,
             "proportion": proportions[i] if proportions is not None else None
         }
-    assert len(models)==len(base.modle_source), "The number of model_source should be the same as the number of models"
-    assert len(models)==len(base.model_parameters), "The number of model_parameters should be the same as the number of models"
-    tot_model_info = list(zip(models, base.model_source, base.model_parameters))
 
     if base.verbose:
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
 
-    runs = product(tot_model_info, datasets)
+    runs = product(models, datasets)
     if base.distributed:
         local_rank, rank, world_size = world_info_from_env()
         runs = list(runs)
@@ -222,12 +231,13 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
-    for ((model, pretrained), model_source, model_parameters), (dataset) in runs:
+    for ((model, model_source, model_parameters, module_name), pretrained), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)
         args.model = model
         args.model_source = model_source
         args.model_parameters = model_parameters
+        args.module_name = module_name
         args.pretrained = pretrained
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
