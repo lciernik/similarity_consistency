@@ -23,11 +23,11 @@ def parse_list_of_dicts(s):
     try:
         # Convert string to list of dictionaries or a single dictionary
         list_of_dicts = json.loads(s)
-        if not isinstance(list_of_dicts, list):
-            list_of_dicts = [list_of_dicts]
-        for item in list_of_dicts:
-            if not isinstance(item, dict):
-                raise ValueError("Input contains non-dictionary elements.")
+        # if not isinstance(list_of_dicts, list):
+        #     list_of_dicts = [list_of_dicts]
+        # for item in list_of_dicts:
+        #     if not isinstance(item, dict):
+        #         raise ValueError("Input contains non-dictionary elements.")
         return list_of_dicts
     except ValueError:
         raise argparse.ArgumentTypeError("Input is not a valid list of Python dictionaries or a single Python dictionary.")
@@ -55,7 +55,7 @@ def get_parser_args():
     parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
                              help="Model architecture to use from OpenCLIP")
     parser_eval.add_argument('--model_source', type=str, nargs="+", default=["ssl"], help="For each model, indicate the source of the model. See thingsvision for more details.")
-    parser_eval.add_argument('--model_parameters', action=parse_list_of_dicts, metavar="[{'KEY1':'VAL1','KEY2':'VAL2',...}]",
+    parser_eval.add_argument('--model_parameters', nargs="+", action=parse_list_of_dicts, metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
 
@@ -184,9 +184,10 @@ def main_eval(base):
             base.model_parameters), "The number of model_parameters should be the same as the number of models"
         assert len(models) == len(
             base.module_name), "The number of module_name should be the same as the number of models"
+        assert len(models) == len(base.pretrained), "The number of pretrained should be the same as the number of models"
 
-        models_with_configs = list(zip(models, base.model_source, base.model_parameters, base.module_name))
-        models = list(product(models_with_configs, base.pretrained))
+        models = list(zip(models, base.model_source, base.model_parameters, base.module_name, base.pretrained))
+        # models = list(product(models_with_configs, base.pretrained))
 
     # Ge list of datasets to evaluate on
     datasets = []
@@ -231,7 +232,7 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
-    for ((model, model_source, model_parameters, module_name), pretrained), (dataset) in runs:
+    for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)
         args.model = model

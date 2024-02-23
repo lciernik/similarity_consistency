@@ -1,0 +1,44 @@
+{
+    "dinov2-vit-large-p14": {
+        "model_name": "dinov2-vit-large-p14",
+        "source": "ssl",
+        "model_parameters": "{'extract_cls_token': true}",
+        "module_name": "norm",
+        "pretrained": "yes"
+    },
+    "dino-vit-base-p16": {
+        "model_name": "dino-vit-base-p16",
+        "source": "ssl",
+        "model_parameters": "{'extract_cls_token': true}",
+        "module_name": "norm",
+        "pretrained": "imagenet"
+    },
+    "clip_vitL": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": "{'variant': 'ViT-L-14', 'dataset': 'laion400m_e32'}",
+        "module_name": "norm",
+        "pretrained": "laion400m_e32"
+    },
+     "clip_vitL_quickgelu": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": "{'variant': 'ViT-L-14-quickgelu', 'dataset': 'laion400m_e32'}",
+        "module_name": "norm",
+        "pretrained": "laion400m_e32"
+    },
+    "dreamsim_open_clip": {
+        "model_name": "DreamSim",
+        "source": "custom",
+        "model_parameters": "{'variant': 'open_clip_vitb32'}",
+        "module_name": "model.mlp",
+        "pretrained": "yes"
+    },
+    "vit_b16": {
+        "model_name": "vit_b16",
+        "source": "torchvision",
+        "model_parameters" : "{'weights':'DEFAULT'}",
+        "module_name": "norm",
+        "pretrained": "imagenet"
+    }
+}
