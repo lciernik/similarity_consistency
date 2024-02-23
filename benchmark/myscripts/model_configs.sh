@@ -6,7 +6,7 @@
 
 
 # Read JSON from file
-json_file="models_config.json"
+json_file="models_config_small.json"
 json=$(<"$json_file")
 
 # Extract model names
