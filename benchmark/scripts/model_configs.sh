@@ -37,7 +37,8 @@ source=${source_values[$model_idx]}
 model_parameters=${model_parameters_values[$model_idx]}
 module_name=${module_names[$model_idx]}
 
-seconds=$((SLURM_ARRAY_TASK_ID * 60))
+random_number=$((RANDOM % 6))
+seconds=$((random_number * 60))
 sleep $seconds
 
 source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
