@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
-#SBATCH -a 0-5
+#SBATCH -a 0-19
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-5h
@@ -15,17 +15,23 @@
 dataset_root="/home/space/diverse_priors/datasets/{dataset}"
 feature_root="/home/space/diverse_priors/features"
 
-output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model}_{pretrained}_{model_source}_{model_parameters}_{module_name}.json"
+output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model}_{pretrained}_{model_source}_{model_parameters}_{module_name}_${SLURM_ARRAY_TASK_ID}.json"
 
 # Datasets
-datasets=("cifar10" "imagenet-r" "imagenet-a")
+datasets=("cifar10" "caltech101" "cifar10" "cifar100" "clevr_count_all" "clevr_closest_object_distance" "diabetic_retinopathy" "dmlab" "dsprites_label_orientation" "dsprites_label_x_position" "dtd" "eurosat" "kitti_closest_vehicle_distance" "flowers" "pets" "pcam" "resisc45" "smallnorb_label_azimuth" "smallnorb_label_elevation" "svhn")
 
 # Model configurations
-pretrained_values=("yes" "yes")
-model_names=("dinov2-vit-large-p14" "DreamSim")
-source_values=("ssl" "custom")
-model_parameters_values=('{"extract_cls_token":true}' '{"variant":"open_clip_vitb32"}')
-module_names=('norm' 'model.mlp')
+#pretrained_values=("yes" "yes")
+#model_names=("dinov2-vit-large-p14" "DreamSim")
+#source_values=("ssl" "custom")
+#model_parameters_values=('{"extract_cls_token":true}' '{"variant":"open_clip_vitb32"}')
+#module_names=('norm' 'model.mlp')
+
+pretrained_values=("yes")
+model_names=("dinov2-vit-large-p14")
+source_values=("ssl" )
+model_parameters_values=('{"extract_cls_token":true}')
+module_names=('norm')
 
 dataset_idx=$((SLURM_ARRAY_TASK_ID % ${#datasets[@]}))
 model_idx=$(((SLURM_ARRAY_TASK_ID / ${#datasets[@]}) % ${#model_names[@]}))
@@ -38,7 +44,8 @@ model_parameters=${model_parameters_values[$model_idx]}
 module_name=${module_names[$model_idx]}
 
 random_number=$((RANDOM % 6))
-seconds=$((random_number * 60))
+echo "waiting $random_number minutes"
+seconds=$((random_number * 60 + RANDOM % 30))
 sleep $seconds
 
 source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
