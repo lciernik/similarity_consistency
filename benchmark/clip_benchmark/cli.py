@@ -19,21 +19,13 @@ from clip_benchmark.model_collection import (get_model_collection_from_file,
 from clip_benchmark.models import load_model
 
 
-def parse_list_of_dicts(s):
-    print(s, flush=True)
-    print(type(s), flush=True)
+def parse_str_to_dict(s):
     try:
-        # Convert string to list of dictionaries or a single dictionary
-        list_of_dicts = json.loads(s)
-        # if not isinstance(list_of_dicts, list):
-        #     list_of_dicts = [list_of_dicts]
-        # for item in list_of_dicts:
-        #     if not isinstance(item, dict):
-        #         raise ValueError("Input contains non-dictionary elements.")
-        return list_of_dicts
-    except ValueError as e :
+        parsed_dict = json.loads(s)
+        return parsed_dict
+    except ValueError as e:
         print(e, flush=True)
-        raise argparse.ArgumentTypeError("Input is not a valid list of Python dictionaries or a single Python dictionary.")
+        raise argparse.ArgumentTypeError("Input is not a valid JSON dictionary.")
 
 
 def get_parser_args():
@@ -64,12 +56,10 @@ def get_parser_args():
                              help="For each model, indicate the source of the model. See thingsvision for more details.")
     parser_eval.add_argument('--model_parameters',
                              nargs="+",
-                             type=parse_list_of_dicts,
+                             type=parse_str_to_dict,
                              metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
-
-
 
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
@@ -194,7 +184,8 @@ def main_eval(base):
             base.model_parameters), "The number of model_parameters should be the same as the number of models"
         assert len(models) == len(
             base.module_name), "The number of module_name should be the same as the number of models"
-        assert len(models) == len(base.pretrained), "The number of pretrained should be the same as the number of models"
+        assert len(models) == len(
+            base.pretrained), "The number of pretrained should be the same as the number of models"
 
         models = list(zip(models, base.model_source, base.model_parameters, base.module_name, base.pretrained))
         # models = list(product(models_with_configs, base.pretrained))
@@ -243,8 +234,8 @@ def main_eval(base):
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
     if base.verbose:
-        print(f"Number of runs: {len(runs)}")
-        print(f"Runs: {runs}")
+        print(f"Number of runs: {len(list(runs))}")
+        print(f"Runs: {list(runs)}")
     for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)
