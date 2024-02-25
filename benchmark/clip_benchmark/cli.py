@@ -234,9 +234,6 @@ def main_eval(base):
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
-    if base.verbose:
-        print(f"Runs: {runs}")
-
     for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
         if base.verbose:
             print('Running', model, model_source, model_parameters, module_name, pretrained, dataset, flush=True)

@@ -1,52 +1,15 @@
 #!/bin/bash
-
-## Read JSON from file
-#json_file="models_config_small.json"
-#json=$(<"$json_file")
+#SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/myscripts/logs/run_%A/%a.out
+#SBATCH -a 0-5
+#SBATCH -J div_prio
 #
-## Extract model names
-#model_names=$(echo "$json" | grep -o '"model_name":"[^"]*' | cut -d'"' -f4)
-#model_names=$(echo "$model_names" | tr '\n' ' ')
-#model_names=($model_names)
-#
-#pretrained_values=$(echo "$json" | grep -o '"pretrained":"[^"]*' | cut -d'"' -f4)
-#pretrained_values=$(echo "$pretrained_values" | tr '\n' ' ')
-#pretrained_values=($pretrained_values)
-#
-#source_values=$(echo "$json" | grep -o '"source":"[^"]*' | cut -d'"' -f4)
-#source_values=$(echo "$source_values" | tr '\n' ' ')
-#source_values=($source_values)
-#
-#model_parameters_values=$(echo "$json" | grep -o '"model_parameters":"[^"]*' | cut -d'"' -f4)
-#model_parameters_values=$(echo "$model_parameters_values" | tr '\n' ' ')
-#model_parameters_values=($model_parameters_values)
-#
-#module_names=$(echo "$json" | grep -o '"module_name":"[^"]*' | cut -d'"' -f4)
-#module_names=$(echo "$module_names" | tr '\n' ' ')
-#module_names=($module_names)
-#
-#echo "Model names: ${model_names[*]}"
-#echo "Pretrained values: ${pretrained_values[*]}"
-#echo "Source values: ${source_values[*]}"
-#echo "Model parameters values: ${model_parameters_values[*]}"
-#echo "Module names: ${module_names[*]}"
-#
-##cd /Users/lciernik/Documents/projects/divers_prios/diverse_priors/benchmark
-##
-#clip_benchmark eval --dataset=cifar10 \
-#                    --task=linear_probe \
-#                    --pretrained ${pretrained_values[*]} \
-#                    --model ${model_names[*]} \
-#                    --output=result.json \
-#                    --batch_size=64 \
-#                    --fewshot_lr 0.1 \
-#                    --fewshot_epochs 20 \
-#                    --batch_size 512 \
-#                    --train_split train \
-#                    --test_split test \
-#                    --model_source ${source_values[*]} \
-#                    --model_parameters ${model_parameters_values[*]} \
-#                    --module_name ${module_names[*]}
+#SBATCH --partition=gpu-5h
+#SBATCH --exclude=head046
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --gres=gpu:1
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=100000M
 
 
 dataset_root="/home/space/diverse_priors/datasets/{dataset}"
@@ -54,31 +17,55 @@ feature_root="/home/space/diverse_priors/features"
 
 output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model_name}_{pretrained}_{model_source}_{model_parameters}_{module_name}.json"
 
+# Datasets
 datasets=("cifar10" "imagenet-r" "imagenet-a")
+
+# Model configurations
 pretrained_values=("yes" "yes")
 model_names=("dinov2-vit-large-p14" "DreamSim")
 source_values=("ssl" "custom")
 model_parameters_values=('{"extract_cls_token":true}' '{"variant":"open_clip_vitb32"}')
 module_names=('norm' 'model.mlp')
 
+dataset_idx=$((SLURM_ARRAY_TASK_ID % ${#datasets[@]}))
+model_idx=$(((SLURM_ARRAY_TASK_ID / ${#datasets[@]}) % ${#model_names[@]}))
+
+dataset=${datasets[$dataset_idx]}
+pretrained=${pretrained_values[$model_idx]}
+model=${model_names[$model_idx]}
+source=${source_values[$model_idx]}
+model_parameters=${model_parameters_values[$model_idx]}
+module_name=${module_names[$model_idx]}
+
+
+
+source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
+conda activate clip_benchmark
+
+# Predefined arrays with values from JSON
+#pretrained_values=("yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet")
+#model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "clip_vitL" "clip_vitL_quickgelu" "dreamsim_open_clip" "vit_b_16")
+#source_values=("ssl" "ssl" "custom" "custom" "custom" "torchvision")
+#model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"ViT-L-14-quickgelu", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
+#module_names=('norm' 'norm' 'visual' 'visual' 'model.mlp' 'encoder.ln')
+
 
 # shellcheck disable=SC2068
 clip_benchmark eval --dataset_root=$dataset_root \
                     --feature_root=$feature_root \
-                    --output $output_fn \
-                    --dataset ${datasets[*]} \
+                    --output=$output_fn \
+                    --dataset="$dataset" \
                     --task=linear_probe \
-                    --pretrained ${pretrained_values[*]} \
-                    --model ${model_names[*]} \
-                    --output=result.json \
+                    --pretrained="$pretrained" \
+                    --model="$model" \
                     --batch_size=64 \
                     --fewshot_lr 0.1 \
                     --fewshot_epochs 20 \
                     --train_split train \
                     --test_split test \
-                    --model_source ${source_values[*]} \
-                    --model_parameters ${model_parameters_values[*]} \
-                    --module_name ${module_names[*]}
+                    --model_source="$source" \
+                    --model_parameters="$model_parameters" \
+                    --module_name="$module_name"
 
 
 
