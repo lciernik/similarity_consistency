@@ -54,8 +54,15 @@ def get_parser_args():
 
     parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
                              help="Model architecture to use from OpenCLIP")
-    parser_eval.add_argument('--model_source', type=str, nargs="+", default=["ssl"], help="For each model, indicate the source of the model. See thingsvision for more details.")
-    parser_eval.add_argument('--model_parameters', nargs="+", action=parse_list_of_dicts, metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
+    parser_eval.add_argument('--model_source',
+                             type=str,
+                             nargs="+",
+                             default=["ssl"],
+                             help="For each model, indicate the source of the model. See thingsvision for more details.")
+    parser_eval.add_argument('--model_parameters',
+                             nargs="+",
+                             type=parse_list_of_dicts,
+                             metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
 
