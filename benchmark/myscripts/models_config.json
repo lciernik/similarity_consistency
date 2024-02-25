@@ -17,14 +17,14 @@
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": "{'variant': 'ViT-L-14', 'dataset': 'laion400m_e32'}",
-        "module_name": "norm",
+        "module_name": "visual",
         "pretrained": "laion400m_e32"
     },
      "clip_vitL_quickgelu": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": "{'variant': 'ViT-L-14-quickgelu', 'dataset': 'laion400m_e32'}",
-        "module_name": "norm",
+        "module_name": "visual",
         "pretrained": "laion400m_e32"
     },
     "dreamsim_open_clip": {
@@ -34,11 +34,11 @@
         "module_name": "model.mlp",
         "pretrained": "yes"
     },
-    "vit_b16": {
-        "model_name": "vit_b16",
+    "vit_b_16": {
+        "model_name": "vit_b_16",
         "source": "torchvision",
         "model_parameters" : "{'weights':'DEFAULT'}",
-        "module_name": "norm",
+        "module_name": "encoder.ln",
         "pretrained": "imagenet"
     }
 }
