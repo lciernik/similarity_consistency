@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/myscripts/logs/run_%A/%a.out
+#SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
 #SBATCH -a 0-5
 #SBATCH -J div_prio
 #
