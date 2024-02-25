@@ -240,6 +240,9 @@ def main_eval(base):
         random.seed(base.seed)
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
+    if base.verbose:
+        print(f"Number of runs: {len(runs)}")
+        print(f"Runs: {runs}")
     for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
         # We iterative over all possible model/dataset/
         args = copy(base)

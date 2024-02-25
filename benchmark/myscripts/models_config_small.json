@@ -1,16 +1,16 @@
 {
-    "dinov2-vit-large-p14": {
-        "model_name": "dinov2-vit-large-p14",
-        "source": "ssl",
-        "model_parameters": "{'extract_cls_token': true}",
-        "module_name": "norm",
-        "pretrained": "yes"
+    "dinov2-vit-large-p14":{
+        "model_name":"dinov2-vit-large-p14",
+        "source":"ssl",
+        "model_parameters":"{'extract_cls_token':true}",
+        "module_name":"norm",
+        "pretrained":"yes"
     },
-    "dreamsim_open_clip": {
-        "model_name": "DreamSim",
-        "source": "custom",
-        "model_parameters": "{'variant': 'open_clip_vitb32'}",
-        "module_name": "model.mlp",
-        "pretrained": "yes"
+    "dreamsim_open_clip":{
+        "model_name":"DreamSim",
+        "source":"custom",
+        "model_parameters":"{'variant':'open_clip_vitb32'}",
+        "module_name":"model.mlp",
+        "pretrained":"yes"
     }
 }
