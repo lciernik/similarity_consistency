@@ -186,7 +186,7 @@ def main_eval(base):
     else:
         models = _as_list(base.model)
         assert len(models) == len(
-            base.modle_source), "The number of model_source should be the same as the number of models"
+            base.model_source), "The number of model_source should be the same as the number of models"
         assert len(models) == len(
             base.model_parameters), "The number of model_parameters should be the same as the number of models"
         assert len(models) == len(
