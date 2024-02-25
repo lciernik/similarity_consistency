@@ -15,7 +15,7 @@
 dataset_root="/home/space/diverse_priors/datasets/{dataset}"
 feature_root="/home/space/diverse_priors/features"
 
-output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model_name}_{pretrained}_{model_source}_{model_parameters}_{module_name}.json"
+output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model}_{pretrained}_{model_source}_{model_parameters}_{module_name}.json"
 
 # Datasets
 datasets=("cifar10" "imagenet-r" "imagenet-a")
