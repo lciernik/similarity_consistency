@@ -21,6 +21,7 @@ from clip_benchmark.models import load_model
 
 def parse_list_of_dicts(s):
     print(s, flush=True)
+    print(type(s), flush=True)
     try:
         # Convert string to list of dictionaries or a single dictionary
         list_of_dicts = json.loads(s)
@@ -30,7 +31,8 @@ def parse_list_of_dicts(s):
         #     if not isinstance(item, dict):
         #         raise ValueError("Input contains non-dictionary elements.")
         return list_of_dicts
-    except ValueError:
+    except ValueError as e :
+        print(e, flush=True)
         raise argparse.ArgumentTypeError("Input is not a valid list of Python dictionaries or a single Python dictionary.")
 
 
