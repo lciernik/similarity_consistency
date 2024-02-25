@@ -1,13 +1,12 @@
 #!/bin/bash
 #SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
-#SBATCH -a 0-13
+#SBATCH -a 0-18
 #SBATCH -J div_prio
 #
-#SBATCH --partition=gpu-5h
+#SBATCH --partition=cpu-2d
 #SBATCH --exclude=head046
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --gres=gpu:1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=100000M
 
