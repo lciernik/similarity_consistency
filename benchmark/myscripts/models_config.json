@@ -2,7 +2,7 @@
     "dinov2-vit-large-p14":{
         "model_name":"dinov2-vit-large-p14",
         "source":"ssl",
-        "model_parameters":"{'extract_cls_token':true}",
+        "model_parameters":"{\"extract_cls_token\":true}",
         "module_name":"norm",
         "pretrained":"yes"
     },
