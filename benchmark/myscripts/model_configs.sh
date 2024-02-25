@@ -24,19 +24,19 @@ echo "Module names: $module_names"
 
 #cd /Users/lciernik/Documents/projects/divers_prios/diverse_priors/benchmark
 #
-#clip_benchmark eval --dataset=cifar10 \
-#                    --task=linear_probe \
-#                    --pretrained="$pretrained_values" \
-#                    --model="$model_names" \
-#                    --output=result.json \
-#                    --batch_size=64 \
-#                    --fewshot_lr 0.1 \
-#                    --fewshot_epochs 20 \
-#                    --batch_size 512 \
-#                    --train_split train \
-#                    --test_split test \
-#                    --model_source="$source_values" \
-#                    --model_parameters="$model_parameters_values" \
-#                    --module_name="$module_names"
-#
+clip_benchmark eval --dataset=cifar10 \
+                    --task=linear_probe \
+                    --pretrained="$pretrained_values" \
+                    --model="$model_names" \
+                    --output=result.json \
+                    --batch_size=64 \
+                    --fewshot_lr 0.1 \
+                    --fewshot_epochs 20 \
+                    --batch_size 512 \
+                    --train_split train \
+                    --test_split test \
+                    --model_source="$source_values" \
+                    --model_parameters="$model_parameters_values" \
+                    --module_name="$module_names"
+
 ##                    --fewshot_k 5 \
