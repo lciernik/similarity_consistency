@@ -19,7 +19,9 @@ output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model}_{p
 
 # Datasets
 #datasets=("caltech101" "cifar10" "cifar100" "clevr_count_all" "clevr_closest_object_distance" "diabetic_retinopathy" "dmlab" "dsprites_label_orientation" "dsprites_label_x_position" "dtd" "eurosat" "kitti_closest_vehicle_distance" "flowers" "pets" "pcam" "resisc45" "smallnorb_label_azimuth" "smallnorb_label_elevation" "svhn")
-datasets=( "vtab/caltech101" "vtab/clevr_count_all" "vtab/clevr_closest_object_distance" "vtab/diabetic_retinopathy" "vtab/dmlab" "vtab/dsprites_label_orientation" "vtab/dsprites_label_x_position" "vtab/eurosat" "vtab/kitti_closest_vehicle_distance" "vtab/pcam" "vtab/resisc45" "vtab/smallnorb_label_azimuth" "vtab/smallnorb_label_elevation" "vtab/svhn" )
+#datasets=( "vtab/caltech101" "vtab/clevr_count_all" "vtab/clevr_closest_object_distance" "vtab/diabetic_retinopathy" "vtab/dmlab" "vtab/dsprites_label_orientation" "vtab/dsprites_label_x_position" "vtab/eurosat" "vtab/kitti_closest_vehicle_distance" "vtab/pcam" "vtab/resisc45" "vtab/smallnorb_label_azimuth" "vtab/smallnorb_label_elevation" "vtab/svhn" )
+dataset=("vtab/caltech101" "vtab/cifar10" "vtab/cifar100" "vtab/clevr_count_all" "vtab/clevr_closest_object_distance" "vtab/diabetic_retinopathy" "vtab/dmlab" "vtab/dsprites_label_orientation" "vtab/dsprites_label_x_position" "vtab/dtd" "vtab/eurosat" "vtab/kitti_closest_vehicle_distance" "vtab/flowers" "vtab/pets" "vtab/pcam" "vtab/resisc45" "vtab/smallnorb_label_azimuth" "vtab/smallnorb_label_elevation" "vtab/svhn")
+
 
 # Model configurations
 #pretrained_values=("yes" "yes")
@@ -44,10 +46,10 @@ source=${source_values[$model_idx]}
 model_parameters=${model_parameters_values[$model_idx]}
 module_name=${module_names[$model_idx]}
 
-random_number=$((RANDOM % 6))
-echo "waiting $random_number minutes"
-seconds=$((random_number * 60 + RANDOM % 30))
-sleep $seconds
+#random_number=$((RANDOM % 6))
+#echo "waiting $random_number minutes"
+#seconds=$((random_number * 60 + RANDOM % 30))
+#sleep $seconds
 
 source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
 conda activate clip_benchmark
