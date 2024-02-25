@@ -49,22 +49,37 @@
 #                    --module_name ${module_names[*]}
 
 
-clip_benchmark eval --dataset 'cifar10' 'mnist'\
+dataset_root="/home/space/diverse_priors/datasets/{dataset}"
+feature_root="/home/space/diverse_priors/features"
+
+output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model_name}_{pretrained}_{model_source}_{model_parameters}_{module_name}.json"
+
+datasets=("cifar10" "imagenet-r" "imagenet-a")
+pretrained_values=("yes" "yes")
+model_names=("dinov2-vit-large-p14" "DreamSim")
+source_values=("ssl" "custom")
+model_parameters_values=('{"extract_cls_token":true}' '{"variant":"open_clip_vitb32"}')
+module_names=('norm' 'model.mlp')
+
+
+# shellcheck disable=SC2068
+clip_benchmark eval --dataset_root=$dataset_root \
+                    --feature_root=$feature_root \
+                    --output $output_fn \
+                    --dataset ${datasets[*]} \
                     --task=linear_probe \
-                    --pretrained "yes" "yes" \
-                    --model "dinov2-vit-large-p14" "DreamSim" \
+                    --pretrained ${pretrained_values[*]} \
+                    --model ${model_names[*]} \
                     --output=result.json \
                     --batch_size=64 \
-                    --fewshot_k 5 \
                     --fewshot_lr 0.1 \
                     --fewshot_epochs 20 \
                     --train_split train \
                     --test_split test \
-                    --model_source "ssl"  "custom" \
-                    --model_parameters '{"extract_cls_token":true}' '{"variant":"open_clip_vitb32"}' \
-                    --module_name 'norm' 'model.mlp'
+                    --model_source ${source_values[*]} \
+                    --model_parameters ${model_parameters_values[*]} \
+                    --module_name ${module_names[*]}
 
-#clip_benchmark eval --dataset=cifar10 --task=linear_probe --pretrained=yes --model=simclr-rn50 -
-# -output=result.json --batch_size=64 --fewshot_k 5 --fewshot_lr 0.1 --fewshot_epochs 20
-# --batch_size 512 --train_split train --test_split test --model_source=ssl
-# --model_parameters="{}" --module_name="avgpool"
+
+
+#                    --fewshot_k 5 \

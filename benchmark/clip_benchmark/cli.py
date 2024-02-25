@@ -236,7 +236,7 @@ def main_eval(base):
 
     if base.verbose:
         print(f"Runs: {runs}")
-        
+
     for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
         if base.verbose:
             print('Running', model, model_source, model_parameters, module_name, pretrained, dataset, flush=True)
@@ -300,6 +300,9 @@ def run(args):
     dataset_slug = dataset_name.replace('/', '_')
     output = args.output.format(
         model=args.model,
+        model_source=args.model_source,
+        module_name=args.module_name,
+        model_parameters='_'.join(args.model_parameters.values() if args.model_parameters else []),
         pretrained=pretrained_slug,
         pretrained_full_path=pretrained_slug_full_path,
         task=task,
