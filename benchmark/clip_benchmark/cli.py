@@ -20,6 +20,7 @@ from clip_benchmark.models import load_model
 
 
 def parse_list_of_dicts(s):
+    print(s, flush=True)
     try:
         # Convert string to list of dictionaries or a single dictionary
         list_of_dicts = json.loads(s)
