@@ -302,7 +302,7 @@ def run(args):
         model=args.model,
         model_source=args.model_source,
         module_name=args.module_name,
-        model_parameters='_'.join(args.model_parameters.values() if args.model_parameters else []),
+        model_parameters='_'.join( [f"{k}_{v}" for k, v in args.model_parameters.items()] if args.model_parameters else []),
         pretrained=pretrained_slug,
         pretrained_full_path=pretrained_slug_full_path,
         task=task,
