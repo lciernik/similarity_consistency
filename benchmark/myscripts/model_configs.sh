@@ -1,10 +1,5 @@
 #!/bin/bash
 
-
-#--model "dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "OpenCLIP" "DreamSim" "vit_b16"
-#--pretrained "yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet"
-
-
 # Read JSON from file
 json_file="models_config_small.json"
 json=$(<"$json_file")
@@ -24,6 +19,7 @@ echo "Pretrained values: $pretrained_values"
 echo "Source values: $source_values"
 echo "Model parameters values: $model_parameters_values"
 
+cd /Users/lciernik/Documents/projects/divers_prios/diverse_priors/benchmark
 
 clip_benchmark eval --dataset=cifar10 \
                     --task=linear_probe \
