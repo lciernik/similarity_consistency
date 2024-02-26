@@ -3,9 +3,10 @@
 #SBATCH -a 0-18
 #SBATCH -J div_prio
 #
-#SBATCH --partition=cpu-2d
+#SBATCH --partition=gpu-5h
 #SBATCH --exclude=head046
 #SBATCH --nodes=1
+#SBATCH --gpus-per-node=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=100000M
@@ -17,7 +18,9 @@ feature_root="/home/space/diverse_priors/features"
 output_fn="/home/space/diverse_priors/results/single_models/{dataset}_{model}_{pretrained}_{model_source}_{model_parameters}_{module_name}_${SLURM_ARRAY_JOB_ID}.json"
 
 # Datasets
-#datasets=("caltech101" "cifar10" "cifar100" "clevr_count_all" "clevr_closest_object_distance" "diabetic_retinopathy" "dmlab" "dsprites_label_orientation" "dsprites_label_x_position" "dtd" "eurosat" "kitti_closest_vehicle_distance" "flowers" "pets" "pcam" "resisc45" "smallnorb_label_azimuth" "smallnorb_label_elevation" "svhn")
+#datasets=("cifar10" "cifar100" "imagenet1k" "imagenet-w" "babel_imagenet" "voc2007"
+
+#"clevr_count_all" "clevr_closest_object_distance" "diabetic_retinopathy" "dmlab" "dsprites_label_orientation" "dsprites_label_x_position" "dtd" "eurosat" "kitti_closest_vehicle_distance" "flowers" "pets" "pcam" "resisc45" "smallnorb_label_azimuth" "smallnorb_label_elevation" "svhn")
 #datasets=( "vtab/caltech101" "vtab/clevr_count_all" "vtab/clevr_closest_object_distance" "vtab/diabetic_retinopathy" "vtab/dmlab" "vtab/dsprites_label_orientation" "vtab/dsprites_label_x_position" "vtab/eurosat" "vtab/kitti_closest_vehicle_distance" "vtab/pcam" "vtab/resisc45" "vtab/smallnorb_label_azimuth" "vtab/smallnorb_label_elevation" "vtab/svhn" )
 datasets=("vtab/caltech101" "vtab/cifar10" "vtab/cifar100" "vtab/clevr_count_all" "vtab/clevr_closest_object_distance" "vtab/diabetic_retinopathy" "vtab/dmlab" "vtab/dsprites_label_orientation" "vtab/dsprites_label_x_position" "vtab/dtd" "vtab/eurosat" "vtab/kitti_closest_vehicle_distance" "vtab/flowers" "vtab/pets" "vtab/pcam" "vtab/resisc45" "vtab/smallnorb_label_azimuth" "vtab/smallnorb_label_elevation" "vtab/svhn")
 
