@@ -89,7 +89,8 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
     def download_imagenet(r):
         os.makedirs(r, exist_ok=True)
         call(f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_devkit_t12.tar.gz --output-document={r}/ILSVRC2012_devkit_t12.tar.gz", shell=True)            
-        call(f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --output-document={r}/ILSVRC2012_img_val.tar", shell=True)            
+        call(f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar --output-document={r}/ILSVRC2012_img_train.tar", shell=True)
+        call(f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --output-document={r}/ILSVRC2012_img_val.tar", shell=True)
 
     train = (split == "train")
     if dataset_name == "cifar10":
@@ -386,6 +387,8 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         assert split in ("train", "val", "test"), f"Only `train` and `val` and `test` split available for {dataset_name}"
         ds = DTD(root=root, split=split, transform=transform, download=download, **kwargs)
     elif dataset_name == "pets":
+        if split=='train':
+            split = 'trainval'
         assert split in ("trainval", "test"), f"Only `trainval` and `test` split available for {dataset_name}"
         ds = OxfordIIITPet(root=root, split=split, target_types="category", transform=transform, download=download, **kwargs)
     elif dataset_name == "caltech101":
