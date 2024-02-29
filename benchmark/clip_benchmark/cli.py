@@ -60,6 +60,7 @@ def get_parser_args():
                              metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
+    parser_eval.add_argument('--eval_combined', action="store_true", help="Whether the features of the different models should be used in combined fashion.")
 
     parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
                              help="Model checkpoint name to use from OpenCLIP")
@@ -225,30 +226,35 @@ def main_eval(base):
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
 
-    runs = product(models, datasets)
-    if base.distributed:
-        local_rank, rank, world_size = world_info_from_env()
-        runs = list(runs)
-        # randomize runs so that runs are balanced across gpus
-        random.seed(base.seed)
-        random.shuffle(runs)
-        runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
-    for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
-        if base.verbose:
-            print('Running', model, model_source, model_parameters, module_name, pretrained, dataset, flush=True)
-        # We iterative over all possible model/dataset/
-        args = copy(base)
-        args.model = model
-        args.model_source = model_source
-        args.model_parameters = model_parameters
-        args.module_name = module_name
-        args.pretrained = pretrained
-        args.dataset = dataset
-        args.train_split = dataset_info[dataset]["train_split"]
-        args.val_split = dataset_info[dataset]["val_split"]
-        args.val_proportion = dataset_info[dataset]["proportion"]
-        run(args)
+    ## TODO differ between combined features and dataset and 
+    if base.eval_combined:
+        raise NotImplementedError("Cannot evaluate the combined model presentations and the different datasets yet.")
+    else:
+        runs = product(models, datasets)
+        if base.distributed:
+            local_rank, rank, world_size = world_info_from_env()
+            runs = list(runs)
+            # randomize runs so that runs are balanced across gpus
+            random.seed(base.seed)
+            random.shuffle(runs)
+            runs = [r for i, r in enumerate(runs) if i % world_size == rank]
+
+        for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
+            if base.verbose:
+                print('Running', model, model_source, model_parameters, module_name, pretrained, dataset, flush=True)
+            # We iterative over all possible model/dataset/
+            args = copy(base)
+            args.model = model
+            args.model_source = model_source
+            args.model_parameters = model_parameters
+            args.module_name = module_name
+            args.pretrained = pretrained
+            args.dataset = dataset
+            args.train_split = dataset_info[dataset]["train_split"]
+            args.val_split = dataset_info[dataset]["val_split"]
+            args.val_proportion = dataset_info[dataset]["proportion"]
+            run(args)
 
 
 def _as_list(l):
