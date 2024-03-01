@@ -254,8 +254,11 @@ def main_eval(base):
             args.train_split = dataset_info[dataset]["train_split"]
             args.val_split = dataset_info[dataset]["val_split"]
             args.val_proportion = dataset_info[dataset]["proportion"]
-            run(args)
-
+            try:
+                run(args)
+            except Exception as e:
+                print(f"An error occured for the combination: {model}, {model_source}, {model_parameters}, {module_name}, {pretrained}, {dataset}. Continuing with the next combination", flush=True)
+                print(e, flush=True)
 
 def _as_list(l):
     if not l:
@@ -276,25 +279,40 @@ def _single_option_to_multiple_datasets(cur_option, datasets, name):
         return cur_option
 
 
-def run(args):
-    """Console script for clip_benchmark."""
+def prepare_device(distributed):
     if torch.cuda.is_available():
-        if args.distributed:
+        if distributed:
             local_rank, rank, world_size = world_info_from_env()
             device = 'cuda:%d' % local_rank
             torch.cuda.set_device(device)
         else:
             device = "cuda"
-        args.device = device
+        return = device
     else:
-        args.device = "cpu"
+        return = "cpu"
+
+
+def prepare_ds_name(dataset):
+    if dataset.startswith("wds/"):
+        return dataset.replace("wds/", "", 1)
+    else:
+        return dataset
+
+
+
+def run_combined(args):
+    args.device = prepare_device(args.distributed)
+
+
+
+def run(args):
+    """Console script for clip_benchmark."""
+    # device 
+    args.device = prepare_device(args.distributed)
     # set seed.
     torch.manual_seed(args.seed)
     task = args.task
-    if args.dataset.startswith("wds/"):
-        dataset_name = args.dataset.replace("wds/", "", 1)
-    else:
-        dataset_name = args.dataset
+    dataset_name = prepare_ds_name(args.dataset)
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
     pretrained_slug = os.path.basename(args.pretrained) if os.path.isfile(args.pretrained) else args.pretrained

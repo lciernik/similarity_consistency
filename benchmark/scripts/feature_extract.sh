@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
-#SBATCH -a 0
+#SBATCH -a 0-5 
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -22,11 +22,17 @@ conda activate clip_benchmark
 # model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"ViT-L-14-quickgelu", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
 # module_names=('norm' 'norm' 'visual' 'visual' 'model.mlp' 'encoder.ln')
 
-model_names=("dinov2-vit-large-p14")
-pretrained_values=("yes")
-source_values=("ssl" )
-model_parameters_values=('{"extract_cls_token":true}')
-module_names=('norm')
+# model_names=("dinov2-vit-large-p14")
+# pretrained_values=("yes")
+# source_values=("ssl" )
+# model_parameters_values=('{"extract_cls_token":true}')
+# module_names=('norm')
+
+model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "OpenCLIP" "DreamSim" "vit_b_16")
+pretrained_values=("yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet")
+source_values=("ssl" "ssl" "custom" "custom" "custom" "torchvision")
+model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"ViT-L-14-quickgelu", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
+module_names=('norm' 'norm' 'visual' 'visual' 'model.mlp' 'encoder.ln')
 
 model=${model_names[$SLURM_ARRAY_TASK_ID]}
 pretrained=${pretrained_values[$SLURM_ARRAY_TASK_ID]}
