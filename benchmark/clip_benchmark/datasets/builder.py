@@ -394,7 +394,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
     elif dataset_name == "caltech101":
         warnings.warn(f"split argument ignored for `{dataset_name}`, there are no pre-defined train/test splits for this dataset")
         # broken download link (can't download google drive), fixed by this PR https://github.com/pytorch/vision/pull/5645
-        # also available in "vtab/caltech101" using VTAB splits, we advice to use VTAB version rather than this one 
+        # also available in "vtab/caltech101" using VTAB splits, we advise to use VTAB version rather than this one
         # since in this one (torchvision) there are no pre-defined test splits
         ds = caltech101.Caltech101(root=root, target_type="category", transform=transform, download=download, **kwargs)
         ds.classes = default_classnames["caltech101"]
