@@ -9,7 +9,7 @@ from sklearn.metrics import classification_report, balanced_accuracy_score
 from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
 
-from feature_combiner import ConcatFeatureCombiner
+from .feature_combiner import ConcatFeatureCombiner
 
 
 def accuracy(output, target, topk=(1,)):
