@@ -224,14 +224,15 @@ def main_eval(base):
         print(f"Datasets: {datasets}")
 
     if base.eval_combined:
-        ## TODO: implement different ways how to select the model combinations
-        n_models = len(models)
-        model_combinations = []
-        for i in range(2, n_models + 1):
-            model_combinations += list(itertools.combinations(models, i))
-
-        runs = product(model_combinations, datasets)
-
+        # TODO: implement different ways how to select the model combinations
+        # Now assumption that passed models are combined together
+        # n_models = len(models)
+        # model_combinations = []
+        # for i in range(2, n_models + 1):
+        #     model_combinations += list(itertools.combinations(models, i))
+        #
+        # runs = product(model_combinations, datasets)
+        runs = product([models], datasets)
         arg_fn = prepare_combined_args
         run_fn = run_combined
     else:
@@ -351,6 +352,9 @@ def run_combined(args):
         task = get_dataset_default_task(dataset_name)
 
     output, model_ids = make_output_fname(args, dataset_name, task)
+
+    if args.verbose:
+        print(f"Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}'")
 
     if os.path.exists(output) and args.skip_existing:
         if args.verbose:
