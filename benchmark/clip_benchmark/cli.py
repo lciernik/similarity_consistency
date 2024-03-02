@@ -1,6 +1,7 @@
 """Console script for clip_benchmark."""
 import argparse
 import csv
+import itertools
 import json
 import os
 import random
@@ -9,13 +10,13 @@ from copy import copy
 from itertools import product
 
 import torch
+
 from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
                                              get_dataset_collate_fn,
                                              get_dataset_collection_from_file,
                                              get_dataset_default_task)
+from clip_benchmark.metrics import get_feature_combiner_cls
 from clip_benchmark.metrics import linear_probe
-from clip_benchmark.model_collection import (get_model_collection_from_file,
-                                             model_collection)
 from clip_benchmark.models import load_model
 
 
@@ -60,13 +61,11 @@ def get_parser_args():
                              metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
-    parser_eval.add_argument('--eval_combined', action="store_true", help="Whether the features of the different models should be used in combined fashion.")
+    parser_eval.add_argument('--eval_combined', action="store_true",
+                             help="Whether the features of the different models should be used in combined fashion.")
+    parser_eval.add_argument('--feature_combiner', type=str, default="concat",
+                             choices=['concat', 'concat_pca'], help="Feature combiner to use")
 
-    parser_eval.add_argument('--pretrained', type=str, nargs="+", default=["laion400m_e32"],
-                             help="Model checkpoint name to use from OpenCLIP")
-
-    parser_eval.add_argument('--pretrained_model', type=str, default="", nargs="+",
-                             help="Pre-trained model(s) to use. Can be the full model name where `model` and `pretrained` are comma separated (e.g., --pretrained_model='ViT-B-32-quickgelu,laion400m_e32'), a model collection name ('openai' or 'openclip_base' or 'openclip_multilingual' or 'openclip_all'), or path of a text file where each line is a model fullname where model and pretrained are comma separated (e.g., ViT-B-32-quickgelu,laion400m_e32). --model and --pretrained are ignored if --pretrained_model is used.")
     parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
@@ -97,7 +96,7 @@ def get_parser_args():
                              help="dump templates to the results json file.")
 
     parser_eval.add_argument('--output', default="result.json", type=str,
-                             help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{pretrained}_{model}_{task}.json'")
+                             help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{model}_{task}.json'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
     parser_eval.add_argument('--save_clf', default=None, type=str,
                              help="optionally save the classification layer output by the text tower")
@@ -141,7 +140,7 @@ def main_build(base):
         row.update(data["metrics"])
         row.update(data)
         del row["metrics"]
-        row['model_fullname'] = row['model'] + ' ' + row['pretrained']
+        row['model_fullname'] = "__".join(row['model_ids'])
         for field in row.keys():
             fieldnames.add(field)
         rows.append(row)
@@ -160,38 +159,36 @@ def main_build(base):
             writer.writerow(row)
 
 
+def prepare_args(args, model_info):
+    args.model = model_info[0]  # model
+    args.model_source = model_info[1]  # model_source
+    args.model_parameters = model_info[2]  # model_parameters
+    args.module_name = model_info[3]  # module_name
+    return args
+
+
+def prepare_combined_args(args, model_comb):
+    args.model = [tup[0] for tup in model_comb]
+    args.model_source = [tup[1] for tup in model_comb]
+    args.model_parameters = [tup[2] for tup in model_comb]
+    args.module_name = [tup[3] for tup in model_comb]
+    return args
+
+
 def main_eval(base):
-    # Get list of pre-trained models to evaluate
-    pretrained_model = _as_list(base.pretrained_model)
-    if pretrained_model:
-        models = []
-        for name in pretrained_model:
-            if os.path.isfile(name):
-                # if path, read file, each line is a pre-trained model
-                models.extend(get_model_collection_from_file(name))
-            elif name in model_collection:
-                # if part of `model_collection`, retrieve from it
-                models.extend(model_collection[name])
-            else:
-                # if not, assume it is in the form of `model,pretrained`
-                model, pretrained = name.split(',')
-                models.append((model, pretrained))
+    # Get list of models to evaluate
+    models = _as_list(base.model)
+    srcs = _as_list(base.model_source)
+    params = _as_list(base.model_parameters)
+    module_names = _as_list(base.module_name)
 
-    else:
-        models = _as_list(base.model)
-        assert len(models) == len(
-            base.model_source), "The number of model_source should be the same as the number of models"
-        assert len(models) == len(
-            base.model_parameters), "The number of model_parameters should be the same as the number of models"
-        assert len(models) == len(
-            base.module_name), "The number of module_name should be the same as the number of models"
-        assert len(models) == len(
-            base.pretrained), "The number of pretrained should be the same as the number of models"
+    assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
+    assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
+    assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
 
-        models = list(zip(models, base.model_source, base.model_parameters, base.module_name, base.pretrained))
-        # models = list(product(models_with_configs, base.pretrained))
+    models = list(zip(models, srcs, params, module_names))
 
-    # Ge list of datasets to evaluate on
+    # Get list of datasets to evaluate on
     datasets = []
     for name in _as_list(base.dataset):
         if os.path.isfile(name):
@@ -226,39 +223,47 @@ def main_eval(base):
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
 
-
-    ## TODO differ between combined features and dataset and 
     if base.eval_combined:
-        raise NotImplementedError("Cannot evaluate the combined model presentations and the different datasets yet.")
+        ## TODO: implement different ways how to select the model combinations
+        n_models = len(models)
+        model_combinations = []
+        for i in range(2, n_models + 1):
+            model_combinations += list(itertools.combinations(models, i))
+
+        runs = product(model_combinations, datasets)
+
+        arg_fn = prepare_combined_args
+        run_fn = run_combined
     else:
         runs = product(models, datasets)
-        if base.distributed:
-            local_rank, rank, world_size = world_info_from_env()
-            runs = list(runs)
-            # randomize runs so that runs are balanced across gpus
-            random.seed(base.seed)
-            random.shuffle(runs)
-            runs = [r for i, r in enumerate(runs) if i % world_size == rank]
+        arg_fn = prepare_args
+        run_fn = run
 
-        for (model, model_source, model_parameters, module_name, pretrained), (dataset) in runs:
-            if base.verbose:
-                print('Running', model, model_source, model_parameters, module_name, pretrained, dataset, flush=True)
-            # We iterative over all possible model/dataset/
-            args = copy(base)
-            args.model = model
-            args.model_source = model_source
-            args.model_parameters = model_parameters
-            args.module_name = module_name
-            args.pretrained = pretrained
-            args.dataset = dataset
-            args.train_split = dataset_info[dataset]["train_split"]
-            args.val_split = dataset_info[dataset]["val_split"]
-            args.val_proportion = dataset_info[dataset]["proportion"]
-            try:
-                run(args)
-            except Exception as e:
-                print(f"An error occured for the combination: {model}, {model_source}, {model_parameters}, {module_name}, {pretrained}, {dataset}. Continuing with the next combination", flush=True)
-                print(e, flush=True)
+    if base.distributed:
+        local_rank, rank, world_size = world_info_from_env()
+        runs = list(runs)
+        random.seed(base.seed)
+        random.shuffle(runs)
+        runs = [r for i, r in enumerate(runs) if i % world_size == rank]
+
+    for model_info, dataset in runs:
+        args = copy(base)
+        args = arg_fn(args, model_info)
+        args.dataset = dataset
+        args.train_split = dataset_info[dataset]["train_split"]
+        args.val_split = dataset_info[dataset]["val_split"]
+        args.val_proportion = dataset_info[dataset]["proportion"]
+
+        try:
+            run_fn(args)
+        except Exception as e:
+            print(
+                f"An error occurred during the run with: "
+                f"{model_info} and {dataset}. "
+                f"Continuing with the next run.",
+                flush=True)
+            print(e, flush=True)
+
 
 def _as_list(l):
     if not l:
@@ -287,9 +292,9 @@ def prepare_device(distributed):
             torch.cuda.set_device(device)
         else:
             device = "cuda"
-        return = device
+        return device
     else:
-        return = "cpu"
+        return "cpu"
 
 
 def prepare_ds_name(dataset):
@@ -299,10 +304,105 @@ def prepare_ds_name(dataset):
         return dataset
 
 
+def make_output_fname(args, dataset_name, task):
+    # dataset name for outpath
+    dataset_slug = dataset_name.replace('/', '_')
+
+    # model name for outpath and model ids
+    def _get_model_id(model, model_parameters):
+        if not model_parameters:
+            return model
+        model_slug = model
+        model_suffix = model_parameters.get("variant", "")
+        if model_suffix:
+            model_slug = f"{model_slug}_{model_suffix}"
+        model_suffix = model_parameters.get("dataset", "")
+        if model_suffix:
+            model_slug = f"{model_slug}_{model_suffix}"
+        return model_slug
+
+    if isinstance(args.model, list):
+        model_ids = [_get_model_id(model, model_params) for model, model_params in
+                     zip(args.model, args.model_parameters)]
+        model_slug = '__'.join(model_ids)
+    else:
+        model_slug = _get_model_id(args.model, args.model_parameters)
+        model_ids = [model_slug]
+
+    # output file name
+    output = args.output.format(
+        model=model_slug,
+        task=task,
+        dataset=dataset_slug
+    )
+    return output, model_ids
+
 
 def run_combined(args):
+    # device
     args.device = prepare_device(args.distributed)
+    # set seed.
+    torch.manual_seed(args.seed)
+    # fix task
+    task = args.task
+    # prepare dataset name
+    dataset_name = prepare_ds_name(args.dataset)
+    if task == "auto":
+        task = get_dataset_default_task(dataset_name)
 
+    output, model_ids = make_output_fname(args, dataset_name, task)
+
+    if os.path.exists(output) and args.skip_existing:
+        if args.verbose:
+            print(f"Skip {output}, exists already.")
+        return
+
+    if task == "linear_probe":
+
+        model_ids_w_ds = [(model_id + '-' + args.dataset).replace('/', '_') for model_id in model_ids]
+
+        ## get feature combiner cls
+        feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
+
+        metrics = linear_probe.evaluate_combined(
+            model_ids=model_ids_w_ds,
+            feature_combiner_cls=feature_combiner_cls,
+            feature_root=args.feature_root,
+            fewshot_k=args.fewshot_k,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            lr=args.fewshot_lr,
+            epochs=args.fewshot_epochs,
+            device=args.device,
+            seed=args.seed,
+            use_val_ds=args.val_proportion is not None or args.val_split is not None,
+            amp=args.amp,
+            verbose=args.verbose
+        )
+    else:
+        raise ValueError(
+            "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, or `captioning`".format(
+                task))
+
+    dump = {
+        "dataset": args.dataset,
+        "model_ids": model_ids,
+        "model": args.model,
+        "model_source": args.model_source,
+        "model_parameters": args.model_parameters,
+        "module_name": args.module_name,
+        "task": task,
+        "metrics": metrics,
+    }
+    # if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
+    #     dump["classnames"] = dataset.classes
+    # if hasattr(dataset, "templates") and dataset.templates and args.dump_templates:
+    #     dump["templates"] = dataset.templates
+    if args.verbose:
+        print(f"Dump results to: {output}")
+    with open(output, "w") as f:
+        json.dump(dump, f)
+    return 0
 
 
 def run(args):
@@ -311,30 +411,24 @@ def run(args):
     args.device = prepare_device(args.distributed)
     # set seed.
     torch.manual_seed(args.seed)
+    # fix task
     task = args.task
+    # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
-    pretrained_slug = os.path.basename(args.pretrained) if os.path.isfile(args.pretrained) else args.pretrained
-    pretrained_slug_full_path = args.pretrained.replace('/', '_') if os.path.isfile(
-        args.pretrained) else args.pretrained
-    dataset_slug = dataset_name.replace('/', '_')
-    output = args.output.format(
-        model=args.model,
-        model_source=args.model_source,
-        module_name=args.module_name,
-        model_parameters='_'.join( [f"{k}_{v}" for k, v in args.model_parameters.items()] if args.model_parameters else []),
-        pretrained=pretrained_slug,
-        pretrained_full_path=pretrained_slug_full_path,
-        task=task,
-        dataset=dataset_slug
-    )
+
+    output, model_ids = make_output_fname(args, dataset_name, task)
+    model_id = model_ids[0]
+
     if os.path.exists(output) and args.skip_existing:
         if args.verbose:
             print(f"Skip {output}, exists already.")
         return
+
     if args.verbose:
-        print(f"Running '{task}' on '{dataset_name}' with the model '{args.pretrained}'")
+        print(f"Running '{task}' on '{dataset_name}' with the model '{model_id}'")
+
     dataset_root = args.dataset_root.format(dataset=dataset_name, dataset_cleaned=dataset_name.replace("/", "-"))
 
     if args.skip_load or isinstance(args.model, list):
@@ -430,7 +524,7 @@ def run(args):
             args.num_workers,
             args.fewshot_lr,
             args.fewshot_epochs,
-            (args.model + '-' + args.pretrained + '-' + args.dataset).replace('/', '_'),
+            (model_id + '-' + args.dataset).replace('/', '_'),
             args.seed,
             args.feature_root,
             val_dataloader=val_dataloader,
@@ -445,10 +539,11 @@ def run(args):
                 task))
     dump = {
         "dataset": args.dataset,
+        "model_ids": model_ids,
         "model": args.model,
         "model_source": args.model_source,
         "model_parameters": args.model_parameters,
-        "pretrained": args.pretrained,
+        "module_name": args.module_name,
         "task": task,
         "metrics": metrics,
     }

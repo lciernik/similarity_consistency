@@ -16,26 +16,18 @@ conda activate clip_benchmark
 
 # Model configurations -> see models_config.json
 
-# model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "OpenCLIP" "DreamSim" "vit_b_16")
-# pretrained_values=("yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet")
-# source_values=("ssl" "ssl" "custom" "custom" "custom" "torchvision")
-# model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"ViT-L-14-quickgelu", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
-# module_names=('norm' 'norm' 'visual' 'visual' 'model.mlp' 'encoder.ln')
-
-# model_names=("dinov2-vit-large-p14")
-# pretrained_values=("yes")
-# source_values=("ssl" )
-# model_parameters_values=('{"extract_cls_token":true}')
-# module_names=('norm')
-
 model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "OpenCLIP" "DreamSim" "vit_b_16")
-pretrained_values=("yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet")
+
+#pretrained_values=("yes" "imagenet" "laion400m_e32" "laion400m_e32" "yes" "imagenet")
+
 source_values=("ssl" "ssl" "custom" "custom" "custom" "torchvision")
+
 model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"ViT-L-14-quickgelu", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
+
 module_names=('norm' 'norm' 'visual' 'visual' 'model.mlp' 'encoder.ln')
 
 model=${model_names[$SLURM_ARRAY_TASK_ID]}
-pretrained=${pretrained_values[$SLURM_ARRAY_TASK_ID]}
+#pretrained=${pretrained_values[$SLURM_ARRAY_TASK_ID]}
 source=${source_values[$SLURM_ARRAY_TASK_ID]}
 model_parameters=${model_parameters_values[$SLURM_ARRAY_TASK_ID]}
 module_name=${module_names[$SLURM_ARRAY_TASK_ID]}
@@ -48,7 +40,7 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{pretrained}_{model_source}_{model_parameters}_{module_name}_${SLURM_ARRAY_JOB_ID}.json"
+output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_${SLURM_ARRAY_JOB_ID}.json"
 
 # shellcheck disable=SC2068
 clip_benchmark eval --dataset=$dataset \
@@ -57,7 +49,6 @@ clip_benchmark eval --dataset=$dataset \
                     --output=$output_fn \
                     --task=linear_probe \
                     --model="$model" \
-                    --pretrained="$pretrained" \
                     --model_source="$source" \
                     --model_parameters="$model_parameters" \
                     --module_name="$module_name" \
@@ -67,3 +58,5 @@ clip_benchmark eval --dataset=$dataset \
                     --train_split train \
                     --test_split test
 
+
+#                    --pretrained="$pretrained" \

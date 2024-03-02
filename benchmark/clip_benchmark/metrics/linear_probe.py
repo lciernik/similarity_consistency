@@ -1,15 +1,15 @@
 import os
 import time
-from tqdm import tqdm
 from contextlib import suppress
+
+import numpy as np
 import torch
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader, Sampler
-import numpy as np
-
 from sklearn.metrics import classification_report, balanced_accuracy_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
+from torch.utils.data import Dataset, DataLoader
+from tqdm import tqdm
+
+from feature_combiner import ConcatFeatureCombiner
 
 
 def accuracy(output, target, topk=(1,)):
@@ -106,60 +106,6 @@ class CombinedFeaturesDataset(Dataset):
         return self.feature_combiner(i), self.targets[i]
 
 
-class BaseFeatureCombiner:
-    def __init__(self):
-        self.features = None
-
-    def __getitem__(self, i):
-        return self.features[i]
-
-    def set_features(self, list_features):
-        if self.features:
-            raise ValueError("Features already set")
-        self.features = list_features
-
-    def prepare_train(self):
-        pass
-
-    def prepare_eval(self):
-        pass
-
-
-class ConcatFeatureCombiner(BaseFeatureCombiner):
-    def set_features(self, list_features):
-        if self.features:
-            raise ValueError("Features already set")
-        self.features = torch.concat(list_features, dim=1)
-
-
-class PCAConcatFeatureCombiner(BaseFeatureCombiner):
-    def __init__(self, pct_var=0.95):
-        super().__init__()
-        self.pca = None
-        self.scalar = None
-        self.pct_var = pct_var
-        self.n_components = None
-
-    def set_features(self, list_features):
-        if self.features:
-            raise ValueError("Features already set")
-        features = torch.concat(list_features, dim=1)
-        scaled_features = self.scale_fn(features)
-        pca_features = self.pca_fn(scaled_features)
-        self.n_components = np.argmax(np.cumsum(self.pca.explained_variance_ratio_) > self.pct_var) + 1
-        self.features = pca_features[:, :self.n_components]
-
-    def prepare_train(self):
-        self.scalar = StandardScaler()
-        self.pca = PCA()
-        self.scale_fn = self.scalar.fit_transform
-        self.pca_fn = self.pca.fit_transform
-
-    def prepare_eval(self):
-        self.scale_fn = self.scalar.transform
-        self.pca_fn = self.pca.transform
-
-
 def train(dataloader, input_shape, output_shape, weight_decay, lr, epochs, autocast, device, seed):
     torch.manual_seed(seed)
     model = torch.nn.Linear(input_shape, output_shape)
@@ -248,7 +194,7 @@ def _evalute(train_loader, input_shape, output_shape, best_wd, fewshot_k, featur
              lr, epochs, seed, device, autocast, normalize=True, verbose=False):
     final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
     logits, target = infer(final_model, feature_test_loader, autocast, device)
-    pred = logits.argmax(axis=1)
+    pred = logits.argmax(dim=1)
 
     # measure accuracy
     if target.max() >= 5:
@@ -436,10 +382,10 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
 
 
 def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
-                      val_dataloader=None, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner):
+                      use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner):
     assert device == 'cuda'
 
-    assert os.path.exists(feature_root), "Feature root path non-existant"
+    assert os.path.exists(feature_root), "Feature root path non-existent"
 
     feature_dirs = [os.path.join(feature_root, model_id) for model_id in model_ids]
 
@@ -476,22 +422,19 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     list_train_features = [features[idxs] for features in list_features]
     train_labels = targets[idxs]
 
-    feature_combiner = feature_combiner_cls()
-    feature_combiner.prepare_train()
-    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner)
+    feature_combiner_train = feature_combiner_cls()
+    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train)
     feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
-                                      shuffle=True, num_workers=num_workers,
-                                      pin_memory=True,
-                                      )
+                                      shuffle=True, num_workers=num_workers, pin_memory=True, )
 
-    if val_dataloader is not None:
+    if use_val_ds:
         list_features_val = [torch.load(os.path.join(feature_dir, 'features_val.pt')) for feature_dir in feature_dirs]
         targets_val = torch.load(os.path.join(feature_dirs[0], 'targets_val.pt'))
 
-        feature_combiner.prepare_eval()
+        feature_combiner_val = feature_combiner_cls(reference_combiner=feature_combiner_train)
         feature_val_dset = CombinedFeaturesDataset(list_features_val,
                                                    targets_val,
-                                                   feature_combiner)
+                                                   feature_combiner_val)
         feature_val_loader = DataLoader(
             feature_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
@@ -500,23 +443,21 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         list_train_val_features = [np.concatenate((feat_train, feat_val)) for feat_train, feat_val in
                                    zip(list_train_features, list_features_val)]
 
-        feature_combiner = feature_combiner_cls()
-        feature_combiner.prepare_train()
+        feature_combiner_train = feature_combiner_cls()
         feature_train_val_dset = CombinedFeaturesDataset(list_train_val_features,
                                                          np.concatenate((train_labels, targets_val)),
-                                                         feature_combiner)
+                                                         feature_combiner_train)
         feature_train_val_loader = DataLoader(
             feature_train_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
             pin_memory=True,
         )
 
-
     list_features_test = [torch.load(os.path.join(feature_dir, 'features_test.pt')) for feature_dir in feature_dirs]
     targets_test = torch.load(os.path.join(feature_dirs[0], 'targets_test.pt'))
 
-    feature_combiner.prepare_eval()
-    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner)
+    feature_combiner_test = feature_combiner_cls(reference_combiner=feature_combiner_train)
+    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner_test)
     feature_test_loader = DataLoader(
         feature_test_dset, batch_size=batch_size,
         shuffle=True, num_workers=num_workers,
@@ -525,7 +466,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
 
     input_shape, output_shape = feature_train_dset[0].shape[0], targets.max().item() + 1
 
-    if val_dataloader is not None:
+    if use_val_ds:
         # perform openAI-like hyperparameter sweep
         # https://arxiv.org/pdf/2103.00020.pdf A.3
         # instead of scikit-learn LBFGS use FCNNs with AdamW
