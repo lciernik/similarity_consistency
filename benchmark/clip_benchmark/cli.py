@@ -341,6 +341,7 @@ def make_output_fname(args, dataset_name, task):
         task=task,
         dataset=dataset_slug,
         fewshot_k=fewshot_slug,
+        seed=args.seed
     )
     return output, model_ids
 

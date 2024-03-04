@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
-#SBATCH -a 0-3
+#SBATCH -a 0-39
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -33,10 +33,18 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}.json"
+output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
 
-fewshot_ks=( -1 1 10 100 )
-fewshot_k=${fewshot_ks[$SLURM_ARRAY_TASK_ID]}
+fewshot_ks=( -1 1 10 100 );
+seeds=( {0..9} );
+
+# Calculate the index for each array
+fewshot_k_index=$(( $SLURM_ARRAY_TASK_ID / ${#seeds[@]} ))
+seed_index=$(( $SLURM_ARRAY_TASK_ID % ${#seeds[@]} ))
+
+# Get the elements for the current combination
+fewshot_k=${fewshot_ks[$fewshot_k_index]}
+seed=${seeds[$seed_index]}
 
 # shellcheck disable=SC2068
 clip_benchmark eval --dataset ${dataset} \
@@ -53,4 +61,5 @@ clip_benchmark eval --dataset ${dataset} \
                     --fewshot_lr 0.1 \
                     --fewshot_epochs 20 \
                     --train_split train \
-                    --test_split test
+                    --test_split test \
+                    --seed="$seed"

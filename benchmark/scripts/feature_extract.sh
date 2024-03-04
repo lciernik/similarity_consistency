@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
-#SBATCH -a 0-5
+#SBATCH -a 0-4
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -36,26 +36,31 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 feature_root="${base_project_path}/features"
 
 # output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_${SLURM_ARRAY_JOB_ID}.json"
-output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}.json"
+output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
 
-fewshot_ks=( -1 1 10 100 )
+fewshot_ks=( -1 1 10 100 );
+seeds=( {0..9} );
 
 for fewshot_k in "${fewshot_ks[@]}"
 do
-# shellcheck disable=SC2068
-clip_benchmark eval --dataset ${dataset[*]} \
-                    --dataset_root=$dataset_root \
-                    --feature_root=$feature_root \
-                    --output=$output_fn \
-                    --task=linear_probe \
-                    --model="$model" \
-                    --model_source="$source" \
-                    --model_parameters="$model_parameters" \
-                    --module_name="$module_name" \
-                    --batch_size=64 \
-                    --fewshot_k="$fewshot_k" \
-                    --fewshot_lr 0.1 \
-                    --fewshot_epochs 20 \
-                    --train_split train \
-                    --test_split test
+    for seed in "${seeds[@]}"
+    do
+        # shellcheck disable=SC2068
+        clip_benchmark eval --dataset ${dataset[*]} \
+                            --dataset_root=$dataset_root \
+                            --feature_root=$feature_root \
+                            --output=$output_fn \
+                            --task=linear_probe \
+                            --model="$model" \
+                            --model_source="$source" \
+                            --model_parameters="$model_parameters" \
+                            --module_name="$module_name" \
+                            --batch_size=64 \
+                            --fewshot_k="$fewshot_k" \
+                            --fewshot_lr 0.1 \
+                            --fewshot_epochs 20 \
+                            --train_split train \
+                            --test_split test \
+                            --seed="$seed"
+    done
 done
