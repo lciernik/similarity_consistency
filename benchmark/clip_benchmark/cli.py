@@ -22,6 +22,7 @@ from clip_benchmark.models import load_model
 
 def parse_str_to_dict(s):
     try:
+        print(s, flush=True)
         parsed_dict = json.loads(s)
         return parsed_dict
     except ValueError as e:
@@ -226,13 +227,13 @@ def main_eval(base):
     if base.eval_combined:
         # TODO: implement different ways how to select the model combinations
         # Now assumption that passed models are combined together
-        # n_models = len(models)
-        # model_combinations = []
-        # for i in range(2, n_models + 1):
-        #     model_combinations += list(itertools.combinations(models, i))
-        #
-        # runs = product(model_combinations, datasets)
-        runs = product([models], datasets)
+        n_models = len(models)
+        model_combinations = []
+        for i in range(2, n_models + 1):
+            model_combinations += list(itertools.combinations(models, i))
+        
+        runs = product(model_combinations, datasets)
+        # runs = product([models], datasets)
         arg_fn = prepare_combined_args
         run_fn = run_combined
     else:
@@ -264,6 +265,7 @@ def main_eval(base):
                 f"Continuing with the next run.",
                 flush=True)
             print(e, flush=True)
+            raise e
 
 
 def _as_list(l):
@@ -326,15 +328,19 @@ def make_output_fname(args, dataset_name, task):
         model_ids = [_get_model_id(model, model_params) for model, model_params in
                      zip(args.model, args.model_parameters)]
         model_slug = '__'.join(model_ids)
+        if args.eval_combined:
+            model_slug += f"_feat_comb_{args.feature_combiner}"
     else:
         model_slug = _get_model_id(args.model, args.model_parameters)
         model_ids = [model_slug]
 
+    fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
     # output file name
     output = args.output.format(
         model=model_slug,
         task=task,
-        dataset=dataset_slug
+        dataset=dataset_slug,
+        fewshot_k=fewshot_slug,
     )
     return output, model_ids
 
@@ -354,7 +360,7 @@ def run_combined(args):
     output, model_ids = make_output_fname(args, dataset_name, task)
 
     if args.verbose:
-        print(f"Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}'")
+        print(f"\n .... Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}' ....\n")
 
     if os.path.exists(output) and args.skip_existing:
         if args.verbose:

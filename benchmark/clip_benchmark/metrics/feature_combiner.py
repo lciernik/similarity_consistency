@@ -12,6 +12,9 @@ class BaseFeatureCombiner:
     def __getitem__(self, i):
         return self.features[i]
 
+    def __call__(self, i):
+        return self.features[i]
+
     def set_features(self, list_features):
         self.features = list_features
 
@@ -22,7 +25,7 @@ class ConcatFeatureCombiner(BaseFeatureCombiner):
 
 
 class PCAConcatFeatureCombiner(BaseFeatureCombiner):
-    def __init__(self, pct_var=0.95, reference_combiner=None):
+    def __init__(self, pct_var=0.99, reference_combiner=None):
         super().__init__()
         if reference_combiner is None:
             self.pca = PCA()
@@ -50,4 +53,4 @@ class PCAConcatFeatureCombiner(BaseFeatureCombiner):
         pca_features = self.pca_fn(scaled_features)
         if self.n_components is None:
             self.n_components = np.argmax(np.cumsum(self.pca.explained_variance_ratio_) > self.pct_var) + 1
-        self.features = pca_features[:, :self.n_components]
+        self.features = torch.Tensor(pca_features[:, :self.n_components])
