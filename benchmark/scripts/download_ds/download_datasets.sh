@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the path to the text file containing repository names
-# file_path="/home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/download_ds/vtab_ds_origname.txt"
-file_path="/home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/download_ds/other_clf_ds_origname.txt"
+# file_path="./vtab_ds_origname.txt"
+file_path="./other_clf_ds_origname.txt"
 
 # Check if the file exists
 if [ ! -f "$file_path" ]; then
@@ -11,6 +11,8 @@ if [ ! -f "$file_path" ]; then
 fi
 
 cd /home/space/diverse_priors/datasets/wds
+
+git lfs install
 
 # Read the file line by line and clone repositories
 while IFS= read -r repo_name; do

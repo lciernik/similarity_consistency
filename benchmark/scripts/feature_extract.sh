@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -o /home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/logs/run_%A/%a.out
+#SBATCH -o ./logs/run_%A/%a.out
 #SBATCH -a 0-4
 #SBATCH -J div_prio
 #
@@ -12,10 +12,11 @@
 #SBATCH --constraint="80gb|40gb"
 
 
+### Define conda environment 
 source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
 conda activate clip_benchmark
 
-# Model configurations -> see models_config.json
+### Model configurations -> see models_config.json
 model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "DreamSim" "vit_b_16")
 source_values=("ssl" "ssl" "custom" "custom" "torchvision")
 model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
@@ -26,18 +27,20 @@ source=${source_values[$SLURM_ARRAY_TASK_ID]}
 model_parameters=${model_parameters_values[$SLURM_ARRAY_TASK_ID]}
 module_name=${module_names[$SLURM_ARRAY_TASK_ID]}
 
+
+### Define datasets used and paths to datasets, features and output folder
 base_project_path="/home/space/diverse_priors"
 
-dataset="/home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/webdatasets_wo_pcam_svhn.txt"
-# dataset=("wds/vtab/pcam" )
+# Can define a .txt file or a sequence with several datasets, e.g. ("wds/vtab/pcam" )
+dataset="./webdatasets_wo_pcam_svhn.txt"
 dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
-# dataset_root="https://huggingface.co/datasets/clip-benchmark/wds_{dataset_cleaned}/tree/main" \
 
 feature_root="${base_project_path}/features"
 
-# output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_${SLURM_ARRAY_JOB_ID}.json"
 output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
 
+
+## Evaluate all datasets with different fewshot settings and seefs on current model (defined by SLURM_ARRAY_TASK_ID).
 fewshot_ks=( -1 1 10 100 );
 seeds=( {0..9} );
 

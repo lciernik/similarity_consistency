@@ -328,8 +328,6 @@ def make_output_fname(args, dataset_name, task):
         model_ids = [_get_model_id(model, model_params) for model, model_params in
                      zip(args.model, args.model_parameters)]
         model_slug = '__'.join(model_ids)
-        if args.eval_combined:
-            model_slug += f"_feat_comb_{args.feature_combiner}"
     else:
         model_slug = _get_model_id(args.model, args.model_parameters)
         model_ids = [model_slug]
@@ -341,8 +339,16 @@ def make_output_fname(args, dataset_name, task):
         task=task,
         dataset=dataset_slug,
         fewshot_k=fewshot_slug,
-        seed=args.seed
+        seed=args.seed,
+        feature_combiner=f"feat_comb_{args.feature_combiner}"
     )
+
+    parent_dir = os.path.dirname(output)
+    if not os.path.exists(parent_dir):
+        os.makedirs(parent_dir, exist_ok=True)
+        if args.verbose:
+            print(f'Created path ({parent_dir}), where results are to be stored ...')
+
     return output, model_ids
 
 
