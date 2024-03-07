@@ -231,7 +231,7 @@ def main_eval(base):
         model_combinations = []
         for i in range(2, n_models + 1):
             model_combinations += list(itertools.combinations(models, i))
-        
+
         runs = product(model_combinations, datasets)
         # runs = product([models], datasets)
         arg_fn = prepare_combined_args

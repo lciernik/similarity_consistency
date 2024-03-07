@@ -430,7 +430,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     if use_val_ds:
         list_features_val = [torch.load(os.path.join(feature_dir, 'features_val.pt')) for feature_dir in feature_dirs]
         targets_val = torch.load(os.path.join(feature_dirs[0], 'targets_val.pt'))
-        
+
         feature_combiner_val = feature_combiner_cls(reference_combiner=feature_combiner_train)
         feature_val_dset = CombinedFeaturesDataset(list_features_val,
                                                    targets_val,
