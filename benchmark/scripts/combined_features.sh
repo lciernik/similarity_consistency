@@ -30,44 +30,41 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_fn="${base_project_path}/results/combined_models/{fewshot_k}/{feature_combiner}/{dataset}_{model}_{task}_lr_{fewshot_lr}_seed_{seed}.json"
+output_fn="${base_project_path}/results/combined_models/{fewshot_k}/{feature_combiner}/{dataset}/{model}/fewshot_lr_{fewshot_lr}/fewshot_epochs_{fewshot_epochs}/seed_{seed}"
 
-
-### Define different parameter settings. Each combination run in a separate job of a job array
-fewshot_lrs=( 0.1 0.01 0.001)
-fewshot_ks=( -1 1 10 100 );
-seeds=( {0..9} );
+## Iterate over different feature combiner
 combiners=("concat" "concat_pca");
 
-# Calculate the index for each array
-fewshot_lr_index=$(( ($SLURM_ARRAY_TASK_ID/(${#combiners[@]} * ${#seeds[@]} * ${#fewshot_ks[@]})) %  ${#fewshot_lrs[@]})); 
-fewshot_k_index=$(( ($SLURM_ARRAY_TASK_ID/(${#combiners[@]} * ${#seeds[@]} )) % ${#fewshot_ks[@]} )); 
-seed_index=$(( ($SLURM_ARRAY_TASK_ID/${#combiners[@]}) % ${#seeds[@]})); 
-combiner_index=$(( $SLURM_ARRAY_TASK_ID % ${#combiners[@]}));
+# Define different parameter settings. Each combination run in a separate job of a job array.
+# Combinations handled in benchmark code (i.e., cli.py)
+fewshot_lrs=( 0.1 0.01 0.001)
+fewshot_ks=( -1 1 10 100 );
+fewshot_epochs=( 10 20 30 );
+seeds=( {0..9} );
+
+export XLA_PYTHON_CLIENT_PREALLOCATE=false
+export XLA_PYTHON_CLIENT_ALLOCATOR=platform
+
+for feat_combiner in "${combiners[@]}"
+do
+  clip_benchmark eval --dataset ${dataset} \
+                      --dataset_root=$dataset_root \
+                      --feature_root=$feature_root \
+                      --output=$output_fn \
+                      --task=linear_probe \
+                      --model ${model[*]} \
+                      --model_source ${source[*]} \
+                      --model_parameters ${model_parameters[*]} \
+                      --module_name ${module_name[*]} \
+                      --batch_size=64 \
+                      --fewshot_k "${fewshot_ks[*]}" \
+                      --fewshot_lr "${fewshot_lrs[*]}" \
+                      --fewshot_epochs "${fewshot_epochs[*]}" \
+                      --train_split train \
+                      --test_split test \
+                      --seed "${seeds[*]}" \
+                      --eval_combined \
+                      --feature_combiner "$feat_combiner"
+done
 
 
-# Get the elements for the current combination
-fewshot_k=${fewshot_ks[$fewshot_k_index]}
-seed=${seeds[$seed_index]}
-feature_combiner=${combiners[$combiner_index]}
-fewshot_lr=${fewshot_lrs[$fewshot_lr_index]}
-
-
-clip_benchmark eval --dataset ${dataset} \
-                    --dataset_root=$dataset_root \
-                    --feature_root=$feature_root \
-                    --output=$output_fn \
-                    --task=linear_probe \
-                    --model ${model[*]} \
-                    --model_source ${source[*]} \
-                    --model_parameters ${model_parameters[*]} \
-                    --module_name ${module_name[*]} \
-                    --batch_size=64 \
-                    --fewshot_k="$fewshot_k" \
-                    --fewshot_lr="$fewshot_lr" \
-                    --fewshot_epochs 20 \
-                    --train_split train \
-                    --test_split test \
-                    --seed="$seed" \
-                    --eval_combined \
-                    --feature_combiner "$feature_combiner"

@@ -8,7 +8,9 @@ import random
 import sys
 from copy import copy
 from itertools import product
+from typing import List
 
+import numpy as np
 import torch
 
 from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
@@ -42,7 +44,7 @@ def get_parser_args():
     parser_eval.add_argument('--split', type=str, default="test", help="Dataset split to use")
     parser_eval.add_argument('--test_split', dest="split", action='store', type=str, default="test",
                              help="Dataset split to use")
-    parser_eval.add_argument('--train_split', type=str, nargs="+", default="train", help="Dataset(s) train split names")
+    parser_eval.add_argument('--train_split', type=str, nargs='+', default="train", help="Dataset(s) train split names")
     mutually_exclusive = parser_eval.add_mutually_exclusive_group()
     mutually_exclusive.add_argument('--val_split', default=None, type=str, nargs="+",
                                     help="Dataset(s) validation split names. Mutually exclusive with val_proportion.")
@@ -72,15 +74,15 @@ def get_parser_args():
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
                              help="whether to use mixed precision")
     parser_eval.add_argument('--num_workers', default=4, type=int)
-    parser_eval.add_argument('--fewshot_k', default=-1, type=int,
+    parser_eval.add_argument('--fewshot_k', default=[-1], type=int, nargs="+",
                              help="for linear probe, how many shots. -1 = whole dataset.")
-    parser_eval.add_argument('--fewshot_epochs', default=10, type=int, help="for linear probe, how many epochs.")
-    parser_eval.add_argument('--fewshot_lr', default=0.1, type=float,
+    parser_eval.add_argument('--fewshot_epochs', default=[10], type=int, nargs='+', help="for linear probe, how many epochs.")
+    parser_eval.add_argument('--fewshot_lr', default=[0.1], type=float, nargs='+',
                              help="for linear probe, what is the learning rate.")
     parser_eval.add_argument("--skip_load", action="store_true",
                              help="for linear probes, when everything is cached, no need to load model.")
     parser_eval.add_argument("--distributed", action="store_true", help="evaluation in parallel")
-    parser_eval.add_argument('--seed', default=0, type=int, help="random seed.")
+    parser_eval.add_argument('--seed', default=[0], type=int, nargs='+', help="random seed.")
     parser_eval.add_argument('--batch_size', default=64, type=int)
     parser_eval.add_argument('--normalize', default=True, type=bool, help="features normalization")
     parser_eval.add_argument('--model_cache_dir', default=None, type=str,
@@ -96,8 +98,12 @@ def get_parser_args():
     parser_eval.add_argument('--dump_templates', default=False, action="store_true",
                              help="dump templates to the results json file.")
 
-    parser_eval.add_argument('--output', default="result.json", type=str,
-                             help="output file where to dump the metrics. Can be in form of a template, e.g., --output='{dataset}_{model}_{task}.json'")
+    parser_eval.add_argument('--output', default="results", type=str,
+                             help="Path to folder where the results should be stores. The results consist of :"
+                                  "1. A JSON file per dataset and model(s) combination."
+                                  "2. A pickel file containing the test set predictions."
+                                  "The path can be in form of a template, e.g.,"
+                                  " --output='{fewshot_k}/{dataset}/{model}/{fewshot_lr}/{seed}'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
     parser_eval.add_argument('--save_clf', default=None, type=str,
                              help="optionally save the classification layer output by the text tower")
@@ -117,6 +123,26 @@ def get_parser_args():
 
     args = parser.parse_args()
     return parser, args
+
+
+def get_combination(
+        fewshot_ks: List[int],
+        fewshot_lrs: List[int],
+        fewshot_epochs: List[int],
+        seeds: List[float]
+):
+    combs = []
+    combs.extend(
+        list(
+            itertools.product(
+                fewshot_ks,
+                fewshot_lrs,
+                fewshot_epochs,
+                seeds,
+            )
+        )
+    )
+    return combs[int(os.environ["SLURM_ARRAY_TASK_ID"])]
 
 
 def main():
@@ -177,6 +203,14 @@ def prepare_combined_args(args, model_comb):
 
 
 def main_eval(base):
+    # prepare run combinations
+    (fewshot_k, fewshot_lr, fewshot_epochs, rnd_seed) = get_combination(
+        base.fewshot_k,
+        base.fewshot_lr,
+        base.fewshot_epochs,
+        base.seed
+    )
+
     # Get list of models to evaluate
     models = _as_list(base.model)
     srcs = _as_list(base.model_source)
@@ -226,14 +260,13 @@ def main_eval(base):
 
     if base.eval_combined:
         # TODO: implement different ways how to select the model combinations
-        # Now assumption that passed models are combined together
+        # Now assumption that passed models are combined together (all permutations)
         n_models = len(models)
         model_combinations = []
         for i in range(2, n_models + 1):
             model_combinations += list(itertools.combinations(models, i))
 
         runs = product(model_combinations, datasets)
-        # runs = product([models], datasets)
         arg_fn = prepare_combined_args
         run_fn = run_combined
     else:
@@ -248,18 +281,23 @@ def main_eval(base):
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
+    # seed random number generator (important for reproducibility of results)
+    random.seed(rnd_seed)
+    np.random.seed(rnd_seed)
+
     for model_info, dataset in runs:
-        
+
         args = copy(base)
         args = arg_fn(args, model_info)
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
         args.val_split = dataset_info[dataset]["val_split"]
         args.val_proportion = dataset_info[dataset]["proportion"]
-
-        ## temorary code to skip unnecessary code
-        if not ('pcam' in dataset or 'vit_b_16' in args.model):
-            continue
+        args.fewshot_k = fewshot_k
+        args.fewshot_lr = fewshot_lr
+        args.fewshot_epochs = fewshot_epochs
+        args.seed = rnd_seed
+        args.task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
 
         try:
             run_fn(args)
@@ -338,7 +376,6 @@ def make_output_fname(args, dataset_name, task):
         model_ids = [model_slug]
 
     fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-    # output file name
     output = args.output.format(
         model=model_slug,
         task=task,
@@ -346,16 +383,18 @@ def make_output_fname(args, dataset_name, task):
         fewshot_k=fewshot_slug,
         seed=args.seed,
         feature_combiner=f"feat_comb_{args.feature_combiner}",
-        fewshot_lr=args.fewshot_lr
+        fewshot_lr=args.fewshot_lr,
+        fewshot_epochs=args.fewshot_epochs,
     )
 
-    parent_dir = os.path.dirname(output)
-    if not os.path.exists(parent_dir):
-        os.makedirs(parent_dir, exist_ok=True)
+    if not os.path.exists(output):
+        os.makedirs(output, exist_ok=True)
         if args.verbose:
-            print(f'Created path ({parent_dir}), where results are to be stored ...')
+            print(f'Created path ({output}), where results are to be stored ...')
 
-    return output, model_ids
+    out_res = os.path.join(output, 'results.json')
+    out_pred = os.path.join(output, 'test_predictions.pkl')
+    return (out_res, out_pred), model_ids
 
 
 def run_combined(args):
@@ -370,14 +409,14 @@ def run_combined(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    output, model_ids = make_output_fname(args, dataset_name, task)
+    (out_res, out_pred), model_ids = make_output_fname(args, dataset_name, task)
 
     if args.verbose:
         print(f"\n .... Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}' ....\n")
 
-    if os.path.exists(output) and args.skip_existing:
+    if (os.path.exists(out_res) or os.path.exists(out_pred)) and args.skip_existing:
         if args.verbose:
-            print(f"Skip {output}, exists already.")
+            print(f"Skip {out_res}//{out_pred}, exist already.")
         return
 
     if task == "linear_probe":
@@ -399,8 +438,9 @@ def run_combined(args):
             device=args.device,
             seed=args.seed,
             use_val_ds=args.val_proportion is not None or args.val_split is not None,
+            out_fn=out_pred,
             amp=args.amp,
-            verbose=args.verbose
+            verbose=args.verbose,
         )
     else:
         raise ValueError(
@@ -414,19 +454,19 @@ def run_combined(args):
         "model_source": args.model_source,
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
-        "mode": "combined features", 
-        "combiner": args.feature_combiner, 
+        "mode": "combined features",
+        "combiner": args.feature_combiner,
         "task": task,
         "metrics": metrics,
+        "args": vars(args),
     }
-    # if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
-    #     dump["classnames"] = dataset.classes
-    # if hasattr(dataset, "templates") and dataset.templates and args.dump_templates:
-    #     dump["templates"] = dataset.templates
+
+    # store results
     if args.verbose:
-        print(f"Dump results to: {output}")
-    with open(output, "w") as f:
+        print(f"Dump results to: {out_res}")
+    with open(out_res, "w") as f:
         json.dump(dump, f)
+
     return 0
 
 
@@ -443,12 +483,12 @@ def run(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    output, model_ids = make_output_fname(args, dataset_name, task)
+    (out_res, out_pred), model_ids = make_output_fname(args, dataset_name, task)
     model_id = model_ids[0]
 
-    if os.path.exists(output) and args.skip_existing:
+    if (os.path.exists(out_res) or os.path.exists(out_pred)) and args.skip_existing:
         if args.verbose:
-            print(f"Skip {output}, exists already.")
+            print(f"Skip {out_res}//{out_pred}, exist already.")
         return
 
     if args.verbose:
@@ -555,6 +595,7 @@ def run(args):
             val_dataloader=val_dataloader,
             device=args.device,
             normalize=args.normalize,
+            out_fn=out_pred,
             amp=args.amp,
             verbose=args.verbose,
         )
@@ -569,19 +610,22 @@ def run(args):
         "model_source": args.model_source,
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
-        "mode": "single features", 
-        "combiner": None, 
+        "mode": "single features",
+        "combiner": None,
         "task": task,
         "metrics": metrics,
+        "args": vars(args),
     }
     if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
         dump["classnames"] = dataset.classes
     if hasattr(dataset, "templates") and dataset.templates and args.dump_templates:
         dump["templates"] = dataset.templates
+    # store results
     if args.verbose:
-        print(f"Dump results to: {output}")
-    with open(output, "w") as f:
+        print(f"Dump results to: {out_res}")
+    with open(out_res, "w") as f:
         json.dump(dump, f)
+
     return 0
 
 

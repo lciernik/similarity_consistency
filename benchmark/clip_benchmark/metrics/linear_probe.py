@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 from contextlib import suppress
 
@@ -191,10 +192,16 @@ def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape
 
 
 def _evaluate(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
-              lr, epochs, seed, device, autocast, normalize=True, verbose=False):
+              lr, epochs, seed, device, autocast, out_fn=None, normalize=True, verbose=False):
     final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
     logits, target = infer(final_model, feature_test_loader, autocast, device)
     pred = logits.argmax(dim=1)
+
+    if out_fn is not None:
+        with open(out_fn, 'wb') as f:
+            pickle.dump({'logits': logits, 'pred': pred, 'target': target}, f)
+            if verbose:
+                print(f"Stored test predictions in {out_fn}.")
 
     # measure accuracy
     if target.max() >= 5:
@@ -221,7 +228,8 @@ def _evaluate(train_loader, input_shape, output_shape, best_wd, fewshot_k, featu
 
 
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
-             model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True, verbose=False):
+             model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True,
+                     out_fn=None, verbose=False):
     assert device == 'cuda'  # need to use cuda for this else too slow
     # first we need to featurize the dataset, and store the result in feature_root
     if not os.path.exists(feature_root):
@@ -367,22 +375,24 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         train_loader = feature_train_loader
 
     return _evaluate(train_loader=train_loader,
-                    input_shape=input_shape,
-                    output_shape=output_shape,
-                    best_wd=best_wd,
-                    fewshot_k=fewshot_k,
-                    feature_test_loader=feature_test_loader,
-                    lr=lr,
-                    epochs=epochs,
-                    seed=seed,
-                    device=device,
-                    autocast=autocast,
-                    normalize=normalize,
-                    verbose=verbose)
+                     input_shape=input_shape,
+                     output_shape=output_shape,
+                     best_wd=best_wd,
+                     fewshot_k=fewshot_k,
+                     feature_test_loader=feature_test_loader,
+                     lr=lr,
+                     epochs=epochs,
+                     seed=seed,
+                     device=device,
+                     autocast=autocast,
+                     normalize=normalize,
+                     out_fn=out_fn,
+                     verbose=verbose)
 
 
 def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
-                      use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner):
+                      use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner,
+                      out_fn=None):
     assert device == 'cuda'
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
@@ -488,14 +498,15 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         train_loader = feature_train_loader
 
     return _evaluate(train_loader=train_loader,
-                    input_shape=input_shape,
-                    output_shape=output_shape,
-                    best_wd=best_wd,
-                    fewshot_k=fewshot_k,
-                    feature_test_loader=feature_test_loader,
-                    lr=lr,
-                    epochs=epochs,
-                    seed=seed,
-                    device=device,
-                    autocast=autocast,
-                    verbose=verbose)
+                     input_shape=input_shape,
+                     output_shape=output_shape,
+                     best_wd=best_wd,
+                     fewshot_k=fewshot_k,
+                     feature_test_loader=feature_test_loader,
+                     lr=lr,
+                     epochs=epochs,
+                     seed=seed,
+                     device=device,
+                     autocast=autocast,
+                     out_fn=out_fn,
+                     verbose=verbose)
