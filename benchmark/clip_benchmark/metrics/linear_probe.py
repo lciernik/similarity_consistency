@@ -190,8 +190,8 @@ def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape
     return best_wd_idx
 
 
-def _evalute(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
-             lr, epochs, seed, device, autocast, normalize=True, verbose=False):
+def _evaluate(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
+              lr, epochs, seed, device, autocast, normalize=True, verbose=False):
     final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
     logits, target = infer(final_model, feature_test_loader, autocast, device)
     pred = logits.argmax(dim=1)
@@ -366,7 +366,7 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         best_wd = 0
         train_loader = feature_train_loader
 
-    return _evalute(train_loader=train_loader,
+    return _evaluate(train_loader=train_loader,
                     input_shape=input_shape,
                     output_shape=output_shape,
                     best_wd=best_wd,
@@ -487,7 +487,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         best_wd = 0
         train_loader = feature_train_loader
 
-    return _evalute(train_loader=train_loader,
+    return _evaluate(train_loader=train_loader,
                     input_shape=input_shape,
                     output_shape=output_shape,
                     best_wd=best_wd,

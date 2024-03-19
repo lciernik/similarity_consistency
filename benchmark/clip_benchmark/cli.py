@@ -249,12 +249,17 @@ def main_eval(base):
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
     for model_info, dataset in runs:
+        
         args = copy(base)
         args = arg_fn(args, model_info)
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
         args.val_split = dataset_info[dataset]["val_split"]
         args.val_proportion = dataset_info[dataset]["proportion"]
+
+        ## temorary code to skip unnecessary code
+        if not ('pcam' in dataset or 'vit_b_16' in args.model):
+            continue
 
         try:
             run_fn(args)
@@ -340,7 +345,8 @@ def make_output_fname(args, dataset_name, task):
         dataset=dataset_slug,
         fewshot_k=fewshot_slug,
         seed=args.seed,
-        feature_combiner=f"feat_comb_{args.feature_combiner}"
+        feature_combiner=f"feat_comb_{args.feature_combiner}",
+        fewshot_lr=args.fewshot_lr
     )
 
     parent_dir = os.path.dirname(output)
@@ -408,6 +414,8 @@ def run_combined(args):
         "model_source": args.model_source,
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
+        "mode": "combined features", 
+        "combiner": args.feature_combiner, 
         "task": task,
         "metrics": metrics,
     }
@@ -561,6 +569,8 @@ def run(args):
         "model_source": args.model_source,
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
+        "mode": "single features", 
+        "combiner": None, 
         "task": task,
         "metrics": metrics,
     }

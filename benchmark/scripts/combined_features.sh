@@ -19,7 +19,7 @@ conda activate clip_benchmark
 ### Model configurations -> see models_config.json
 model=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "DreamSim" "vit_b_16")
 source=("ssl" "ssl" "custom" "custom" "torchvision")
-model_parameters=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14","dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
+model_parameters=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14","dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"extract_cls_token":true,"weights":"DEFAULT"}')
 module_name=('norm' 'norm' 'visual' 'model.mlp' 'encoder.ln')
 
 ### Define paths 
@@ -30,14 +30,14 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_fn="${base_project_path}/results/combined_models/{fewshot_k}/{feature_combiner}/{dataset}_{model}_{task}_seed_{seed}.json"
+output_fn="${base_project_path}/results/combined_models/{fewshot_k}/{feature_combiner}/{dataset}_{model}_{task}_lr_{fewshot_lr}_seed_{seed}.json"
 
 
 ### Define different parameter settings. Each combination run in a separate job of a job array
+fewshot_lrs=( 0.1 0.01 0.001)
 fewshot_ks=( -1 1 10 100 );
 seeds=( {0..9} );
 combiners=("concat" "concat_pca");
-fewshot_lrs=(0.01 0.001)
 
 # Calculate the index for each array
 fewshot_lr_index=$(( ($SLURM_ARRAY_TASK_ID/(${#combiners[@]} * ${#seeds[@]} * ${#fewshot_ks[@]})) %  ${#fewshot_lrs[@]})); 

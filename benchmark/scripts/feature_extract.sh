@@ -38,8 +38,7 @@ dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_base_path="${base_project_path}/results/single_models"
-output_file="{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
+output_fn="${base_project_path}/results/single_models/{fewshot_k}/{dataset}_{model}_{task}_seed_{seed}.json"
 
 ## Evaluate all datasets with different fewshot settings and seefs on current model (defined by SLURM_ARRAY_TASK_ID).
 fewshot_ks=( -1 1 10 100 );
@@ -47,23 +46,6 @@ seeds=( {0..9} );
 
 for fewshot_k in "${fewshot_ks[@]}"
 do  
-    if [ "$fewshot_k" == -1 ]; then
-        fewshot_folder="no_fewshot"
-    else
-        fewshot_folder="fewshot_${fewshot_k}"
-    fi
-
-    output_path="${output_base_path}/${fewshot_folder}"
-    # Check if directory exists
-    if [ ! -d "$output_path" ]; then
-        # If directory doesn't exist, create it
-        mkdir -p "$output_path"
-        echo "Directory created: $output_path"
-    else
-        echo "Directory already exists: $output_path"
-    fi
-    output_fn="${output_path}/${output_file}"
-
     for seed in "${seeds[@]}"
     do
         # shellcheck disable=SC2068
