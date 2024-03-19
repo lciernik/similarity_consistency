@@ -1,6 +1,7 @@
 #!/bin/bash
-#SBATCH -o ./logs/run_%A/%a.out
-#SBATCH -a 0-4
+#SBATCH -o ./logs/run_%A/%a_out.txt
+#SBATCH -e ./logs/run_%A/%a_err.txt
+#SBATCH -a 4
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -19,7 +20,7 @@ conda activate clip_benchmark
 ### Model configurations -> see models_config.json
 model_names=("dinov2-vit-large-p14" "dino-vit-base-p16" "OpenCLIP" "DreamSim" "vit_b_16")
 source_values=("ssl" "ssl" "custom" "custom" "torchvision")
-model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14", "dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"weights":"DEFAULT"}')
+model_parameters_values=('{"extract_cls_token":true}' '{"extract_cls_token":true}' '{"variant":"ViT-L-14","dataset":"laion400m_e32"}' '{"variant":"open_clip_vitb32"}' '{"extract_cls_token":true,"weights":"DEFAULT"}')
 module_names=('norm' 'norm' 'visual' 'model.mlp' 'encoder.ln')
 
 model=${model_names[$SLURM_ARRAY_TASK_ID]}
@@ -32,20 +33,37 @@ module_name=${module_names[$SLURM_ARRAY_TASK_ID]}
 base_project_path="/home/space/diverse_priors"
 
 # Can define a .txt file or a sequence with several datasets, e.g. ("wds/vtab/pcam" )
-dataset="./webdatasets_wo_pcam_svhn.txt"
+dataset="./webdatasets.txt"
 dataset_root="${base_project_path}/datasets/wds/wds_{dataset_cleaned}"
 
 feature_root="${base_project_path}/features"
 
-output_fn="${base_project_path}/results/single_models/{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
-
+output_base_path="${base_project_path}/results/single_models"
+output_file="{dataset}_{model}_{task}_{fewshot_k}_seed_{seed}.json"
 
 ## Evaluate all datasets with different fewshot settings and seefs on current model (defined by SLURM_ARRAY_TASK_ID).
 fewshot_ks=( -1 1 10 100 );
 seeds=( {0..9} );
 
 for fewshot_k in "${fewshot_ks[@]}"
-do
+do  
+    if [ "$fewshot_k" == -1 ]; then
+        fewshot_folder="no_fewshot"
+    else
+        fewshot_folder="fewshot_${fewshot_k}"
+    fi
+
+    output_path="${output_base_path}/${fewshot_folder}"
+    # Check if directory exists
+    if [ ! -d "$output_path" ]; then
+        # If directory doesn't exist, create it
+        mkdir -p "$output_path"
+        echo "Directory created: $output_path"
+    else
+        echo "Directory already exists: $output_path"
+    fi
+    output_fn="${output_path}/${output_file}"
+
     for seed in "${seeds[@]}"
     do
         # shellcheck disable=SC2068

@@ -55,3 +55,9 @@ cifar-100-*
 probe_benchmark/data
 downloads
 .env
+
+# Jupyter 
+.ipynb_checkpoints
+
+# SLURM logs
+logs
