@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH -o ./logs/run_%A/%a_out.txt
 #SBATCH -e ./logs/run_%A/%a_err.txt
-#SBATCH -a 4
+#SBATCH -a 0-179
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -37,8 +37,8 @@ output_fn="${base_project_path}/results/single_models/{fewshot_k}/{dataset}/{mod
 
 # Define different parameter settings. Each combination run in a separate job of a job array.
 # Combinations handled in benchmark code (i.e., cli.py)
-fewshot_lrs=( 0.1 0.01 0.001);
-fewshot_ks=( -1 1 10 100 );
+fewshot_lrs=( 0.1 0.01 );
+fewshot_ks=( -1 10 100 );
 fewshot_epochs=( 10 20 30 );
 seeds=( {0..9} );
 

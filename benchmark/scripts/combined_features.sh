@@ -1,6 +1,6 @@
 #!/bin/bash
 #SBATCH -o ./logs/run_%A/%a.out
-#SBATCH -a 0-159
+#SBATCH -a 0-179
 #SBATCH -J div_prio
 #
 #SBATCH --partition=gpu-2d
@@ -37,8 +37,8 @@ combiners=("concat" "concat_pca");
 
 # Define different parameter settings. Each combination run in a separate job of a job array.
 # Combinations handled in benchmark code (i.e., cli.py)
-fewshot_lrs=( 0.1 0.01 0.001)
-fewshot_ks=( -1 1 10 100 );
+fewshot_lrs=( 0.1 0.01 )
+fewshot_ks=( -1 10 100 );
 fewshot_epochs=( 10 20 30 );
 seeds=( {0..9} );
 
