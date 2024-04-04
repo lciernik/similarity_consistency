@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
@@ -15,13 +16,17 @@ class BaseFeatureCombiner:
     def __call__(self, i):
         return self.features[i]
 
-    def set_features(self, list_features):
+    def set_features(self, list_features, normalize=True):
         self.features = list_features
+        if normalize:
+            self.features = F.normalize(self.features, dim=-1)
 
 
 class ConcatFeatureCombiner(BaseFeatureCombiner):
-    def set_features(self, list_features):
+    def set_features(self, list_features, normalize=True):
         self.features = torch.concat(list_features, dim=1)
+        if normalize:
+            self.features = F.normalize(self.features, dim=-1)
 
 
 class PCAConcatFeatureCombiner(BaseFeatureCombiner):
@@ -47,10 +52,12 @@ class PCAConcatFeatureCombiner(BaseFeatureCombiner):
             self.scale_fn = self.scalar.transform
             self.pca_fn = self.pca.transform
 
-    def set_features(self, list_features):
+    def set_features(self, list_features, normalize=True):
         features = torch.concat(list_features, dim=1)
         scaled_features = self.scale_fn(features)
         pca_features = self.pca_fn(scaled_features)
         if self.n_components is None:
             self.n_components = np.argmax(np.cumsum(self.pca.explained_variance_ratio_) > self.pct_var) + 1
         self.features = torch.Tensor(pca_features[:, :self.n_components])
+        if normalize:
+            self.features = F.normalize(self.features, dim=-1)

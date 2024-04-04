@@ -90,7 +90,7 @@ class FeatureDataset(Dataset):
 
 
 class CombinedFeaturesDataset(Dataset):
-    def __init__(self, list_features, targets, feature_combiner):
+    def __init__(self, list_features, targets, feature_combiner, normalize=True):
         if not isinstance(list_features, list):
             self.list_features = [list_features]
         else:
@@ -98,7 +98,7 @@ class CombinedFeaturesDataset(Dataset):
         self.targets = targets
         self.nr_comb_feats = len(list_features)
         self.feature_combiner = feature_combiner
-        self.feature_combiner.set_features(self.list_features)
+        self.feature_combiner.set_features(self.list_features, normalize)
 
     def __len__(self):
         return len(self.list_features[0])
@@ -229,7 +229,7 @@ def _evaluate(train_loader, input_shape, output_shape, best_wd, fewshot_k, featu
 
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
              model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True,
-                     out_fn=None, verbose=False):
+             out_fn=None, verbose=False):
     assert device == 'cuda'  # need to use cuda for this else too slow
     # first we need to featurize the dataset, and store the result in feature_root
     if not os.path.exists(feature_root):
@@ -392,7 +392,7 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
 
 def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
                       use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner,
-                      out_fn=None):
+                      normalize=True, out_fn=None):
     assert device == 'cuda'
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
@@ -508,5 +508,6 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
                      seed=seed,
                      device=device,
                      autocast=autocast,
+                     normalize=normalize,
                      out_fn=out_fn,
                      verbose=verbose)

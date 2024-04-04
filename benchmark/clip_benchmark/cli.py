@@ -68,6 +68,7 @@ def get_parser_args():
                              help="Whether the features of the different models should be used in combined fashion.")
     parser_eval.add_argument('--feature_combiner', type=str, default="concat",
                              choices=['concat', 'concat_pca'], help="Feature combiner to use")
+    parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=str)
 
     parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
@@ -76,7 +77,8 @@ def get_parser_args():
     parser_eval.add_argument('--num_workers', default=4, type=int)
     parser_eval.add_argument('--fewshot_k', default=[-1], type=int, nargs="+",
                              help="for linear probe, how many shots. -1 = whole dataset.")
-    parser_eval.add_argument('--fewshot_epochs', default=[10], type=int, nargs='+', help="for linear probe, how many epochs.")
+    parser_eval.add_argument('--fewshot_epochs', default=[10], type=int, nargs='+',
+                             help="for linear probe, how many epochs.")
     parser_eval.add_argument('--fewshot_lr', default=[0.1], type=float, nargs='+',
                              help="for linear probe, what is the learning rate.")
     parser_eval.add_argument("--skip_load", action="store_true",
@@ -505,6 +507,7 @@ def run(args):
             source=args.model_source,
             model_parameters=args.model_parameters,
             module_name=args.module_name,
+            feature_alignment=args.feature_alignment,
             device=args.device
         )
         dataset = build_dataset(
