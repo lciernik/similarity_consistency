@@ -24,7 +24,7 @@ class ThingsvisionModel:
             )
 
         features = features.to(torch.float32)
-        # Question: Alignment happens before potential normalization, is that correct?
+
         if self._alignment_type is not None:
             features = self._extractor.align(
                 features=features,
