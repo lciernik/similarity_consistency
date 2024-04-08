@@ -51,7 +51,7 @@ def get_parser_args():
     mutually_exclusive.add_argument('--val_proportion', default=None, type=float, nargs="+",
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
 
-    parser_eval.add_argument('--model', type=str, nargs="+", default=["ViT-B-32-quickgelu"],
+    parser_eval.add_argument('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
                              help="Model architecture to use from OpenCLIP")
     parser_eval.add_argument('--model_source',
                              type=str,
@@ -63,7 +63,7 @@ def get_parser_args():
                              type=parse_str_to_dict,
                              metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
                              help='A dictionary of key-value pairs')
-    parser_eval.add_argument('--module_name', type=str, nargs="+", default=["avgpool"], help="Module name")
+    parser_eval.add_argument('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
     parser_eval.add_argument('--eval_combined', action="store_true",
                              help="Whether the features of the different models should be used in combined fashion.")
     parser_eval.add_argument('--feature_combiner', type=str, default="concat",
