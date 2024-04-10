@@ -1,4 +1,5 @@
 import os
+import pickle
 import time
 from contextlib import suppress
 
@@ -89,7 +90,7 @@ class FeatureDataset(Dataset):
 
 
 class CombinedFeaturesDataset(Dataset):
-    def __init__(self, list_features, targets, feature_combiner):
+    def __init__(self, list_features, targets, feature_combiner, normalize=True):
         if not isinstance(list_features, list):
             self.list_features = [list_features]
         else:
@@ -97,7 +98,7 @@ class CombinedFeaturesDataset(Dataset):
         self.targets = targets
         self.nr_comb_feats = len(list_features)
         self.feature_combiner = feature_combiner
-        self.feature_combiner.set_features(self.list_features)
+        self.feature_combiner.set_features(self.list_features, normalize)
 
     def __len__(self):
         return len(self.list_features[0])
@@ -190,11 +191,17 @@ def find_peak(wd_list, idxs, train_loader, val_loader, input_shape, output_shape
     return best_wd_idx
 
 
-def _evalute(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
-             lr, epochs, seed, device, autocast, normalize=True, verbose=False):
+def _evaluate(train_loader, input_shape, output_shape, best_wd, fewshot_k, feature_test_loader,
+              lr, epochs, seed, device, autocast, out_fn=None, normalize=True, verbose=False):
     final_model = train(train_loader, input_shape, output_shape, best_wd, lr, epochs, autocast, device, seed)
     logits, target = infer(final_model, feature_test_loader, autocast, device)
     pred = logits.argmax(dim=1)
+
+    if out_fn is not None:
+        with open(out_fn, 'wb') as f:
+            pickle.dump({'logits': logits, 'pred': pred, 'target': target}, f)
+            if verbose:
+                print(f"Stored test predictions in {out_fn}.")
 
     # measure accuracy
     if target.max() >= 5:
@@ -221,7 +228,8 @@ def _evalute(train_loader, input_shape, output_shape, best_wd, fewshot_k, featur
 
 
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
-             model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True, verbose=False):
+             model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True,
+             out_fn=None, verbose=False):
     assert device == 'cuda'  # need to use cuda for this else too slow
     # first we need to featurize the dataset, and store the result in feature_root
     if not os.path.exists(feature_root):
@@ -366,29 +374,31 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         best_wd = 0
         train_loader = feature_train_loader
 
-    return _evalute(train_loader=train_loader,
-                    input_shape=input_shape,
-                    output_shape=output_shape,
-                    best_wd=best_wd,
-                    fewshot_k=fewshot_k,
-                    feature_test_loader=feature_test_loader,
-                    lr=lr,
-                    epochs=epochs,
-                    seed=seed,
-                    device=device,
-                    autocast=autocast,
-                    normalize=normalize,
-                    verbose=verbose)
+    return _evaluate(train_loader=train_loader,
+                     input_shape=input_shape,
+                     output_shape=output_shape,
+                     best_wd=best_wd,
+                     fewshot_k=fewshot_k,
+                     feature_test_loader=feature_test_loader,
+                     lr=lr,
+                     epochs=epochs,
+                     seed=seed,
+                     device=device,
+                     autocast=autocast,
+                     normalize=normalize,
+                     out_fn=out_fn,
+                     verbose=verbose)
 
 
 def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
-                      use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner):
+                      use_val_ds=False, amp=True, verbose=False, feature_combiner_cls=ConcatFeatureCombiner,
+                      normalize=True, out_fn=None):
     assert device == 'cuda'
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
 
     feature_dirs = [os.path.join(feature_root, model_id) for model_id in model_ids]
-
+    print('feature_dirs', feature_dirs, flush=True)
     assert all([os.path.exists(feature_dir) for feature_dir in feature_dirs])
 
     autocast = torch.cuda.amp.autocast if amp else suppress
@@ -423,7 +433,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     train_labels = targets[idxs]
 
     feature_combiner_train = feature_combiner_cls()
-    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train)
+    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train, normalize)
     feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
                                       shuffle=True, num_workers=num_workers, pin_memory=True, )
 
@@ -434,7 +444,8 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         feature_combiner_val = feature_combiner_cls(reference_combiner=feature_combiner_train)
         feature_val_dset = CombinedFeaturesDataset(list_features_val,
                                                    targets_val,
-                                                   feature_combiner_val)
+                                                   feature_combiner_val,
+                                                   normalize)
         feature_val_loader = DataLoader(
             feature_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
@@ -446,7 +457,8 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         feature_combiner_train = feature_combiner_cls()
         feature_train_val_dset = CombinedFeaturesDataset(list_train_val_features,
                                                          np.concatenate((train_labels, targets_val)),
-                                                         feature_combiner_train)
+                                                         feature_combiner_train,
+                                                         normalize)
         feature_train_val_loader = DataLoader(
             feature_train_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
@@ -457,7 +469,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     targets_test = torch.load(os.path.join(feature_dirs[0], 'targets_test.pt'))
 
     feature_combiner_test = feature_combiner_cls(reference_combiner=feature_combiner_train)
-    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner_test)
+    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner_test, normalize)
     feature_test_loader = DataLoader(
         feature_test_dset, batch_size=batch_size,
         shuffle=True, num_workers=num_workers,
@@ -487,15 +499,17 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         best_wd = 0
         train_loader = feature_train_loader
 
-    return _evalute(train_loader=train_loader,
-                    input_shape=input_shape,
-                    output_shape=output_shape,
-                    best_wd=best_wd,
-                    fewshot_k=fewshot_k,
-                    feature_test_loader=feature_test_loader,
-                    lr=lr,
-                    epochs=epochs,
-                    seed=seed,
-                    device=device,
-                    autocast=autocast,
-                    verbose=verbose)
+    return _evaluate(train_loader=train_loader,
+                     input_shape=input_shape,
+                     output_shape=output_shape,
+                     best_wd=best_wd,
+                     fewshot_k=fewshot_k,
+                     feature_test_loader=feature_test_loader,
+                     lr=lr,
+                     epochs=epochs,
+                     seed=seed,
+                     device=device,
+                     autocast=autocast,
+                     normalize=normalize,
+                     out_fn=out_fn,
+                     verbose=verbose)
