@@ -68,7 +68,7 @@ def get_parser_args():
                              choices=['concat', 'concat_pca'], help="Feature combiner to use")
     parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=lambda x: None if x == '' else x)
 
-    parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
+    parser_eval.add_argument('--task', type=str, default="linear_probe", choices=["linear_probe"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
                              help="whether to use mixed precision")
@@ -101,14 +101,14 @@ def get_parser_args():
     parser_eval.add_argument('--output', default="results", type=str,
                              help="Path to folder where the results should be stores. The results consist of :"
                                   "1. A JSON file per dataset and model(s) combination."
-                                  "2. A pickel file containing the test set predictions."
+                                  "2. A pickle file containing the test set predictions."
                                   "The path can be in form of a template, e.g.,"
                                   " --output='{fewshot_k}/{dataset}/{model}/{fewshot_lr}/{seed}'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
     parser_eval.add_argument('--save_clf', default=None, type=str,
                              help="optionally save the classification layer output by the text tower")
     parser_eval.add_argument('--load_clfs', nargs='+', default=[], type=str,
-                             help="optionally load and average mutliple layers output by text towers.")
+                             help="optionally load and average multiple layers output by text towers.")
     parser_eval.add_argument('--skip_existing', default=False, action="store_true",
                              help="whether to skip an evaluation if the output file exists.")
     parser_eval.add_argument('--model_type', default="open_clip", type=str, help="clip model type")
@@ -611,7 +611,7 @@ def run(args):
         )
     else:
         raise ValueError(
-            "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, or `captioning`".format(
+            "Unsupported task: {}. task should be `linear_probe`".format(
                 task))
     dump = {
         "dataset": args.dataset,
