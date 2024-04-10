@@ -26,7 +26,7 @@ class ThingsvisionModel:
         
         if self._alignment_type is not None:
             is_aligned=False
-            while is_aligned:
+            while not is_aligned:
                 try: 
                     features = self._extractor.align(
                         features=features,
