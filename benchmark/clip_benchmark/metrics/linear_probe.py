@@ -398,7 +398,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     assert os.path.exists(feature_root), "Feature root path non-existent"
 
     feature_dirs = [os.path.join(feature_root, model_id) for model_id in model_ids]
-
+    print('feature_dirs', feature_dirs, flush=True)
     assert all([os.path.exists(feature_dir) for feature_dir in feature_dirs])
 
     autocast = torch.cuda.amp.autocast if amp else suppress
@@ -433,7 +433,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     train_labels = targets[idxs]
 
     feature_combiner_train = feature_combiner_cls()
-    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train)
+    feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train, normalize)
     feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
                                       shuffle=True, num_workers=num_workers, pin_memory=True, )
 
@@ -444,7 +444,8 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         feature_combiner_val = feature_combiner_cls(reference_combiner=feature_combiner_train)
         feature_val_dset = CombinedFeaturesDataset(list_features_val,
                                                    targets_val,
-                                                   feature_combiner_val)
+                                                   feature_combiner_val,
+                                                   normalize)
         feature_val_loader = DataLoader(
             feature_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
@@ -456,7 +457,8 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
         feature_combiner_train = feature_combiner_cls()
         feature_train_val_dset = CombinedFeaturesDataset(list_train_val_features,
                                                          np.concatenate((train_labels, targets_val)),
-                                                         feature_combiner_train)
+                                                         feature_combiner_train,
+                                                         normalize)
         feature_train_val_loader = DataLoader(
             feature_train_val_dset, batch_size=batch_size,
             shuffle=True, num_workers=num_workers,
@@ -467,7 +469,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
     targets_test = torch.load(os.path.join(feature_dirs[0], 'targets_test.pt'))
 
     feature_combiner_test = feature_combiner_cls(reference_combiner=feature_combiner_train)
-    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner_test)
+    feature_test_dset = CombinedFeaturesDataset(list_features_test, targets_test, feature_combiner_test, normalize)
     feature_test_loader = DataLoader(
         feature_test_dset, batch_size=batch_size,
         shuffle=True, num_workers=num_workers,

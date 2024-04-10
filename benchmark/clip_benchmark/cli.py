@@ -24,11 +24,9 @@ from clip_benchmark.models import load_model
 
 def parse_str_to_dict(s):
     try:
-        print(s, flush=True)
         parsed_dict = json.loads(s)
         return parsed_dict
     except ValueError as e:
-        print(e, flush=True)
         raise argparse.ArgumentTypeError("Input is not a valid JSON dictionary.")
 
 
@@ -68,7 +66,7 @@ def get_parser_args():
                              help="Whether the features of the different models should be used in combined fashion.")
     parser_eval.add_argument('--feature_combiner', type=str, default="concat",
                              choices=['concat', 'concat_pca'], help="Feature combiner to use")
-    parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=str)
+    parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=lambda x: None if x == '' else x)
 
     parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
@@ -86,7 +84,7 @@ def get_parser_args():
     parser_eval.add_argument("--distributed", action="store_true", help="evaluation in parallel")
     parser_eval.add_argument('--seed', default=[0], type=int, nargs='+', help="random seed.")
     parser_eval.add_argument('--batch_size', default=64, type=int)
-    parser_eval.add_argument('--normalize', default=True, type=bool, help="features normalization")
+    parser_eval.add_argument('--normalize', default=True, type=lambda x: (str(x).lower() == 'true'), help="features normalization")
     parser_eval.add_argument('--model_cache_dir', default=None, type=str,
                              help="directory to where downloaded models are cached")
     parser_eval.add_argument('--feature_root', default="features", type=str,
@@ -376,8 +374,12 @@ def make_output_fname(args, dataset_name, task):
     else:
         model_slug = _get_model_id(args.model, args.model_parameters)
         model_ids = [model_slug]
+    
+    if args.feature_alignment is not None:
+        model_ids = [mid+f"_{args.feature_alignment}" for mid in model_ids]
 
     fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
+    
     output = args.output.format(
         model=model_slug,
         task=task,
@@ -387,6 +389,7 @@ def make_output_fname(args, dataset_name, task):
         feature_combiner=f"feat_comb_{args.feature_combiner}",
         fewshot_lr=args.fewshot_lr,
         fewshot_epochs=args.fewshot_epochs,
+        feature_alignment=args.feature_alignment if args.feature_alignment is not None else "no_alignment"
     )
 
     if not os.path.exists(output):
@@ -438,6 +441,7 @@ def run_combined(args):
             lr=args.fewshot_lr,
             epochs=args.fewshot_epochs,
             device=args.device,
+            normalize=args.normalize,
             seed=args.seed,
             use_val_ds=args.val_proportion is not None or args.val_split is not None,
             out_fn=out_pred,
@@ -457,6 +461,7 @@ def run_combined(args):
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
         "mode": "combined features",
+        "feature_alignment": args.feature_alignment if args.feature_alignment is not None else "no_alignment",
         "combiner": args.feature_combiner,
         "task": task,
         "metrics": metrics,
@@ -502,6 +507,8 @@ def run(args):
         model, transform, collate_fn, dataloader = None, None, None, None
     else:
         assert isinstance(args.model, str), "model should be a string"
+        if args.verbose:
+            print(f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature alignment", flush=True)
         model, transform = load_model(
             model_name=args.model,
             source=args.model_source,
@@ -614,6 +621,7 @@ def run(args):
         "model_parameters": args.model_parameters,
         "module_name": args.module_name,
         "mode": "single features",
+        "feature_alignment": args.feature_alignment if args.feature_alignment is not None else "no_alignment",
         "combiner": None,
         "task": task,
         "metrics": metrics,

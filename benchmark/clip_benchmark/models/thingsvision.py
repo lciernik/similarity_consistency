@@ -1,7 +1,7 @@
 from typing import Union, Dict, Optional
 
 import torch
-
+import zipfile
 from thingsvision import get_extractor
 
 
@@ -12,7 +12,6 @@ class ThingsvisionModel:
         self._module_name = module_name
         self._extractor.model = self._extractor.model.to(extractor.device)
         self._extractor.activations = {}
-        self._extractor.register_hook(module_name=module_name)
         self._output_type = "tensor"
         self._alignment_type = feature_alignment
 
@@ -24,13 +23,20 @@ class ThingsvisionModel:
             )
 
         features = features.to(torch.float32)
-
+        
         if self._alignment_type is not None:
-            features = self._extractor.align(
-                features=features,
-                module_name=self._module_name,
-                alignment_type=self._alignment_type,
-            )
+            is_aligned=False
+            while is_aligned:
+                try: 
+                    features = self._extractor.align(
+                        features=features,
+                        module_name=self._module_name,
+                        alignment_type=self._alignment_type,
+                    )
+                    is_aligned = True
+                except (zipfile.BadZipFile, FileNotFoundError, EOFError) as e:
+                    print(f"Error: {e}", flush=True)
+
         return features
 
 
