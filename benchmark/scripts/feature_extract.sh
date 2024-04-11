@@ -35,7 +35,7 @@ feature_root="${base_project_path}/features";
 
 output_fn="${base_project_path}/results/single_models/{fewshot_k}/{dataset}/{model}/fewshot_lr_{fewshot_lr}/fewshot_epochs_{fewshot_epochs}/seed_{seed}";
 
-# Define different parameter settings. Each combination run in a separate job of a job array.
+# Define different parameter settings. Each combination runs in a separate job of a job array.
 # Combinations handled in benchmark code (i.e., cli.py)
 fewshot_lrs=( 0.1 0.01 );
 fewshot_ks=( -1 10 100 );
@@ -62,12 +62,12 @@ do
                         --model_parameters="$model_parameters" \
                         --module_name="$module_name" \
                         --batch_size=64 \
-                        --fewshot_k "${fewshot_ks[*]}" \
-                        --fewshot_lr "${fewshot_lrs[*]}" \
-                        --fewshot_epochs "${fewshot_epochs[*]}" \
+                        --fewshot_k ${fewshot_ks[*]} \
+                        --fewshot_lr ${fewshot_lrs[*]} \
+                        --fewshot_epochs ${fewshot_epochs[*]} \
                         --train_split train \
                         --test_split test \
-                        --seed "${seeds[*]}"
+                        --seed ${seeds[*]}
 
 done
 
