@@ -35,9 +35,9 @@ output_fn="${base_project_path}/results/combined_models/{fewshot_k}/{feature_com
 ## Iterate over different feature combiner
 combiners=("concat" "concat_pca");
 
-# Define different parameter settings. Each combination run in a separate job of a job array.
+# Define different parameter settings. Each combination runs in a separate job of a job array.
 # Combinations handled in benchmark code (i.e., cli.py)
-fewshot_lrs=( 0.1 0.01 )
+fewshot_lrs=( 0.1 0.01 );
 fewshot_ks=( -1 10 100 );
 fewshot_epochs=( 10 20 30 );
 seeds=( {0..9} );
@@ -57,12 +57,12 @@ do
                       --model_parameters ${model_parameters[*]} \
                       --module_name ${module_name[*]} \
                       --batch_size=64 \
-                      --fewshot_k "${fewshot_ks[*]}" \
-                      --fewshot_lr "${fewshot_lrs[*]}" \
-                      --fewshot_epochs "${fewshot_epochs[*]}" \
+                      --fewshot_k ${fewshot_ks[*]} \
+                      --fewshot_lr ${fewshot_lrs[*]} \
+                      --fewshot_epochs ${fewshot_epochs[*]} \
                       --train_split train \
                       --test_split test \
-                      --seed "${seeds[*]}" \
+                      --seed ${seeds[*]} \
                       --eval_combined \
                       --feature_combiner "$feat_combiner"
 done
