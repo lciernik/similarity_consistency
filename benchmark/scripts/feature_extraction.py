@@ -3,7 +3,7 @@ import json
 from slurm import run_job
 
 MODEL_CONFIG = "./models_config.json"
-DATASETS = "./webdatasets.txt"
+DATASETS = "./webdatasets_small.txt"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
@@ -20,12 +20,12 @@ def load_models():
     return models
 
 
-def get_hyperparms():
+def get_hyperparms(num_seeds=10):
     hyper_params = dict(
         fewshot_lrs=['0.1', '0.01'],
         fewshot_ks=['-1', '5', '10', '100'],
         fewshot_epochs=['10', '20', '30'],
-        seeds=[str(num) for num in range(10)],
+        seeds=[str(num) for num in range(num_seeds)],
     )
     num_jobs = len(list(product(*hyper_params.values())))
     return hyper_params, num_jobs
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     models = load_models()
     n_models = len(models)
 
-    hyper_params, num_jobs = get_hyperparms()
+    hyper_params, num_jobs = get_hyperparms(num_seeds=1)
 
     for key, model_config in models.items():
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
