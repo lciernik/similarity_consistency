@@ -2,37 +2,52 @@
   "dinov2-vit-large-p14": {
     "model_name": "dinov2-vit-large-p14",
     "source": "ssl",
-    "model_parameters": "{'extract_cls_token':true}",
+    "model_parameters": {
+      "extract_cls_token": true
+    },
     "module_name": "norm"
   },
   "dino-vit-base-p16": {
     "model_name": "dino-vit-base-p16",
     "source": "ssl",
-    "model_parameters": "{'extract_cls_token':true}",
+    "model_parameters": {
+      "extract_cls_token": true
+    },
     "module_name": "norm"
   },
   "clip_vitL": {
     "model_name": "OpenCLIP",
     "source": "custom",
-    "model_parameters": "{'variant':'ViT-L-14','dataset':'laion400m_e32'}",
+    "model_parameters": {
+      "variant": "ViT-L-14",
+      "dataset": "laion400m_e32"
+    },
     "module_name": "visual"
   },
   "clip_vitL_quickgelu": {
     "model_name": "OpenCLIP",
     "source": "custom",
-    "model_parameters": "{'variant':'ViT-L-14-quickgelu','dataset':'laion400m_e32'}",
+    "model_parameters": {
+      "variant": "ViT-L-14-quickgelu",
+      "dataset": "laion400m_e32"
+    },
     "module_name": "visual"
   },
   "dreamsim_open_clip": {
     "model_name": "DreamSim",
     "source": "custom",
-    "model_parameters": "{'variant':'open_clip_vitb32'}",
+    "model_parameters": {
+      "variant": "open_clip_vitb32"
+    },
     "module_name": "model.mlp"
   },
   "vit_b_16": {
     "model_name": "vit_b_16",
     "source": "torchvision",
-    "model_parameters": "{'weights':'DEFAULT'}",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "weights": "DEFAULT"
+    },
     "module_name": "encoder.ln"
   }
 }

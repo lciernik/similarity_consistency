@@ -22,14 +22,6 @@ from clip_benchmark.metrics import linear_probe
 from clip_benchmark.models import load_model
 
 
-def parse_str_to_dict(s):
-    try:
-        parsed_dict = json.loads(s)
-        return parsed_dict
-    except ValueError as e:
-        raise argparse.ArgumentTypeError("Input is not a valid JSON dictionary.")
-
-
 def get_parser_args():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -56,11 +48,8 @@ def get_parser_args():
                              nargs="+",
                              default=["ssl"],
                              help="For each model, indicate the source of the model. See thingsvision for more details.")
-    parser_eval.add_argument('--model_parameters',
-                             nargs="+",
-                             type=parse_str_to_dict,
-                             metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
-                             help='A dictionary of key-value pairs')
+    parser_eval.add_argument('--model_parameters', nargs="+", type=str,
+                             help='A serialized JSON dictionary of key-value pairs.')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
     parser_eval.add_argument('--eval_combined', action="store_true",
                              help="Whether the features of the different models should be used in combined fashion.")
@@ -84,7 +73,8 @@ def get_parser_args():
     parser_eval.add_argument("--distributed", action="store_true", help="evaluation in parallel")
     parser_eval.add_argument('--seed', default=[0], type=int, nargs='+', help="random seed.")
     parser_eval.add_argument('--batch_size', default=64, type=int)
-    parser_eval.add_argument('--normalize', default=True, type=lambda x: (str(x).lower() == 'true'), help="features normalization")
+    parser_eval.add_argument('--normalize', default=True, type=lambda x: (str(x).lower() == 'true'),
+                             help="features normalization")
     parser_eval.add_argument('--model_cache_dir', default=None, type=str,
                              help="directory to where downloaded models are cached")
     parser_eval.add_argument('--feature_root', default="features", type=str,
@@ -206,11 +196,11 @@ def main_eval(base):
         base.fewshot_epochs,
         base.seed
     )
-
     # Get list of models to evaluate
     models = _as_list(base.model)
     srcs = _as_list(base.model_source)
     params = _as_list(base.model_parameters)
+    params = [json.loads(x) for x in params]  # convert serialized JSON dictionaries to python dictionaries
     module_names = _as_list(base.module_name)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
@@ -370,12 +360,12 @@ def make_output_fname(args, dataset_name, task):
     else:
         model_slug = _get_model_id(args.model, args.model_parameters)
         model_ids = [model_slug]
-    
+
     if args.feature_alignment is not None:
-        model_ids = [mid+f"_{args.feature_alignment}" for mid in model_ids]
+        model_ids = [mid + f"_{args.feature_alignment}" for mid in model_ids]
 
     fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-    
+
     output = args.output.format(
         model=model_slug,
         task=task,
@@ -504,7 +494,9 @@ def run(args):
     else:
         assert isinstance(args.model, str), "model should be a string"
         if args.verbose:
-            print(f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature alignment", flush=True)
+            print(
+                f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature alignment",
+                flush=True)
         model, transform = load_model(
             model_name=args.model,
             source=args.model_source,
