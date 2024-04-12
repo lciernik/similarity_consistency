@@ -13,7 +13,6 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', 'single_models', '{fewshot_k}', '{dataset}', '{model}',
                            'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
 
-
 def load_models():
     with open(MODEL_CONFIG, "r") as file:
         models = json.load(file)
@@ -55,7 +54,7 @@ if __name__ == "__main__":
                             --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                             --train_split train \
                             --test_split test \
-                            --seed {' '.join(hyper_params['seeds'])} 
+         g                   --seed {' '.join(hyper_params['seeds'])} 
         """
 
         run_job(
