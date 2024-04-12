@@ -50,7 +50,7 @@ def get_parser_args():
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
 
     parser_eval.add_argument('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
-                             help="Model architecture to use from OpenCLIP")
+                             help="Thingsvision model string")
     parser_eval.add_argument('--model_source',
                              type=str,
                              nargs="+",
@@ -91,12 +91,8 @@ def get_parser_args():
                              help="feature root folder where the features are stored.")
     parser_eval.add_argument('--custom_classname_file', default=None, type=str,
                              help="use custom json file with classnames for each dataset, where keys are dataset names and values are list of classnames.")
-    parser_eval.add_argument('--custom_template_file', default=None, type=str,
-                             help="use custom json file with prompts for each dataset, where keys are dataset names and values are list of prompts. For instance, to use CuPL prompts, use --custom_template_file='cupl_prompts.json'")
     parser_eval.add_argument('--dump_classnames', default=False, action="store_true",
                              help="dump classnames to the results json file.")
-    parser_eval.add_argument('--dump_templates', default=False, action="store_true",
-                             help="dump templates to the results json file.")
 
     parser_eval.add_argument('--output', default="results", type=str,
                              help="Path to folder where the results should be stores. The results consist of :"
@@ -524,7 +520,6 @@ def run(args):
             split=args.split,
             download=True,
             task=task,
-            custom_template_file=args.custom_template_file,
             custom_classname_file=args.custom_classname_file,
             wds_cache_dir=args.wds_cache_dir,
         )
@@ -629,8 +624,6 @@ def run(args):
     }
     if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
         dump["classnames"] = dataset.classes
-    if hasattr(dataset, "templates") and dataset.templates and args.dump_templates:
-        dump["templates"] = dataset.templates
     # store results
     if args.verbose:
         print(f"Dump results to: {out_res}")
