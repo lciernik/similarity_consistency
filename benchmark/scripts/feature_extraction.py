@@ -48,5 +48,5 @@ if __name__ == "__main__":
             job_cmd=job_cmd,
             partition='gpu-5h',
             log_dir='./logs',
-            num_jobs_in_array=1
+            num_jobs_in_array=num_jobs
         )

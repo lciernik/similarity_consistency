@@ -24,15 +24,6 @@
     },
     "module_name": "visual"
   },
-  "clip_vitL_quickgelu": {
-    "model_name": "OpenCLIP",
-    "source": "custom",
-    "model_parameters": {
-      "variant": "ViT-L-14-quickgelu",
-      "dataset": "laion400m_e32"
-    },
-    "module_name": "visual"
-  },
   "dreamsim_open_clip": {
     "model_name": "DreamSim",
     "source": "custom",
