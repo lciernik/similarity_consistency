@@ -12,7 +12,7 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', 'single_models', '{fewshot_k}', '{dataset}', '{model}',
                            'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
-g
+
 
 def load_models():
     with open(MODEL_CONFIG, "r") as file:
