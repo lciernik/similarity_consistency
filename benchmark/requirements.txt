@@ -7,3 +7,4 @@ pycocoevalcap
 webdataset>=0.2.31
 transformers
 thingsvision==2.5.3
+slurmpy
