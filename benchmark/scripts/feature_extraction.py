@@ -55,7 +55,7 @@ if __name__ == "__main__":
                             --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                             --train_split train \
                             --test_split test \
-                            --seed {' '.join(seeds)} 
+                            --seed {' '.join(hyper_params['seeds'])} 
         """
 
         run_job(
