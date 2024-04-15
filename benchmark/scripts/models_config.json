@@ -2,217 +2,271 @@
     "dinov2-vit-large-p14":{
         "model_name":"dinov2-vit-large-p14",
         "source":"ssl",
-        "model_parameters":"{\"extract_cls_token\":true}",
+        "model_parameters": {
+            "extract_cls_token":true
+        },
         "module_name":"norm"
     },
     "dino-vit-base-p16":{
         "model_name":"dino-vit-base-p16",
         "source":"ssl",
-        "model_parameters":"{\"extract_cls_token\":true}",
+        "model_parameters":{
+            "extract_cls_token":true
+        },
         "module_name":"norm"
     },
     "dreamsim_open_clip":{
         "model_name":"DreamSim",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"open_clip_vitb32\"}",
+        "model_parameters":{
+            "variant":"open_clip_vitb32"
+        },
         "module_name":"model.mlp"
     },
     "dreamsim_dino":{
         "model_name":"DreamSim",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"dino_vitb16\", \"extract_cls_token\":true}",
+        "model_parameters":{
+            "variant":"dino_vitb16", 
+            "extract_cls_token":true
+        },
         "module_name":"norm"
     },
     "mae-vit-base-p16": {
         "model_name":"mae-vit-base-p16",
-        "module_name":"norm",
         "source":"ssl",
-        "model_parameters":"{\"extract_cls_token\": true}"
+        "model_parameters":{
+            "extract_cls_token": true
+        },
+        "module_name":"norm"
     },
     "mae-vit-large-p16": {
         "model_name": "mae-vit-large-p16",
-        "module_name": "norm",
         "source": "ssl",
-        "model_parameters": "{\"extract_cls_token\": true}"
+        "model_parameters": {
+            "extract_cls_token": true
+        },
+        "module_name": "norm"
     },
     "mae-vit-huge-p14": {
         "model_name": "mae-vit-huge-p14",
-        "module_name": "norm",
         "source": "ssl",
-        "model_parameters": "{\"extract_cls_token\": true}"
+        "model_parameters": {
+            "extract_cls_token": true
+        },
+        "module_name": "norm"
     },
     "clip_RN50_openai":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"RN50\", \"dataset\":\"openai\"}",
+        "model_parameters":{
+            "variant":"RN50", 
+            "dataset":"openai"
+        },
         "module_name":"visual"
     },    
     "clip_vitB_openai":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-B-16\", \"dataset\":\"openai\"}",
+        "model_parameters":{
+            "variant":"ViT-B-16", 
+            "dataset":"openai"
+        },
         "module_name":"visual"
     },
     "clip_vitB_laion400m":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-B-16\", \"dataset\":\"laion400m_e32\"}",
+        "model_parameters":{
+            "variant":"ViT-B-16", "dataset":"laion400m_e32"
+        },
         "module_name":"visual"
     },
     "clip_vitB_laion2b":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-B-16\", \"dataset\":\"laion2b_s34b_b88k\"}",
+        "model_parameters":{
+            "variant":"ViT-B-16", 
+            "dataset":"laion2b_s34b_b88k"
+        },
         "module_name":"visual"
     },
     "clip_vitL_openai":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-L-14\", \"dataset\":\"openai\"}",
+        "model_parameters":{
+            "variant":"ViT-L-14", 
+            "dataset":"openai"
+        },
         "module_name":"visual"
     },
     "clip_vitL_laion400m":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-L-14\", \"dataset\":\"laion400m_e32\"}",
+        "model_parameters":{
+            "variant":"ViT-L-14", 
+            "datet":"laion400m_e32"
+        },
         "module_name":"visual"
     },
     "clip_vitL_laion2b":{
         "model_name":"OpenCLIP",
         "source":"custom",
-        "model_parameters":"{\"variant\":\"ViT-L-14\", \"dataset\":\"laion2b_s32b_b82k\"}",
+        "model_parameters":{
+            "variant":"ViT-L-14", 
+            "dataset":"laion2b_s32b_b82k"
+        },
         "module_name":"visual"
     },
     "vgg16":{
         "model_name":"vgg16",
         "source":"torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
         "module_name":"classifier.3"
     },
     "vgg19":{
         "model_name":"vgg19",
         "source":"torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
         "module_name":"classifier.3"
     },
     "resnet50":{
         "model_name":"resnet50",
         "source":"torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
         "module_name":"avgpool"
     },
     "resnet152":{
         "model_name":"resnet152",
         "source":"torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
         "module_name":"avgpool"
     },
     "resnext50":{
         "model_name":"resnext50_32x4d",
         "source":"timm",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name":"global_pool"
     },
     "seresnet50":{
         "model_name":"seresnet50",
         "source":"timm",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name":"global_pool"
     },
     "convnext_base":{
         "model_name":"convnext_base",
         "source":"timm",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name":"head.flatten"
     },
     "convnext_large":{
         "model_name":"convnext_large",
         "source":"timm",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name":"head.flatten"
     },
     "efficientnet_b3": {
         "model_name": "efficientnet_b3",
         "source": "torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
-        "module_name": "avgpool"
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },        "module_name": "avgpool"
     },
     "efficientnet_b4": {
         "model_name": "efficientnet_b4",
         "source": "torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
-        "module_name": "avgpool"
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },        "module_name": "avgpool"
     },
     "efficientnet_b5": {
         "model_name": "efficientnet_b5",
         "source": "torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
-        "module_name": "avgpool"
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },        "module_name": "avgpool"
     },
     "efficientnet_b6": {
         "model_name": "efficientnet_b6",
         "source": "torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
-        "module_name": "avgpool"
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },        "module_name": "avgpool"
     },
     "efficientnet_b7": {
         "model_name": "efficientnet_b7",
         "source": "torchvision",
-        "model_parameters" :"{\"weights\":\"DEFAULT\"}",
-        "module_name": "avgpool"
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },        "module_name": "avgpool"
     },
     "simclr-rn50": {
         "model_name": "simclr-rn50",
         "source": "ssl",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name": "avgpool"
     },
     "mocov2-rn50": {
         "model_name": "mocov2-rn50",
         "source": "ssl",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name": "avgpool"
     },
     "vicreg-rn50": {
         "model_name": "vicreg-rn50",
         "source": "ssl",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name": "avgpool"
     },
     "barlowtwins-rn50": {
         "model_name": "barlowtwins-rn50",
         "source": "ssl",
-        "model_parameters":"None",
+        "model_parameters":{},
         "module_name": "avgpool"
     },
     "vit_b":{
         "model_name":"vit_base_patch16_224",
         "source":"timm",
-        "model_parameters":"{\"extract_cls_token\":true}",
+        "model_parameters":{
+            "extract_cls_token":true
+        },
         "module_name":"norm"
     },
     "vit_b_in21k":{
         "model_name":"vit_base_patch16_224_in21k",
         "source":"timm",
-        "model_parameters":"{\"extract_cls_token\":true}",
-        "module_name":"norm"
+        "model_parameters":{
+            "extract_cls_token":true
+        },        "module_name":"norm"
     },
     "vit_l_laion2b":{
         "model_name":"vit_large_patch14_224_clip_laion2b",
         "source":"timm",
-        "model_parameters":"{\"extract_cls_token\":true}",
-        "module_name":"norm"
+        "model_parameters":{
+            "extract_cls_token":true
+        },        "module_name":"norm"
     },
     "vit_h_in21k":{
         "model_name":"vit_huge_patch14_224_in21k",
         "source":"timm",
-        "model_parameters":"{\"extract_cls_token\":true}",
-        "module_name":"norm"
+        "model_parameters":{
+            "extract_cls_token":true
+        },        "module_name":"norm"
     },
     "vit_huge_laion2b":{
         "model_name":"vit_huge_patch14_224_clip_laion2b",
         "source":"timm",
-        "model_parameters":"{\"extract_cls_token\":true}",
-        "module_name":"norm"
+        "model_parameters":{
+            "extract_cls_token":true
+        },        "module_name":"norm"
     }
 }
