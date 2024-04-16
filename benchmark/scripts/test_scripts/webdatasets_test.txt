@@ -1,4 +1,1 @@
-wds/vtab/cifar100
-wds/vtab/diabetic_retinopathy
-wds/vtab/flowers
-wds/vtab/pets
+wds/vtab/cifar10

@@ -22,14 +22,6 @@ from clip_benchmark.metrics import linear_probe
 from clip_benchmark.models import load_model
 
 
-def parse_str_to_dict(s):
-    try:
-        parsed_dict = json.loads(s)
-        return parsed_dict
-    except ValueError as e:
-        raise argparse.ArgumentTypeError("Input is not a valid JSON dictionary.")
-
-
 def get_parser_args():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -50,17 +42,14 @@ def get_parser_args():
                                     help="what is the share of the train dataset will be used for validation part, if it doesn't predefined. Mutually exclusive with val_split")
 
     parser_eval.add_argument('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
-                             help="Model architecture to use from OpenCLIP")
+                             help="Thingsvision model string")
     parser_eval.add_argument('--model_source',
                              type=str,
                              nargs="+",
                              default=["ssl"],
                              help="For each model, indicate the source of the model. See thingsvision for more details.")
-    parser_eval.add_argument('--model_parameters',
-                             nargs="+",
-                             type=parse_str_to_dict,
-                             metavar="{'KEY1':'VAL1','KEY2':'VAL2',...}",
-                             help='A dictionary of key-value pairs')
+    parser_eval.add_argument('--model_parameters', nargs="+", type=str,
+                             help='A serialized JSON dictionary of key-value pairs.')
     parser_eval.add_argument('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
     parser_eval.add_argument('--eval_combined', action="store_true",
                              help="Whether the features of the different models should be used in combined fashion.")
@@ -68,7 +57,7 @@ def get_parser_args():
                              choices=['concat', 'concat_pca'], help="Feature combiner to use")
     parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=lambda x: None if x == '' else x)
 
-    parser_eval.add_argument('--task', type=str, default="auto", choices=["linear_probe"],
+    parser_eval.add_argument('--task', type=str, default="linear_probe", choices=["linear_probe"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
                              help="whether to use mixed precision")
@@ -84,31 +73,28 @@ def get_parser_args():
     parser_eval.add_argument("--distributed", action="store_true", help="evaluation in parallel")
     parser_eval.add_argument('--seed', default=[0], type=int, nargs='+', help="random seed.")
     parser_eval.add_argument('--batch_size', default=64, type=int)
-    parser_eval.add_argument('--normalize', default=True, type=lambda x: (str(x).lower() == 'true'), help="features normalization")
+    parser_eval.add_argument('--normalize', default=True, type=lambda x: (str(x).lower() == 'true'),
+                             help="features normalization")
     parser_eval.add_argument('--model_cache_dir', default=None, type=str,
                              help="directory to where downloaded models are cached")
     parser_eval.add_argument('--feature_root', default="features", type=str,
                              help="feature root folder where the features are stored.")
     parser_eval.add_argument('--custom_classname_file', default=None, type=str,
                              help="use custom json file with classnames for each dataset, where keys are dataset names and values are list of classnames.")
-    parser_eval.add_argument('--custom_template_file', default=None, type=str,
-                             help="use custom json file with prompts for each dataset, where keys are dataset names and values are list of prompts. For instance, to use CuPL prompts, use --custom_template_file='cupl_prompts.json'")
     parser_eval.add_argument('--dump_classnames', default=False, action="store_true",
                              help="dump classnames to the results json file.")
-    parser_eval.add_argument('--dump_templates', default=False, action="store_true",
-                             help="dump templates to the results json file.")
 
     parser_eval.add_argument('--output', default="results", type=str,
                              help="Path to folder where the results should be stores. The results consist of :"
                                   "1. A JSON file per dataset and model(s) combination."
-                                  "2. A pickel file containing the test set predictions."
+                                  "2. A pickle file containing the test set predictions."
                                   "The path can be in form of a template, e.g.,"
                                   " --output='{fewshot_k}/{dataset}/{model}/{fewshot_lr}/{seed}'")
     parser_eval.add_argument('--quiet', dest='verbose', action="store_false", help="suppress verbose messages")
     parser_eval.add_argument('--save_clf', default=None, type=str,
                              help="optionally save the classification layer output by the text tower")
     parser_eval.add_argument('--load_clfs', nargs='+', default=[], type=str,
-                             help="optionally load and average mutliple layers output by text towers.")
+                             help="optionally load and average multiple layers output by text towers.")
     parser_eval.add_argument('--skip_existing', default=False, action="store_true",
                              help="whether to skip an evaluation if the output file exists.")
     parser_eval.add_argument('--model_type', default="open_clip", type=str, help="clip model type")
@@ -210,11 +196,11 @@ def main_eval(base):
         base.fewshot_epochs,
         base.seed
     )
-
     # Get list of models to evaluate
     models = _as_list(base.model)
     srcs = _as_list(base.model_source)
     params = _as_list(base.model_parameters)
+    params = [json.loads(x) for x in params]  # convert serialized JSON dictionaries to python dictionaries
     module_names = _as_list(base.module_name)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
@@ -374,12 +360,12 @@ def make_output_fname(args, dataset_name, task):
     else:
         model_slug = _get_model_id(args.model, args.model_parameters)
         model_ids = [model_slug]
-    
+
     if args.feature_alignment is not None:
-        model_ids = [mid+f"_{args.feature_alignment}" for mid in model_ids]
+        model_ids = [mid + f"_{args.feature_alignment}" for mid in model_ids]
 
     fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-    
+
     output = args.output.format(
         model=model_slug,
         task=task,
@@ -508,7 +494,9 @@ def run(args):
     else:
         assert isinstance(args.model, str), "model should be a string"
         if args.verbose:
-            print(f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature alignment", flush=True)
+            print(
+                f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature alignment",
+                flush=True)
         model, transform = load_model(
             model_name=args.model,
             source=args.model_source,
@@ -524,7 +512,6 @@ def run(args):
             split=args.split,
             download=True,
             task=task,
-            custom_template_file=args.custom_template_file,
             custom_classname_file=args.custom_classname_file,
             wds_cache_dir=args.wds_cache_dir,
         )
@@ -611,7 +598,7 @@ def run(args):
         )
     else:
         raise ValueError(
-            "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, or `captioning`".format(
+            "Unsupported task: {}. task should be `linear_probe`".format(
                 task))
     dump = {
         "dataset": args.dataset,
@@ -629,8 +616,6 @@ def run(args):
     }
     if hasattr(dataset, "classes") and dataset.classes and args.dump_classnames:
         dump["classnames"] = dataset.classes
-    if hasattr(dataset, "templates") and dataset.templates and args.dump_templates:
-        dump["templates"] = dataset.templates
     # store results
     if args.verbose:
         print(f"Dump results to: {out_res}")

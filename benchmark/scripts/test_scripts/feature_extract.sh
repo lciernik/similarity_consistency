@@ -30,8 +30,7 @@ fewshot_epoch=${12};
 seed=${13};
 
 ### Define conda environment 
-source /home/lciernik/tools/miniconda3/etc/profile.d/conda.sh
-conda activate clip_benchmark
+source venv/bin/activate
 
 ## Define parameters
 fewshot_lrs=( "$fewshot_lr" );
