@@ -487,7 +487,8 @@ def run(args):
     if args.verbose:
         print(f"Running '{task}' on '{dataset_name}' with the model '{model_id}'")
 
-    dataset_root = args.dataset_root.format(dataset=dataset_name, dataset_cleaned=dataset_name.replace("/", "-"))
+    if dataset_name.startswith('wds'):
+        dataset_root = os.path.join(args.dataset_root, 'wds', f'wds_{dataset_name.replace("/", "-")}')
 
     if args.skip_load or isinstance(args.model, list):
         model, transform, collate_fn, dataloader = None, None, None, None

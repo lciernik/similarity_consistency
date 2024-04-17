@@ -11,6 +11,7 @@ from torchvision.datasets import (CIFAR10, CIFAR100, DTD, GTSRB, MNIST, PCAM,
                                   EuroSAT, FGVCAircraft, Flowers102, Food101,
                                   ImageFolder, ImageNet, OxfordIIITPet,
                                   RenderedSST2, StanfordCars)
+from torch.utils.data import Subset
 
 from . import (babel_imagenet, caltech101, flickr, imagenetv2, objectnet,
                sugar_crepe, voc2007, winoground)
@@ -588,6 +589,13 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         # WDS specify classnames and templates on its own.
     elif dataset_name == "dummy":
         ds = Dummy()
+    elif dataset_name == "imagenet-subset-10k":
+        root = os.path.join(root, 'imagenet_torch')
+        ds = ImageNet(root=root, split=train)
+        with open(os.path.join(root, 'imagenet-subset-10k.json'), 'r') as f:
+            indices_map = json.load(f)
+        indices = sum(map(list, indices_map.values()))
+        ds = Subset(ds, indices=indices)
     else:
         raise ValueError(f"Unsupported dataset: {dataset_name}.")
 
