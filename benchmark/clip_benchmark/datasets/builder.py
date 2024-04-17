@@ -591,7 +591,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         ds = Dummy()
     elif dataset_name == "imagenet-subset-10k":
         root = os.path.join(root, 'imagenet_torch')
-        ds = ImageNet(root=root, split=train)
+        ds = ImageNet(root=root, split='train')
         with open(os.path.join(root, 'imagenet-subset-10k.json'), 'r') as f:
             indices_map = json.load(f)
         indices = sum(map(list, indices_map.values()))
