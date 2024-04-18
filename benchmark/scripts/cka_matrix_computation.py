@@ -1,7 +1,7 @@
 import os
 import json
 from slurm import run_job
-from helper import load_models, prepare_for_combined_usage
+from helper import load_models, prepare_for_combined_usage, count_nr_datasets
 
 MODELS_CONFIG = "./models_config.json"
 
@@ -18,12 +18,6 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 private_out_root = "/home/lciernik/projects/divers-priors/results_local/cka"
 OUTPUT_ROOT = os.path.join(private_out_root, 'imagenet_subset_10k')
 
-
-def _count_nr_datasets():
-    with open(DATASETS, 'r') as f:
-        return len(f.readlines())
-
-
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
@@ -32,7 +26,7 @@ if __name__ == "__main__":
     model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
 
     # Nr of jobs in the array is equal to the number of datasets.
-    njobs = _count_nr_datasets()
+    njobs = count_nr_datasets(DATASETS)
     print(f"Nr.jobs: {njobs}")
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \

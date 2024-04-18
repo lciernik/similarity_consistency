@@ -6,6 +6,10 @@ def load_models(file_path):
         models = json.load(file)
     return models, len(models)
 
+def count_nr_datasets(datasets_path):
+    with open(datasets_path, 'r') as f:
+        return len(f.readlines())
+
 
 def prepare_for_combined_usage(models):
     model_names = []
