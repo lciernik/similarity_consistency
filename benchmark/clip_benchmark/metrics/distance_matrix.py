@@ -60,8 +60,8 @@ def compute_cka_matrix(feature_root, model_ids, split='train', kernel='linear'):
                              len(model_ids))  # Initialize CKA matrix. What is the CKA of a model with itself?
 
     for ((idx1, model1), (idx2, model2)) in itertools.combinations(model_ids_with_idx, 2):
-        features_i = _load_features(feature_root, model1, split)
-        features_j = _load_features(feature_root, model2, split)
+        features_i = _load_features(feature_root, model1, split).to_numpy()
+        features_j = _load_features(feature_root, model2, split).to_numpy()
 
         assert features_i.shape[0] == features_j.shape[
             0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
