@@ -38,7 +38,7 @@ if __name__ == "__main__":
                                             --train_split train
                     """
     run_job(
-        job_name=f"fCKA",
+        job_name=f"CKA",
         job_cmd=job_cmd,
         partition='gpu-5h',
         log_dir='./logs',
