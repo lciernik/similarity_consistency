@@ -3,18 +3,18 @@ import json
 from slurm import run_job
 from helper import load_models, prepare_for_combined_usage
 
-MODELS_CONFIG = "./models_config_small.json"
-DATASETS = "wds/voc2007"
-# DATASETS = "./imagenet_subset.txt"
+MODELS_CONFIG = "./models_config.json"
+DATASETS = "./imagenet_subset.txt"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
-DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
-# DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
+# DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
+DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 
 private_out_root = "/home/lciernik/projects/divers-priors/results_local/cka"
-OUTPUT_ROOT = private_out_root
+OUTPUT_ROOT = os.path.join(private_out_root, 'imagenet_subset_10k')
+
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
