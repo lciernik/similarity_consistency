@@ -489,6 +489,8 @@ def run(args):
 
     if dataset_name.startswith('wds'):
         dataset_root = os.path.join(args.dataset_root, 'wds', f'wds_{dataset_name.replace("/", "-")}')
+    else:
+        dataset_root = args.dataset_root
 
     if args.skip_load or isinstance(args.model, list):
         model, transform, collate_fn, dataloader = None, None, None, None

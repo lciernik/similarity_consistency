@@ -9,11 +9,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--imagenet-root', default='/home/space/diverse_priors/datasets/imagenet_torch')
 parser.add_argument('--samples-per-class', default=10, type=int)
 parser.add_argument('--output_path', default='imagenet-10k.json')
+parser.add_argument('--split', default='train')
 args = parser.parse_args()
 
 # ImageNet sorts the classes and filenames, therefore indexing is preserved
-# we use the train split
-dataset = ImageNet(root=args.imagenet_root, split='train')
+dataset = ImageNet(root=args.imagenet_root, split=args.split)
 targets = np.array(dataset.targets)
 
 unique_classes = np.unique(targets)
