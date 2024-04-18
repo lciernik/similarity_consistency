@@ -434,9 +434,12 @@ def run_combined(args):
             amp=args.amp,
             verbose=args.verbose,
         )
+
+    elif task == "ensembling":
+        pass
     else:
         raise ValueError(
-            "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, or `captioning`".format(
+            "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, `ensembling` or `captioning`".format(
                 task))
 
     dump = {
@@ -540,10 +543,7 @@ def run(args):
                 shuffle=False, num_workers=args.num_workers,
                 collate_fn=collate_fn
             )
-
-    if task == "linear_probe":
         # we also need the train and validation splits for linear probing.
-        train_dataset = None
         train_dataset = build_dataset(
             dataset_name=args.dataset,
             root=dataset_root,
@@ -561,7 +561,8 @@ def run(args):
             )
         elif args.val_proportion is not None:
             train_dataset, val_dataset = torch.utils.data.random_split(train_dataset,
-                                                                       [1 - args.val_proportion, args.val_proportion])
+                                                                       [1 - args.val_proportion,
+                                                                        args.val_proportion])
         else:
             val_dataset = None
         train_dataloader = torch.utils.data.DataLoader(
@@ -577,6 +578,8 @@ def run(args):
             )
         else:
             val_dataloader = None
+    if task == "linear_probe":
+
         metrics = linear_probe.evaluate(
             model,
             train_dataloader,
