@@ -15,23 +15,6 @@
     },
     "module_name": "norm"
   },
-  "dreamsim_open_clip": {
-    "model_name": "DreamSim",
-    "source": "custom",
-    "model_parameters": {
-      "variant": "open_clip_vitb32"
-    },
-    "module_name": "model.mlp"
-  },
-  "dreamsim_dino": {
-    "model_name": "DreamSim",
-    "source": "custom",
-    "model_parameters": {
-      "variant": "dino_vitb16",
-      "extract_cls_token": true
-    },
-    "module_name": "norm"
-  },
   "mae-vit-base-p16": {
     "model_name": "mae-vit-base-p16",
     "source": "ssl",
@@ -65,15 +48,6 @@
     },
     "module_name": "visual"
   },
-  "clip_vitB_openai": {
-    "model_name": "OpenCLIP",
-    "source": "custom",
-    "model_parameters": {
-      "variant": "ViT-B-16",
-      "dataset": "openai"
-    },
-    "module_name": "visual"
-  },
   "clip_vitB_laion400m": {
     "model_name": "OpenCLIP",
     "source": "custom",
@@ -83,30 +57,20 @@
     },
     "module_name": "visual"
   },
-  "clip_vitB_laion2b": {
+  "clip_vitB_openai": {
     "model_name": "OpenCLIP",
     "source": "custom",
     "model_parameters": {
       "variant": "ViT-B-16",
-      "dataset": "laion2b_s34b_b88k"
-    },
-    "module_name": "visual"
-  },
-  "clip_vitL_openai": {
-    "model_name": "OpenCLIP",
-    "source": "custom",
-    "model_parameters": {
-      "variant": "ViT-L-14",
       "dataset": "openai"
     },
     "module_name": "visual"
   },
-  "clip_vitL_laion400m": {
+  "clip_vitL_default": {
     "model_name": "OpenCLIP",
     "source": "custom",
     "model_parameters": {
-      "variant": "ViT-L-14",
-      "datet": "laion400m_e32"
+      "variant": "ViT-L-14"
     },
     "module_name": "visual"
   },
@@ -116,6 +80,15 @@
     "model_parameters": {
       "variant": "ViT-L-14",
       "dataset": "laion2b_s32b_b82k"
+    },
+    "module_name": "visual"
+  },
+  "clip_vitL_openai": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-L-14",
+      "dataset": "openai"
     },
     "module_name": "visual"
   },
