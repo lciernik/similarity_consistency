@@ -44,7 +44,7 @@ def run_job(
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
-        "error": f"{log_dir}/run_%A/%a.out",
+        "error": f"{log_dir}/run_%A/%a.err",
         "array": f"0-{num_jobs_in_array-1}" if num_jobs_in_array > 1 else "0"
     }
 
