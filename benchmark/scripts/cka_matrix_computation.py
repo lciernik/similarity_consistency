@@ -19,6 +19,7 @@ OUTPUT_ROOT = os.path.join(private_out_root, 'imagenet_subset_10k')
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
+    print(f"Run CKA distance matrix experiment with {n_models} models.")
 
     model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
 
