@@ -179,6 +179,7 @@ def _get_list_of_models(base):
     models = _as_list(base.model)
     srcs = _as_list(base.model_source)
     params = _as_list(base.model_parameters)
+    params = [json.loads(x) for x in params]
     module_names = _as_list(base.module_name)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
