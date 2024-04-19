@@ -7,17 +7,6 @@ from tqdm import tqdm
 
 
 def _load_features(feature_root, model_id, split='train'):
-    """
-    Load features from the given model and split
-    Args:
-        feature_root: Rootpath to the directory containing the features.
-        model_id: Model id for which the features are to be loaded.
-        split: Split for which the features are to be loaded. Default is 'train'.
-
-    Returns:
-        features: Features (torch.Tensor) for the given model and split.
-
-    """
     features = torch.load(os.path.join(feature_root, model_id, f'features_{split}.pt'))
     return features
 
@@ -60,22 +49,17 @@ def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='trai
 def compute_rsa_matrix(rsa_matrix, model_ids_with_idx, feature_root, split='train', rsa_method='correlation',
                        corr_method='pearson'):
     for idx1, model1 in tqdm(model_ids_with_idx, desc="Computing RSA matrix"):
-
         features_i = _load_features(feature_root, model1, split).numpy()
         rdm_features_i = compute_rdm(features_i, method=rsa_method)
-
         for idx2, model2 in model_ids_with_idx:
             if idx1 >= idx2:
                 continue
-
             features_j = _load_features(feature_root, model2, split).numpy()
             rdm_features_j = compute_rdm(features_j, method=rsa_method)
-
             assert features_i.shape[0] == features_j.shape[
                 0], f"Number of features should be equal for RSA computation. (model1: {model1}, model2: {model2})"
 
             rho = correlate_rdms(rdm_features_i, rdm_features_j, correlation=corr_method)
-
             rsa_matrix[idx1, idx2] = rho
             rsa_matrix[idx2, idx1] = rho
 
