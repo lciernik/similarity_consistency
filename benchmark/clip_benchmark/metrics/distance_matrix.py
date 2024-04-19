@@ -52,10 +52,17 @@ def compute_cka_matrix(feature_root, model_ids, split='train', kernel='linear'):
     """
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
+
+    # Check if the features exist for all the models
+    prev_model_ids = model_ids
+    model_ids = sorted(
+        [mid for mid in model_ids if os.path.exists(os.path.join(feature_root, mid, f'features_{split}.pt'))])
+    if len(set(prev_model_ids)) != len(set(model_ids)):
+        print(f"Features do not exist for the following models: {set(prev_model_ids) - set(model_ids)}")
+        print(f"Removing the above models from the list of models for CKA computation.")
+
     assert len(model_ids) > 1, "At least two models are required for CKA computation"
-    assert all([os.path.exists(os.path.join(feature_root, model_id)) for model_id in model_ids]), ("Non-existent "
-                                                                                                   "model_ids in "
-                                                                                                   "feature root path")
+
     print("All assertions passed and CKA computation started.", flush=True)
     model_ids_with_idx = [(i, model_id) for i, model_id in enumerate(model_ids)]
 
