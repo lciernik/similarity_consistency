@@ -3,6 +3,7 @@ import os
 
 import torch
 from thingsvision.core.cka import CKA
+from tqdm import tqdm
 
 
 def _load_features(feature_root, model_id, split='train'):
@@ -69,16 +70,30 @@ def compute_cka_matrix(feature_root, model_ids, split='train', kernel='linear'):
     cka_matrix = torch.zeros(len(model_ids),
                              len(model_ids))  # Initialize CKA matrix. What is the CKA of a model with itself?
 
-    for ((idx1, model1), (idx2, model2)) in itertools.combinations(model_ids_with_idx, 2):
+    for idx1, model1 in tqdm(model_ids_with_idx, desc="Computing CKA matrix"):
         features_i = _load_features(feature_root, model1, split).numpy()
-        features_j = _load_features(feature_root, model2, split).numpy()
+        for idx2, model2 in model_ids_with_idx:
+            if idx1>=idx2:
+                continue
+            features_j = _load_features(feature_root, model2, split).numpy()
+            assert features_i.shape[0] == features_j.shape[
+                0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
 
-        assert features_i.shape[0] == features_j.shape[
-            0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
+            m = features_i.shape[0]
+            cka_value = _compute_cka_value(m, features_i, features_j, kernel)
+            cka_matrix[idx1, idx2] = cka_value
+            cka_matrix[idx2, idx1] = cka_value
 
-        m = features_i.shape[0]
-        cka_value = _compute_cka_value(m, features_i, features_j, kernel)
-        cka_matrix[idx1, idx2] = cka_value
-        cka_matrix[idx2, idx1] = cka_value
+    # for ((idx1, model1), (idx2, model2)) in itertools.combinations(model_ids_with_idx, 2):
+    #     features_i = _load_features(feature_root, model1, split).numpy()
+    #     features_j = _load_features(feature_root, model2, split).numpy()
+    #
+    #     assert features_i.shape[0] == features_j.shape[
+    #         0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
+    #
+    #     m = features_i.shape[0]
+    #     cka_value = _compute_cka_value(m, features_i, features_j, kernel)
+    #     cka_matrix[idx1, idx2] = cka_value
+    #     cka_matrix[idx2, idx1] = cka_value
 
     return cka_matrix
