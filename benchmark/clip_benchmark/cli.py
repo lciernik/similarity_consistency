@@ -117,7 +117,7 @@ def get_parser_args():
     parser_eval.add_argument('--rsa_method', type=str, default="correlation",
                              choices=['cosine', 'correlation'],
                              help="Method used during RSA. Ignored if sim_method is cka.")
-    parser_eval.add_argument('--corr_method', type=str, default="pearson",
+    parser_eval.add_argument('--corr_method', type=str, default="spearman",
                              choices=['pearson', 'spearman'],
                              help="Kernel used during CKA. Ignored if sim_method is cka.")
     parser_eval.set_defaults(which='eval')
