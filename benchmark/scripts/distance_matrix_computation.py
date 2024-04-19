@@ -47,7 +47,7 @@ if __name__ == "__main__":
                                             --module_name {' '.join(module_names)} \
                                             --train_split train \
                                             --sim_method {SIM_METHOD} \
-                                            --corr_method {OUTPUT_ROOT}
+                                            --corr_method {CORR_METHOD}
                     """
     run_job(
         job_name=f"CKA",
