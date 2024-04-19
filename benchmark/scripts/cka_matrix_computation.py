@@ -28,6 +28,9 @@ if __name__ == "__main__":
     # Nr of jobs in the array is equal to the number of datasets.
     njobs = count_nr_datasets(DATASETS)
     print(f"Nr.jobs: {njobs}")
+
+    sim_method = 'rsa'  # Distance matrix computation method
+
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
                         clip_benchmark eval --dataset {DATASETS} \
@@ -39,7 +42,8 @@ if __name__ == "__main__":
                                             --model_source {' '.join(sources)} \
                                             --model_parameters {' '.join([f"'{json.dumps(x)}'" for x in model_parameters])} \
                                             --module_name {' '.join(module_names)} \
-                                            --train_split train
+                                            --train_split train \
+                                            --sim_method {sim_method}
                     """
     run_job(
         job_name=f"CKA",

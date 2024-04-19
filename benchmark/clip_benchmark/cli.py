@@ -18,7 +18,7 @@ from clip_benchmark.datasets.builder import (build_dataset, dataset_collection,
                                              get_dataset_default_task)
 from clip_benchmark.metrics import get_feature_combiner_cls
 from clip_benchmark.metrics import linear_probe
-from clip_benchmark.metrics.distance_matrix import compute_cka_matrix
+from clip_benchmark.metrics.distance_matrix import compute_dist_matrix
 from clip_benchmark.models import load_model
 
 
@@ -109,6 +109,17 @@ def get_parser_args():
     parser_eval.add_argument('--model_type', default="open_clip", type=str, help="clip model type")
     parser_eval.add_argument('--wds_cache_dir', default=None, type=str,
                              help="optional cache directory for webdataset only")
+
+    parser_eval.add_argument('--sim_method', type=str, default="cka",
+                             choices=['cka', 'rsa'], help="Method to use for model similarity task.")
+    parser_eval.add_argument('--sim_kernel', type=str, default="linear",
+                             choices=['linear'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
+    parser_eval.add_argument('--rsa_method', type=str, default="correlation",
+                             choices=['cosine', 'correlation'],
+                             help="Method used during RSA. Ignored if sim_method is cka.")
+    parser_eval.add_argument('--corr_method', type=str, default="pearson",
+                             choices=['pearson', 'spearman'],
+                             help="Kernel used during CKA. Ignored if sim_method is cka.")
     parser_eval.set_defaults(which='eval')
 
     parser_build = subparsers.add_parser('build', help='Build CSV from evaluations')
@@ -361,16 +372,22 @@ def main_model_sim(base):
     model_ids = [(model_id + '-' + dataset).replace('/', '_') for model_id in model_ids]
 
     # Compute CKA matrix
-    dist_matrix = compute_cka_matrix(base.feature_root, model_ids, train_split)
-
+    dist_matrix = compute_dist_matrix(base.sim_method,
+                                      base.feature_root,
+                                      model_ids,
+                                      train_split,
+                                      kernel=base.sim_kernel,
+                                      rsa_method=base.rsa_method,
+                                      corr_method=base.corr_method
+                                      )
     # Save the distance matrix
     if not os.path.exists(base.output):
         os.makedirs(base.output, exist_ok=True)
         if base.verbose:
             print(f'Created path ({base.output}), where results are to be stored ...')
-    out_res = os.path.join(base.output, 'cka_distance_matrix.pt')
+    out_res = os.path.join(base.output, f'{base.sim_method}_distance_matrix.pt')
     if base.verbose:
-        print(f"Dump CKA matrix to: {out_res}")
+        print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
     torch.save(dist_matrix, out_res)
 
     return 0
