@@ -11,7 +11,13 @@
     "architecture_class": "Transformer",
     "architecture": "ViT"
   },
-  "DreamSim": {
+  "DreamSim_open_clip_vitb32": {
+    "objective": "Image-Text",
+    "dataset": "LAION400M + NIGHTS",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "DreamSim_dino_vitb16": {
     "objective": "Self-Supervised",
     "dataset": "ImageNet1k + NIGHTS",
     "architecture_class": "Transformer",
@@ -35,7 +41,43 @@
     "architecture_class": "Transformer",
     "architecture": "ViT"
   },
-  "OpenCLIP": {
+  "OpenCLIP_RN50_openai": {
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ResNet"
+  },
+  "OpenCLIP_ViT-B-16_openai": {
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "OpenCLIP_ViT-B-16_laion400m_e32": {
+    "objective": "Image-Text",
+    "dataset": "LAION400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "OpenCLIP_ViT-B-16_laion2b_s34b_b88k": {
+    "objective": "Image-Text",
+    "dataset": "LAION2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "OpenCLIP_ViT-L-14_openai": {
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "OpenCLIP_ViT-L-14_laion400m_e32": {
+    "objective": "Image-Text",
+    "dataset": "LAION400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT"
+  },
+  "OpenCLIP_ViT-L-14_laion2b_s32b_b82k": {
     "objective": "Image-Text",
     "dataset": "LAION2B",
     "architecture_class": "Transformer",
