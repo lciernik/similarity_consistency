@@ -16,7 +16,7 @@ DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 
 SIM_METHOD = 'rsa'  # Distance matrix computation method
-CORR_METHOD='spearman'
+CORR_METHOD = 'spearman'
 
 private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_METHOD}_correlation_{CORR_METHOD}"
 OUTPUT_ROOT = os.path.join(private_out_root, 'imagenet_subset_10k')

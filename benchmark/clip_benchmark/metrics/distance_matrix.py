@@ -1,7 +1,8 @@
 import os
 
+import numpy as np
 import torch
-from thingsvision.core.cka import CKA
+from thingsvision.core.cka import get_cka
 from thingsvision.core.rsa import compute_rdm, correlate_rdms
 from tqdm import tqdm
 
@@ -27,7 +28,8 @@ def _check_models(feature_root, model_ids, split):
     return model_ids
 
 
-def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='train', kernel='linear'):
+def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='train', kernel='linear',
+                       backend='torch', unbiased=True, device='cuda', sigma=None):
     for idx1, model1 in tqdm(model_ids_with_idx, desc="Computing CKA matrix"):
         features_i = _load_features(feature_root, model1, split).numpy()
         for idx2, model2 in model_ids_with_idx:
@@ -38,7 +40,7 @@ def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='trai
                 0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
 
             m = features_i.shape[0]
-            cka = CKA(m=m, kernel=kernel)
+            cka = get_cka(backend=backend, m=m, kernel=kernel, unbiased=unbiased, device=device, sigma=sigma)
             rho = cka.compare(X=features_i, Y=features_j)
             cka_matrix[idx1, idx2] = rho
             cka_matrix[idx2, idx1] = rho
@@ -47,7 +49,7 @@ def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='trai
 
 
 def compute_rsa_matrix(rsa_matrix, model_ids_with_idx, feature_root, split='train', rsa_method='correlation',
-                       corr_method='pearson'):
+                       corr_method='spearman'):
     for idx1, model1 in tqdm(model_ids_with_idx, desc="Computing RSA matrix"):
         features_i = _load_features(feature_root, model1, split).numpy()
         rdm_features_i = compute_rdm(features_i, method=rsa_method)
@@ -74,8 +76,7 @@ def compute_dist_matrix(sim_method, feature_root, model_ids, split, kernel='line
 
     model_ids_with_idx = [(i, model_id) for i, model_id in enumerate(model_ids)]
 
-    dist_matrix = torch.zeros(len(model_ids_with_idx),
-                              len(model_ids_with_idx))  # Initialize CKA matrix.
+    dist_matrix = np.zeros((len(model_ids_with_idx), len(model_ids_with_idx)))  # Initialize CKA matrix.
 
     if sim_method == 'cka':
         compute_cka_matrix(dist_matrix, model_ids_with_idx, feature_root, split=split, kernel=kernel)
@@ -85,4 +86,4 @@ def compute_dist_matrix(sim_method, feature_root, model_ids, split, kernel='line
     else:
         raise ValueError(f"Unknown method to compute distance matrix between the models.")
 
-    return dist_matrix
+    return dist_matrix, model_ids

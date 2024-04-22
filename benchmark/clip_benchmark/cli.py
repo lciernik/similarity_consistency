@@ -372,14 +372,14 @@ def main_model_sim(base):
     model_ids = [(model_id + '-' + dataset).replace('/', '_') for model_id in model_ids]
 
     # Compute CKA matrix
-    dist_matrix = compute_dist_matrix(base.sim_method,
-                                      base.feature_root,
-                                      model_ids,
-                                      train_split,
-                                      kernel=base.sim_kernel,
-                                      rsa_method=base.rsa_method,
-                                      corr_method=base.corr_method
-                                      )
+    dist_matrix, model_ids = compute_dist_matrix(base.sim_method,
+                                                 base.feature_root,
+                                                 model_ids,
+                                                 train_split,
+                                                 kernel=base.sim_kernel,
+                                                 rsa_method=base.rsa_method,
+                                                 corr_method=base.corr_method
+                                                 )
     # Save the distance matrix
     if not os.path.exists(base.output):
         os.makedirs(base.output, exist_ok=True)
@@ -389,6 +389,9 @@ def main_model_sim(base):
     if base.verbose:
         print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
     torch.save(dist_matrix, out_res)
+    with open(os.path.join(base.output, 'model_ids.txt'), "w") as file:
+        for string in model_ids:
+            file.write(string + "\n")
 
     return 0
 
