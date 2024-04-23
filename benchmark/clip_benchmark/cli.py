@@ -120,6 +120,8 @@ def get_parser_args():
     parser_eval.add_argument('--corr_method', type=str, default="spearman",
                              choices=['pearson', 'spearman'],
                              help="Kernel used during CKA. Ignored if sim_method is cka.")
+    parser_eval.add_argument('--sigma', type=float, default=None, help="sigma for CKA rbf kernel.")
+    parser_eval.add_argument('--biased_cka', action="store_false", dest="unbiased", help="use biased CKA")
     parser_eval.set_defaults(which='eval')
 
     parser_build = subparsers.add_parser('build', help='Build CSV from evaluations')
@@ -355,6 +357,8 @@ def main_build(base):
 
 
 def main_model_sim(base):
+    base.device = _prepare_device(base.distributed)
+
     # Get list of datasets to evaluate on
     datasets = _get_list_of_datasets(base)
 
@@ -378,7 +382,11 @@ def main_model_sim(base):
                                                  train_split,
                                                  kernel=base.sim_kernel,
                                                  rsa_method=base.rsa_method,
-                                                 corr_method=base.corr_method
+                                                 corr_method=base.corr_method,
+                                                 backend='torch',
+                                                 unbiased=base.unbiased,
+                                                 device=base.device,
+                                                 sigma=base.sigma,
                                                  )
     # Save the distance matrix
     if not os.path.exists(base.output):

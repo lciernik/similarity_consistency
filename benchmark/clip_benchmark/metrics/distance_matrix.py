@@ -69,7 +69,7 @@ def compute_rsa_matrix(rsa_matrix, model_ids_with_idx, feature_root, split='trai
 
 
 def compute_dist_matrix(sim_method, feature_root, model_ids, split, kernel='linear', rsa_method='correlation',
-                        corr_method='spearman'):
+                        corr_method='spearman', backend='torch', unbiased=True, device='cuda', sigma=None):
     assert os.path.exists(feature_root), "Feature root path non-existent"
 
     model_ids = _check_models(feature_root, model_ids, split)
@@ -79,7 +79,9 @@ def compute_dist_matrix(sim_method, feature_root, model_ids, split, kernel='line
     dist_matrix = np.zeros((len(model_ids_with_idx), len(model_ids_with_idx)))  # Initialize CKA matrix.
 
     if sim_method == 'cka':
-        compute_cka_matrix(dist_matrix, model_ids_with_idx, feature_root, split=split, kernel=kernel)
+        compute_cka_matrix(dist_matrix, model_ids_with_idx, feature_root,
+                           split=split, kernel=kernel, backend=backend,
+                           unbiased=unbiased, device=device, sigma=sigma)
     elif sim_method == 'rsa':
         compute_rsa_matrix(dist_matrix, model_ids_with_idx, feature_root, split=split, rsa_method=rsa_method,
                            corr_method=corr_method)
