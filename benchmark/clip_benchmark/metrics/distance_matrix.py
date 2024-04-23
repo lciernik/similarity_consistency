@@ -31,11 +31,11 @@ def _check_models(feature_root, model_ids, split):
 def compute_cka_matrix(cka_matrix, model_ids_with_idx, feature_root, split='train', kernel='linear',
                        backend='torch', unbiased=True, device='cuda', sigma=None):
     for idx1, model1 in tqdm(model_ids_with_idx, desc="Computing CKA matrix"):
-        features_i = _load_features(feature_root, model1, split).numpy()
+        features_i = _load_features(feature_root, model1, split)
         for idx2, model2 in model_ids_with_idx:
             if idx1 >= idx2:
                 continue
-            features_j = _load_features(feature_root, model2, split).numpy()
+            features_j = _load_features(feature_root, model2, split)
             assert features_i.shape[0] == features_j.shape[
                 0], f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
 
