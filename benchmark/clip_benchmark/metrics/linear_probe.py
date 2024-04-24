@@ -8,7 +8,7 @@ import torch
 from sklearn.metrics import classification_report, balanced_accuracy_score
 from tqdm import tqdm
 
-from .data_utils import Featurizer, feature_extraction, get_feature_dl, get_combined_feature_dl
+from .data_utils import Featurizer, feature_extraction, get_feature_dl, get_combined_feature_dl, get_fewshot_indices
 from .feature_combiner import ConcatFeatureCombiner
 
 
@@ -166,12 +166,8 @@ def tune_weight_decay(feature_train_loader, feature_val_loader,
     best_wd = wd_list[peak_idx]
     return best_wd
 
-def _evaluate(train_loader, best_wd, fewshot_k, feature_test_loader,
-              lr, epochs, seed, device, autocast, out_fn=None, normalize=True, verbose=False):
-    final_model = train(train_loader, best_wd, lr, epochs, autocast, device, seed)
-    logits, target = infer(final_model, feature_test_loader, autocast, device)
+def compute_metrics(logits, target,out_fn=None, verbose=False):
     pred = logits.argmax(dim=1)
-
     if out_fn is not None:
         with open(out_fn, 'wb') as f:
             pickle.dump({'logits': logits, 'pred': pred, 'target': target}, f)
@@ -186,7 +182,6 @@ def _evaluate(train_loader, best_wd, fewshot_k, feature_test_loader,
         acc5 = float("nan")
     mean_per_class_recall = balanced_accuracy_score(target, pred)
     fair_info = {
-        "weight_decay": best_wd,
         "acc1": acc1,
         "acc5": acc5,
         "mean_per_class_recall": mean_per_class_recall,
@@ -194,14 +189,22 @@ def _evaluate(train_loader, best_wd, fewshot_k, feature_test_loader,
     }
     if verbose:
         print(fair_info["classification_report"])
-        print(f"Test acc1: {acc1} with weight_decay: {best_wd}")
+        print(f"Test acc1: {acc1}")
 
     return {"lp_acc1": fair_info["acc1"], "lp_acc5": fair_info["acc5"],
-            "lp_mean_per_class_recall": fair_info["mean_per_class_recall"],
-            "weight_decay": fair_info['weight_decay'], 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
-            'normalized': normalize}
+            "lp_mean_per_class_recall": fair_info["mean_per_class_recall"]}
 
 
+def _evaluate(train_loader, best_wd, fewshot_k, feature_test_loader,
+              lr, epochs, seed, device, autocast, out_fn=None, normalize=True, verbose=False):
+
+    final_model = train(train_loader, best_wd, lr, epochs, autocast, device, seed)
+    logits, target = infer(final_model, feature_test_loader, autocast, device)
+
+    metric_dict = compute_metrics(logits, target, out_fn, verbose)
+    metric_dict = {**metric_dict, 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
+                    'normalized': normalize, "weight_decay": best_wd,}
+    return metric_dict
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
              model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True,
              out_fn=None, verbose=False):
@@ -282,3 +285,47 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
                      normalize=normalize,
                      out_fn=out_fn,
                      verbose=verbose)
+
+
+def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
+                      use_val_ds=False, normalize=True,amp=True, verbose=False, out_fn=None):
+    assert device == 'cuda'
+
+    assert os.path.exists(feature_root), "Feature root path non-existent"
+    autocast = torch.cuda.amp.autocast if amp else suppress
+    idxs = None
+    # ATM Disable Weight Decay tuning for ensembles
+    best_wd=0
+    model_logits = {}
+    model_targets = {}
+    for model_id in model_ids:
+        feature_dir = os.path.join(feature_root, model_id)
+        assert os.path.exists(feature_dir)
+        if idxs is None:
+            targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
+            idxs = get_fewshot_indices(targets, fewshot_k)
+        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds,idxs)
+        final_model = train(feature_train_loader, best_wd, lr, epochs, autocast, device, seed)
+        logits, target = infer(final_model, feature_test_loader, autocast, device)
+        model_logits[model_id] = logits
+        model_targets[model_id] = target
+
+    # All targets should be the same
+    assert all([torch.equal(model_targets[model_id], model_targets[model_ids[0]]) for model_id in model_ids]), "Targets are not the same across models"
+
+    logits = ensemble_logits(model_logits)
+    metric_dict = compute_metrics(logits, model_targets[model_ids[0]], out_fn, verbose)
+
+    metric_dict = {**metric_dict, 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
+                   'normalized': normalize, "weight_decay": best_wd, }
+    return metric_dict
+
+def ensemble_logits(model_logits, mode="post_softmax"):
+    if mode == "post_softmax":
+        probs = torch.stack([torch.nn.functional.softmax(logits, dim=1) for logits in model_logits.values()], dim=0)
+        logits = torch.mean(probs, dim=0)
+    elif mode == "pre_softmax":
+        logits = torch.mean(torch.stack([logits for logits in model_logits.values()], dim=0), dim=1)
+    else:
+        raise ValueError(f"Unknown mode {mode}")
+    return logits

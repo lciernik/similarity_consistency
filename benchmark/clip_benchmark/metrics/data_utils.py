@@ -110,11 +110,11 @@ def feature_extraction(featurizer, train_dataloader, dataloader, feature_dir, de
         torch.save(targets, os.path.join(feature_dir, f'targets{save_str}.pt'))
 
 
-def get_fewshot_indices(features, targets, fewshot_k):
+def get_fewshot_indices(targets, fewshot_k):
     """
     Get the indices of the features that are use for training the linear probe
     """
-    length = len(features)
+    length = len(targets)
     perm = [p.item() for p in torch.randperm(length)]
     idxs = []
     counts = {}
@@ -139,14 +139,14 @@ def get_fewshot_indices(features, targets, fewshot_k):
     return idxs
 
 
-def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, val_dataloader):
+def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, val_dataloader, idxs = None):
     """
     Load the features from the feature_dir and return the dataloaders for training, validation, and testing
     """
     features = torch.load(os.path.join(feature_dir, 'features_train.pt'))
     targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
-
-    idxs = get_fewshot_indices(features, targets, fewshot_k)
+    if idxs is None:
+        idxs = get_fewshot_indices(targets, fewshot_k)
     train_features = features[idxs]
     train_labels = targets[idxs]
     if val_dataloader is not None:
@@ -191,7 +191,7 @@ def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, fe
 
     assert all([len(feat) == len(list_features[0]) for feat in list_features])
 
-    idxs = get_fewshot_indices(list_features[0], targets, fewshot_k)
+    idxs = get_fewshot_indices(targets, fewshot_k)
 
     list_train_features = [features[idxs] for features in list_features]
     train_labels = targets[idxs]

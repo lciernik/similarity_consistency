@@ -436,7 +436,23 @@ def run_combined(args):
         )
 
     elif task == "ensembling":
-        pass
+        model_ids_w_ds = [(model_id + '-' + args.dataset).replace('/', '_') for model_id in model_ids]
+        metrics = linear_probe.evaluate_ensemble(
+            model_ids=model_ids_w_ds,
+            feature_root=args.feature_root,
+            fewshot_k=args.fewshot_k,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            lr=args.fewshot_lr,
+            epochs=args.fewshot_epochs,
+            device=args.device,
+            normalize=args.normalize,
+            seed=args.seed,
+            use_val_ds=args.val_proportion is not None or args.val_split is not None,
+            out_fn=out_pred,
+            amp=args.amp,
+            verbose=args.verbose,
+        )
     else:
         raise ValueError(
             "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, `ensembling` or `captioning`".format(
