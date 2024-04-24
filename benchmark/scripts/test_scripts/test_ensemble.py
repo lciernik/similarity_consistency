@@ -10,7 +10,7 @@ from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "../models_config.json"
-DATASETS = "./webdatasets_test.txt"
+DATASETS =  "imagenet-subset-10k" #"./webdatasets_test.txt"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets/wds/wds_{dataset_cleaned}"
 FEATURES_ROOT = "/home/space/diverse_priors/features"
 

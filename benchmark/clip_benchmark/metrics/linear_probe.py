@@ -300,7 +300,7 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
     model_targets = {}
     for model_id in model_ids:
         feature_dir = os.path.join(feature_root, model_id)
-        assert os.path.exists(feature_dir)
+        assert os.path.exists(feature_dir), f"Feature directory {feature_dir}does not exist"
         if idxs is None:
             targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
             idxs = get_fewshot_indices(targets, fewshot_k)
