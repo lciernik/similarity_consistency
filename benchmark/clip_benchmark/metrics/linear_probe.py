@@ -223,12 +223,13 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
         featurizer = Featurizer(model, normalize).cuda()
         feature_extraction(featurizer, train_dataloader, dataloader, feature_dir, device, autocast, val_dataloader)
 
+    use_val_ds = val_dataloader is not None
     feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
-        feature_dir, batch_size, num_workers, fewshot_k, val_dataloader)
+        feature_dir, batch_size, num_workers, fewshot_k, use_val_ds)
 
 
 
-    if val_dataloader is not None:
+    if use_val_ds:
         best_wd = tune_weight_decay(feature_train_loader, feature_val_loader,
                          lr, epochs, autocast, device, verbose, seed)
         train_loader = feature_train_val_loader
@@ -304,7 +305,7 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
         if idxs is None:
             targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
             idxs = get_fewshot_indices(targets, fewshot_k)
-        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds,idxs)
+        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs)
         final_model = train(feature_train_loader, best_wd, lr, epochs, autocast, device, seed)
         logits, target = infer(final_model, feature_test_loader, autocast, device)
         model_logits[model_id] = logits

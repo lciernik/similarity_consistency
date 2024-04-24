@@ -139,7 +139,7 @@ def get_fewshot_indices(targets, fewshot_k):
     return idxs
 
 
-def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, val_dataloader, idxs = None):
+def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs = None):
     """
     Load the features from the feature_dir and return the dataloaders for training, validation, and testing
     """
@@ -149,7 +149,7 @@ def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, val_dataload
         idxs = get_fewshot_indices(targets, fewshot_k)
     train_features = features[idxs]
     train_labels = targets[idxs]
-    if val_dataloader is not None:
+    if use_val_ds:
         features_val = torch.load(os.path.join(feature_dir, 'features_val.pt'))
         targets_val = torch.load(os.path.join(feature_dir, 'targets_val.pt'))
         feature_val_dset = FeatureDataset(features_val, targets_val)
