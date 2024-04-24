@@ -178,7 +178,7 @@ def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, 
     feature_test_dset = FeatureDataset(features_test, targets_test)
     feature_test_loader = DataLoader(
         feature_test_dset, batch_size=batch_size,
-        shuffle=True, num_workers=num_workers,
+        shuffle=False, num_workers=num_workers,
         pin_memory=True,
     )
     return feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader
