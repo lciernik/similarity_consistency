@@ -57,7 +57,7 @@ def get_parser_args():
                              choices=['concat', 'concat_pca'], help="Feature combiner to use")
     parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal', type=lambda x: None if x == '' else x)
 
-    parser_eval.add_argument('--task', type=str, default="linear_probe", choices=["linear_probe"],
+    parser_eval.add_argument('--task', type=str, default="linear_probe", choices=["linear_probe","ensembling"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
                              help="whether to use mixed precision")
