@@ -1,0 +1,46 @@
+{
+    "vgg16":{
+        "model_name":"vgg16",
+        "source":"torchvision",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
+        "module_name":"classifier.3"
+    },
+    "vgg19":{
+        "model_name":"vgg19",
+        "source":"torchvision",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
+        "module_name":"classifier.3"
+    },
+    "resnet50":{
+        "model_name":"resnet50",
+        "source":"torchvision",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
+        "module_name":"avgpool"
+    },
+    "resnet152":{
+        "model_name":"resnet152",
+        "source":"torchvision",
+        "model_parameters" :{
+            "weights":"DEFAULT"
+        },
+        "module_name":"avgpool"
+    },
+    "resnext50":{
+        "model_name":"resnext50_32x4d",
+        "source":"timm",
+        "model_parameters":{},
+        "module_name":"global_pool"
+    },
+    "seresnet50":{
+        "model_name":"seresnet50",
+        "source":"timm",
+        "model_parameters":{},
+        "module_name":"global_pool"
+    }
+}
