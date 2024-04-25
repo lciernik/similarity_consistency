@@ -1,44 +1,27 @@
 import os
-import sys
 import json
-from datetime import datetime
-import random
-from itertools import product
-
-sys.path.append('..')
 from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
-MODELS_CONFIG = "./test_models_config.json"
-DATASETS = "imagenet-subset-10k" #"./webdatasets_test.txt"
-DATASETS_ROOT = "/home/space/diverse_priors/datasets/wds/wds_{dataset_cleaned}"
-FEATURES_ROOT = "/home/space/diverse_priors/features"
+MODELS_CONFIG = "test_scripts/test_models_config.json" #"./models_config.json"
+DATASETS = "imagenet-subset-10k" #"./webdatasets.txt"
 
-# Create new test experiment folder
-BASE_PATH_EXP = "./test_results"
-current_datetime = datetime.now().strftime("%Y_%m_%d_%H_%M")
-BASE_PATH_EXP = os.path.join(BASE_PATH_EXP, current_datetime)
-os.makedirs(BASE_PATH_EXP, exist_ok=True)
+BASE_PROJECT_PATH = "/home/space/diverse_priors"
+DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
 
-OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results', 'combined_models', '{fewshot_k}', '{dataset}', '{model}',
-                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}', "task_{task}")
+FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
+
+OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', 'ensemble_models', '{fewshot_k}', '{dataset}', '{model}',
+                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
 
 
 if __name__ == "__main__":
-    # Two random models to evaluate in combination
+    # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    models2combine = random.sample(list(models.keys()), 2)
-    models = {k: v for k, v in models.items() if k in models2combine}
     # Prepare job command input
     model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
-
-    # Select random hyperparameters
-    hyper_params, _ = get_hyperparams(num_seeds=10)
-    hyper_params = {k: [random.choice(v)] for k, v in hyper_params.items()}
-    num_jobs = len(list(product(*hyper_params.values())))
-
-
-    print(f"Testing ensembling models {models2combine} with hyper_params {hyper_params}")
+    # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
+    hyper_params, num_jobs = get_hyperparams(num_seeds=10)
 
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
             export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
@@ -62,9 +45,11 @@ if __name__ == "__main__":
             """
 
     run_job(
-        job_name=f"test_ensembling",
+        job_name=f"ensemble_eval",
         job_cmd=job_cmd,
-        partition='gpu-2h',
+        # Note: this code runs much longer compared to the feature extraction code! It iterates over all possible
+        # model combinations.
+        partition='gpu-2d',
         log_dir='./logs',
         num_jobs_in_array=num_jobs
     )
