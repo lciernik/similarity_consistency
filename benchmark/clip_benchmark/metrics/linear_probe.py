@@ -325,7 +325,8 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
 
 def ensemble_logits(model_logits, mode="post_softmax"):
     if mode == "post_softmax":
-        probs = torch.stack([torch.nn.functional.softmax(logits, dim=1) for logits in model_logits.values()], dim=0)
+        # Softmax does not work for float16
+        probs = torch.stack([torch.nn.functional.softmax(logits.float(), dim=1) for logits in model_logits.values()], dim=0)
         logits = torch.mean(probs, dim=0)
     elif mode == "pre_softmax":
         logits = torch.mean(torch.stack([logits for logits in model_logits.values()], dim=0), dim=1)
