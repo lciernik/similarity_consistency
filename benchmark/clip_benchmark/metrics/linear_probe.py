@@ -63,7 +63,7 @@ def cosine_lr(optimizer, base_lrs, warmup_length, steps):
     return _lr_adjuster
 
 
-def train(dataloader,  weight_decay, lr, epochs, autocast, device, seed):
+def train(dataloader, weight_decay, lr, epochs, autocast, device, seed):
     torch.manual_seed(seed)
 
     input_shape, output_shape = dataloader.dataset[0][0].shape[0], dataloader.dataset.targets.max().item() + 1
@@ -148,8 +148,9 @@ def find_peak(wd_list, idxs, train_loader, val_loader, lr, epochs, autocast, dev
             best_wd_idx, max_acc = idx, acc1
     return best_wd_idx
 
+
 def tune_weight_decay(feature_train_loader, feature_val_loader,
-                         lr, epochs, autocast, device, verbose, seed):
+                      lr, epochs, autocast, device, verbose, seed):
     # perform openAI-like hyperparameter sweep
     # https://arxiv.org/pdf/2103.00020.pdf A.3
     # instead of scikit-learn LBFGS use FCNNs with AdamW
@@ -162,12 +163,13 @@ def tune_weight_decay(feature_train_loader, feature_val_loader,
     while step_span > 0:
         left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(wd_list) - 1)
         peak_idx = find_peak(wd_list, [left, peak_idx, right], feature_train_loader, feature_val_loader,
-                              lr, epochs, autocast, device, verbose, seed)
+                             lr, epochs, autocast, device, verbose, seed)
         step_span //= 2
     best_wd = wd_list[peak_idx]
     return best_wd
 
-def compute_metrics(logits, target,out_fn=None, verbose=False):
+
+def compute_metrics(logits, target, out_fn=None, verbose=False):
     pred = logits.argmax(dim=1)
     if out_fn is not None:
         with open(out_fn, 'wb') as f:
@@ -198,14 +200,15 @@ def compute_metrics(logits, target,out_fn=None, verbose=False):
 
 def _evaluate(train_loader, best_wd, fewshot_k, feature_test_loader,
               lr, epochs, seed, device, autocast, out_fn=None, normalize=True, verbose=False):
-
     final_model = train(train_loader, best_wd, lr, epochs, autocast, device, seed)
     logits, target = infer(final_model, feature_test_loader, autocast, device)
 
     metric_dict = compute_metrics(logits, target, out_fn, verbose)
     metric_dict = {**metric_dict, 'epochs': epochs, 'seed': seed, 'fewshot_k': fewshot_k,
-                    'normalized': normalize, "weight_decay": best_wd,}
+                   'normalized': normalize, "weight_decay": best_wd, }
     return metric_dict
+
+
 def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_workers, lr, epochs,
              model_id, seed, feature_root, device, val_dataloader=None, normalize=True, amp=True,
              out_fn=None, verbose=False):
@@ -228,11 +231,9 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
     feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
         feature_dir, batch_size, num_workers, fewshot_k, use_val_ds)
 
-
-
     if use_val_ds:
         best_wd = tune_weight_decay(feature_train_loader, feature_val_loader,
-                         lr, epochs, autocast, device, verbose, seed)
+                                    lr, epochs, autocast, device, verbose, seed)
         train_loader = feature_train_val_loader
     else:
         best_wd = 0
@@ -269,7 +270,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
 
     if use_val_ds:
         best_wd = tune_weight_decay(feature_train_loader, feature_val_loader,
-                         lr, epochs, autocast, device, verbose, seed)
+                                    lr, epochs, autocast, device, verbose, seed)
         train_loader = feature_train_val_loader
     else:
         best_wd = 0
@@ -290,14 +291,14 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
 
 
 def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
-                      use_val_ds=False, normalize=True,amp=True, verbose=False, out_fn=None):
+                      use_val_ds=False, normalize=True, amp=True, verbose=False, out_fn=None):
     assert device == 'cuda'
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
     autocast = torch.cuda.amp.autocast if amp else suppress
     idxs = None
     # ATM Disable Weight Decay tuning for ensembles
-    best_wd=0
+    best_wd = 0
     model_logits = {}
     model_targets = {}
     for model_id in model_ids:
@@ -306,14 +307,16 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
         if idxs is None:
             targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
             idxs = get_fewshot_indices(targets, fewshot_k)
-        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs)
+        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
+            feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs)
         final_model = train(feature_train_loader, best_wd, lr, epochs, autocast, device, seed)
         logits, target = infer(final_model, feature_test_loader, autocast, device)
         model_logits[model_id] = logits
         model_targets[model_id] = target
 
     # All targets should be the same
-    assert all([torch.equal(model_targets[model_id], model_targets[model_ids[0]]) for model_id in model_ids]), "Targets are not the same across models"
+    assert all([torch.equal(model_targets[model_id], model_targets[model_ids[0]]) for model_id in
+                model_ids]), "Targets are not the same across models"
 
     logits = ensemble_logits(model_logits)
     metric_dict = compute_metrics(logits, model_targets[model_ids[0]], out_fn, verbose)
@@ -322,10 +325,12 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
                    'normalized': normalize, "weight_decay": best_wd, }
     return metric_dict
 
+
 def ensemble_logits(model_logits, mode="post_softmax"):
     if mode == "post_softmax":
         # Softmax does not work for float16
-        probs = torch.stack([torch.nn.functional.softmax(logits.float(), dim=1) for logits in model_logits.values()], dim=0)
+        probs = torch.stack([torch.nn.functional.softmax(logits.float(), dim=1) for logits in model_logits.values()],
+                            dim=0)
         logits = torch.mean(probs, dim=0)
     elif mode == "pre_softmax":
         logits = torch.mean(torch.stack([logits for logits in model_logits.values()], dim=0), dim=1)
