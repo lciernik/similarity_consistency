@@ -65,7 +65,9 @@ def cosine_lr(optimizer, base_lrs, warmup_length, steps):
 
 def train(dataloader,  weight_decay, lr, epochs, autocast, device, seed):
     torch.manual_seed(seed)
+
     input_shape, output_shape = dataloader.dataset[0][0].shape[0], dataloader.dataset[0][1].max().item() + 1
+    print("We train a Linear probing head with Input shape {} and Output shape {}".format(input_shape, output_shape))
     model = torch.nn.Linear(input_shape, output_shape)
     devices = [x for x in range(torch.cuda.device_count())]
     model = model.cuda()
