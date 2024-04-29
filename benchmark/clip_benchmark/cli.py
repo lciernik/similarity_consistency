@@ -308,6 +308,7 @@ def _make_output_fname(args, dataset_name, task):
 
     # TODO This can hopefully be done more nicely?
     out_model = args.output.format(
+        model="{model}",  # This way, the model arg can be set later
         task=task,
         dataset=dataset_slug,
         fewshot_k=fewshot_slug,
