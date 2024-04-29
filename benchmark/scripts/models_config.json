@@ -42,7 +42,7 @@
             "variant":"dino_vitb16", 
             "extract_cls_token":true
         },
-        "module_name":"norm",
+        "module_name":"model.mlp",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k + NIGHTS",
         "architecture_class": "Transformer",
@@ -153,7 +153,7 @@
         "source":"custom",
         "model_parameters":{
             "variant":"ViT-L-14", 
-            "datet":"laion400m_e32"
+            "dataset":"laion400m_e32"
         },
         "module_name":"visual",
         "objective": "Image-Text",
