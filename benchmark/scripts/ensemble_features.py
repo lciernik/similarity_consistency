@@ -20,7 +20,7 @@ if __name__ == "__main__":
     # Prepare job command input
     model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=10)
+    hyper_params, num_jobs = get_hyperparams(num_seeds=10, size="small")
 
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
             export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
