@@ -3,17 +3,16 @@ import json
 from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
-MODELS_CONFIG = "test_scripts/test_models_config.json" #"./models_config.json"
-DATASETS = "imagenet-subset-10k" #"./webdatasets.txt"
+MODELS_CONFIG = "test_scripts/test_models_config.json"  # "./models_config.json"
+DATASETS = "imagenet-subset-10k"  # "./webdatasets.txt"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
 
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 
-OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', 'ensemble_models', '{fewshot_k}', '{dataset}', '{model}',
+OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', '{task}', '{fewshot_k}', '{dataset}', '{model}',
                            'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
-
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.

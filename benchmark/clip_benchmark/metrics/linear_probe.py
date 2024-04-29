@@ -63,8 +63,14 @@ def cosine_lr(optimizer, base_lrs, warmup_length, steps):
     return _lr_adjuster
 
 
-def train(dataloader, weight_decay, lr, epochs, autocast, device, seed):
+def train(dataloader, weight_decay, lr, epochs, autocast, device, seed, filename=None):
     torch.manual_seed(seed)
+    if filename is not None and os.path.exists(filename):
+        print(f"Loading model from {filename}")
+        model = torch.load(filename)
+        model = model.cuda()
+        model = torch.nn.DataParallel(model, device_ids=[x for x in range(torch.cuda.device_count())])
+        return model
 
     input_shape, output_shape = dataloader.dataset[0][0].shape[0], dataloader.dataset.targets.max().item() + 1
     model = torch.nn.Linear(input_shape, output_shape)
@@ -113,6 +119,13 @@ def train(dataloader, weight_decay, lr, epochs, autocast, device, seed):
                     f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}\t"
                     f"LR {optimizer.param_groups[0]['lr']:.5f}"
                 )
+
+    if filename is not None:
+        if not os.path.exists(os.path.dirname(filename)):
+            os.makedirs(os.path.dirname(filename), exist_ok=True)
+        print(f"Saving model to {filename}")
+        torch.save(model, filename)
+
     return model
 
 
@@ -291,7 +304,7 @@ def evaluate_combined(model_ids, feature_root, fewshot_k, batch_size, num_worker
 
 
 def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_workers, lr, epochs, device, seed,
-                      use_val_ds=False, normalize=True, amp=True, verbose=False, out_fn=None):
+                      use_val_ds=False, normalize=True, amp=True, verbose=False, out_fn=None, out_model=None):
     assert device == 'cuda'
 
     assert os.path.exists(feature_root), "Feature root path non-existent"
@@ -302,6 +315,21 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
     model_logits = {}
     model_targets = {}
     for model_id in model_ids:
+        # Try to load predictions directly for maximum speed
+        if out_model is not None:
+            model_filename = out_model.format(model=model_id)
+            if os.path.exists(os.path.join(model_filename, 'predictions.pkl')):
+                with open(os.path.join(model_filename, 'predictions.pkl'), 'rb') as f:
+                    predictions = pickle.load(f)
+                    model_logits[model_id] = predictions['logits']
+                    model_targets[model_id] = predictions['target']
+                    if verbose:
+                        print(f"Loaded test predictions from {model_filename}.")
+                    continue
+        else:
+            model_filename = None
+
+        # Retrain linear probe by loading precomputed features
         feature_dir = os.path.join(feature_root, model_id)
         assert os.path.exists(feature_dir), f"Feature directory {feature_dir}does not exist"
         if idxs is None:
@@ -309,10 +337,19 @@ def evaluate_ensemble(model_ids, feature_root, fewshot_k, batch_size, num_worker
             idxs = get_fewshot_indices(targets, fewshot_k)
         feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
             feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs)
-        final_model = train(feature_train_loader, best_wd, lr, epochs, autocast, device, seed)
+
+        final_model = train(feature_train_loader, best_wd, lr, epochs, autocast, device, seed,
+                            filename=os.path.join(model_filename, 'model.pkl'))
         logits, target = infer(final_model, feature_test_loader, autocast, device)
         model_logits[model_id] = logits
         model_targets[model_id] = target
+
+        # Save model Predictions
+        if model_filename is not None:
+            with open(os.path.join(model_filename, 'predictions.pkl'), 'wb') as f:
+                pickle.dump({'logits': logits, 'target': target}, f)
+                if verbose:
+                    print(f"Stored test predictions in {model_filename}.")
 
     # All targets should be the same
     assert all([torch.equal(model_targets[model_id], model_targets[model_ids[0]]) for model_id in

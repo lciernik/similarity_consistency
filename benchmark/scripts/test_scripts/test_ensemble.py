@@ -10,7 +10,7 @@ from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "./test_models_config.json"
-DATASETS = "imagenet-subset-10k" #"./webdatasets_test.txt"
+DATASETS = "imagenet-subset-10k"  # "./webdatasets_test.txt"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets/wds/wds_{dataset_cleaned}"
 FEATURES_ROOT = "/home/space/diverse_priors/features"
 
@@ -20,9 +20,8 @@ current_datetime = datetime.now().strftime("%Y_%m_%d_%H_%M")
 BASE_PATH_EXP = os.path.join(BASE_PATH_EXP, current_datetime)
 os.makedirs(BASE_PATH_EXP, exist_ok=True)
 
-OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results', 'combined_models', '{fewshot_k}', '{dataset}', '{model}',
-                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}', "task_{task}")
-
+OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results', '{task}', '{fewshot_k}', '{dataset}', '{model}',
+                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
 
 if __name__ == "__main__":
     # Two random models to evaluate in combination
@@ -36,7 +35,6 @@ if __name__ == "__main__":
     hyper_params, _ = get_hyperparams(num_seeds=10)
     hyper_params = {k: [random.choice(v)] for k, v in hyper_params.items()}
     num_jobs = len(list(product(*hyper_params.values())))
-
 
     print(f"Testing ensembling models {models2combine} with hyper_params {hyper_params}")
 

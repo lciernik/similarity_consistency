@@ -63,7 +63,7 @@ def get_parser_args():
                              type=lambda x: None if x == '' else x)
 
     parser_eval.add_argument('--task', type=str, default="linear_probe",
-                             choices=["linear_probe", "model_similarity","ensembling"],
+                             choices=["linear_probe", "model_similarity", "ensembling"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
                                   "dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
@@ -306,9 +306,21 @@ def _make_output_fname(args, dataset_name, task):
         if args.verbose:
             print(f'Created path ({output}), where results are to be stored ...')
 
+    # TODO This can hopefully be done more nicely?
+    out_model = args.output.format(
+        task=task,
+        dataset=dataset_slug,
+        fewshot_k=fewshot_slug,
+        seed=args.seed,
+        feature_combiner=f"feat_comb_{args.feature_combiner}",
+        fewshot_lr=args.fewshot_lr,
+        fewshot_epochs=args.fewshot_epochs,
+        feature_alignment=args.feature_alignment if args.feature_alignment is not None else "no_alignment"
+    )
+
     out_res = os.path.join(output, 'results.json')
     out_pred = os.path.join(output, 'test_predictions.pkl')
-    return (out_res, out_pred), model_ids
+    return (out_res, out_pred, out_model), model_ids
 
 
 def main():
@@ -354,6 +366,7 @@ def main_build(base):
         writer.writeheader()
         for row in rows:
             writer.writerow(row)
+
 
 def main_model_sim(base):
     base.device = _prepare_device(base.distributed)
@@ -490,7 +503,7 @@ def run(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    (out_res, out_pred), model_ids = _make_output_fname(args, dataset_name, task)
+    (out_res, out_pred, out_model), model_ids = _make_output_fname(args, dataset_name, task)
     model_id = model_ids[0]
 
     if (os.path.exists(out_res) or os.path.exists(out_pred)) and args.skip_existing:
@@ -655,7 +668,7 @@ def run_combined(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    (out_res, out_pred), model_ids = _make_output_fname(args, dataset_name, task)
+    (out_res, out_pred, out_model), model_ids = _make_output_fname(args, dataset_name, task)
 
     if args.verbose:
         print(f"\n .... Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}' ....\n")
@@ -686,9 +699,8 @@ def run_combined(args):
             amp=args.amp,
             verbose=args.verbose,
         )
-    
+
     elif task == "ensembling":
-        
         metrics = linear_probe.evaluate_ensemble(
             model_ids=model_ids_w_ds,
             feature_root=args.feature_root,
@@ -704,6 +716,7 @@ def run_combined(args):
             out_fn=out_pred,
             amp=args.amp,
             verbose=args.verbose,
+            out_model=out_model
         )
     else:
         raise ValueError(
