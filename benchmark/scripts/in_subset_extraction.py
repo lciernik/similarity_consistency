@@ -1,10 +1,24 @@
 import os
 import json
 from slurm import run_job
-from helper import load_models, get_hyperparams
+from helper import load_models
+from itertools import product
+
+
+# only have one hp setting here because we are only interested in feat_extraction
+def get_hyperparams(num_seeds=1):
+    hyper_params = dict(
+        fewshot_lrs=['0.1'],
+        fewshot_ks=['-1'],
+        fewshot_epochs=['10'],
+        seeds=[str(num) for num in range(num_seeds)],
+    )
+    num_jobs = len(list(product(*hyper_params.values())))
+    return hyper_params, num_jobs
+
 
 MODELS_CONFIG = "./models_config.json"
-DATASETS = "./webdatasets.txt"
+DATASETS = "./imagenet_subset.txt"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -19,7 +33,7 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=10)
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1)
 
     # Evaluate each model on all datasets and all hyperparameter configurations.
     for key, model_config in models.items():
@@ -46,7 +60,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-5h',
+            partition='gpu-2h',
             log_dir='./logs',
             num_jobs_in_array=num_jobs
         )

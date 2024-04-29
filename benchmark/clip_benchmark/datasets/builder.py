@@ -5,12 +5,14 @@ import warnings
 from subprocess import call
 
 import torch
+import numpy as np
 from torch.utils.data import default_collate
 from torchvision.datasets import (CIFAR10, CIFAR100, DTD, GTSRB, MNIST, PCAM,
                                   STL10, SUN397, CocoCaptions, Country211,
                                   EuroSAT, FGVCAircraft, Flowers102, Food101,
                                   ImageFolder, ImageNet, OxfordIIITPet,
                                   RenderedSST2, StanfordCars)
+from torch.utils.data import Subset
 
 from . import (babel_imagenet, caltech101, flickr, imagenetv2, objectnet,
                sugar_crepe, voc2007, winoground)
@@ -570,6 +572,18 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         root = os.path.join(root, "train" if train else "test")
         ds = ImageFolder(root=root, transform=transform)
         ds.classes = default_classnames["fer2013"]
+
+    elif dataset_name == "imagenet-subset-10k":
+        root = os.path.join(root, 'imagenet_torch')
+        if split == 'test':
+            print('There is no test split, using val split.')
+            split = 'val'
+        ds_in = ImageNet(root=root, split=split, transform=transform)
+        with open(os.path.join(root, f'imagenet-10k-{split}.json'), 'r') as f:
+            indices_map = json.load(f)
+        indices = np.array(list(map(list, indices_map.values()))).flatten()
+        ds = Subset(ds_in, indices=indices)
+        ds.classes = ds_in.classes
     elif dataset_name.startswith("tfds/"):
         # TFDS datasets support using `timm` and `tensorflow_datasets`
         prefix, *name_list = dataset_name.split("/")
