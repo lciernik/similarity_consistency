@@ -153,7 +153,7 @@
         "source":"custom",
         "model_parameters":{
             "variant":"ViT-L-14", 
-            "datet":"laion400m_e32"
+            "dataset":"laion400m_e32"
         },
         "module_name":"visual",
         "objective": "Image-Text",
