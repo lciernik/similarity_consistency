@@ -63,7 +63,7 @@ def get_parser_args():
                              type=lambda x: None if x == '' else x)
 
     parser_eval.add_argument('--task', type=str, default="linear_probe",
-                             choices=["linear_probe", "model_similarity"],
+                             choices=["linear_probe", "model_similarity", "ensembling"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
                                   "dataset.")
     parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
@@ -306,9 +306,22 @@ def _make_output_fname(args, dataset_name, task):
         if args.verbose:
             print(f'Created path ({output}), where results are to be stored ...')
 
+    # TODO This can hopefully be done more nicely?
+    out_model = args.output.format(
+        model="{model}",  # This way, the model arg can be set later
+        task=task,
+        dataset=dataset_slug,
+        fewshot_k=fewshot_slug,
+        seed=args.seed,
+        feature_combiner=f"feat_comb_{args.feature_combiner}",
+        fewshot_lr=args.fewshot_lr,
+        fewshot_epochs=args.fewshot_epochs,
+        feature_alignment=args.feature_alignment if args.feature_alignment is not None else "no_alignment"
+    )
+
     out_res = os.path.join(output, 'results.json')
     out_pred = os.path.join(output, 'test_predictions.pkl')
-    return (out_res, out_pred), model_ids
+    return (out_res, out_pred, out_model), model_ids
 
 
 def main():
@@ -430,8 +443,9 @@ def main_eval(base):
         # Now assumption that passed models are combined together (all permutations)
         n_models = len(models)
         model_combinations = []
-        for i in range(2, n_models + 1):
-            model_combinations += list(combinations(models, i))
+        for i in range(2, min(n_models + 1, 11)):
+            # TODO this is only for fast testing till we find better combinations
+            model_combinations += list(combinations(models, i))[:10]
 
         runs = product(model_combinations, datasets)
         arg_fn = _prepare_combined_args
@@ -491,7 +505,7 @@ def run(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    (out_res, out_pred), model_ids = _make_output_fname(args, dataset_name, task)
+    (out_res, out_pred, out_model), model_ids = _make_output_fname(args, dataset_name, task)
     model_id = model_ids[0]
 
     if (os.path.exists(out_res) or os.path.exists(out_pred)) and args.skip_existing:
@@ -559,10 +573,7 @@ def run(args):
                 shuffle=False, num_workers=args.num_workers,
                 collate_fn=collate_fn
             )
-
-    if task == "linear_probe":
         # we also need the train and validation splits for linear probing.
-        train_dataset = None
         train_dataset = build_dataset(
             dataset_name=args.dataset,
             root=dataset_root,
@@ -580,7 +591,8 @@ def run(args):
             )
         elif args.val_proportion is not None:
             train_dataset, val_dataset = torch.utils.data.random_split(train_dataset,
-                                                                       [1 - args.val_proportion, args.val_proportion])
+                                                                       [1 - args.val_proportion,
+                                                                        args.val_proportion])
         else:
             val_dataset = None
         train_dataloader = torch.utils.data.DataLoader(
@@ -596,6 +608,8 @@ def run(args):
             )
         else:
             val_dataloader = None
+    if task == "linear_probe":
+
         metrics = linear_probe.evaluate(
             model,
             train_dataloader,
@@ -656,7 +670,7 @@ def run_combined(args):
     if task == "auto":
         task = get_dataset_default_task(dataset_name)
 
-    (out_res, out_pred), model_ids = _make_output_fname(args, dataset_name, task)
+    (out_res, out_pred, out_model), model_ids = _make_output_fname(args, dataset_name, task)
 
     if args.verbose:
         print(f"\n .... Running '{task}' on '{dataset_name}' with the combined models '{'__'.join(model_ids)}' ....\n")
@@ -665,11 +679,8 @@ def run_combined(args):
         if args.verbose:
             print(f"Skip {out_res}//{out_pred}, exist already.")
         return
-
+    model_ids_w_ds = [(model_id + '-' + args.dataset).replace('/', '_') for model_id in model_ids]
     if task == "linear_probe":
-
-        model_ids_w_ds = [(model_id + '-' + args.dataset).replace('/', '_') for model_id in model_ids]
-
         # get feature combiner cls
         feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
 
@@ -690,10 +701,29 @@ def run_combined(args):
             amp=args.amp,
             verbose=args.verbose,
         )
+
+    elif task == "ensembling":
+        metrics = linear_probe.evaluate_ensemble(
+            model_ids=model_ids_w_ds,
+            feature_root=args.feature_root,
+            fewshot_k=args.fewshot_k,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
+            lr=args.fewshot_lr,
+            epochs=args.fewshot_epochs,
+            device=args.device,
+            normalize=args.normalize,
+            seed=args.seed,
+            use_val_ds=args.val_proportion is not None or args.val_split is not None,
+            out_fn=out_pred,
+            amp=args.amp,
+            verbose=args.verbose,
+            out_model=out_model
+        )
     else:
         raise ValueError(
             "Unsupported task: {}. task should be `zeroshot_classification`, `zeroshot_retrieval`, `linear_probe`, "
-            "or `captioning`".format(
+            " `ensembling` or `captioning`".format(
                 task))
 
     dump = {
