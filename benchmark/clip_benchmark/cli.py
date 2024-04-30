@@ -443,8 +443,9 @@ def main_eval(base):
         # Now assumption that passed models are combined together (all permutations)
         n_models = len(models)
         model_combinations = []
-        for i in range(2, n_models + 1):
-            model_combinations += list(combinations(models, i))
+        for i in range(2, min(n_models + 1, 11)):
+            # TODO this is only for fast testing till we find better combinations
+            model_combinations += list(combinations(models, i))[:10]
 
         runs = product(model_combinations, datasets)
         arg_fn = _prepare_combined_args
