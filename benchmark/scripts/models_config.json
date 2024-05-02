@@ -209,6 +209,81 @@
         "embedding_dim": 768,
         "alignable": "true"
     },
+    "siglip_vitB": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-B-16-SigLIP",
+            "dataset": "webli"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "WebLI",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "clip_vitG_eva01": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA01-g-14",
+            "dataset": "laion400m_s11b_b41k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION400M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "clip_vitG_eva01plus": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA01-g-14-plus",
+            "dataset": "merged2b_s11b_b114k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "clip_vitL_eva02": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA02-L-14",
+            "dataset": "merged2b_s4b_b131k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "clip_vitB_eva02": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA02-B-16",
+            "dataset": "merged2b_s8b_b131k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
+    },
     "vgg16": {
         "model_name": "vgg16",
         "source": "torchvision",
@@ -447,7 +522,7 @@
         "alignable": "false"
     },
     "vit_b_in21k": {
-        "model_name": "vit_base_patch16_224_in21k",
+        "model_name": "vit_base_patch16_224.augreg_in21k",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -477,7 +552,7 @@
         "alignable": "false"
     },
     "vit_l_in21k": {
-        "model_name": "vit_large_patch16_224_in21k",
+        "model_name": "vit_large_patch16_224.augreg_in21k",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -492,7 +567,7 @@
         "alignable": "false"
     },
     "vit_l_laion2b": {
-        "model_name": "vit_large_patch14_224_clip_laion2b",
+        "model_name": "vit_large_patch14_clip_224.laion2b",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -507,7 +582,7 @@
         "alignable": "false"
     },
     "vit_h_in21k": {
-        "model_name": "vit_huge_patch14_224_in21k",
+        "model_name": "vit_huge_patch14_224.orig_in21k",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -522,7 +597,7 @@
         "alignable": "false"
     },
     "vit_huge_laion2b": {
-        "model_name": "vit_huge_patch14_224_clip_laion2b",
+        "model_name": "vit_huge_patch14_clip_224.laion2b",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -534,6 +609,66 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
+        "alignable": "false"
+    },
+    "beit_b": {
+        "model_name": "beit_base_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "beit_b_in21k": {
+        "model_name": "beit_base_patch16_224.in22k_ft_in22k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet21k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "beit_l": {
+        "model_name": "beit_large_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "beit_l_in21k": {
+        "model_name": "beit_large_patch16_224.in22k_ft_in22k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet21k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
         "alignable": "false"
     },
     "deit3_b": {
@@ -552,7 +687,7 @@
         "alignable": "false"
     },
     "deit3_b_in21k": {
-        "model_name": "deit3_base_patch16_224_in21ft1k",
+        "model_name": "deit3_base_patch16_224.fb_in22k_ft_in1k",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -582,7 +717,7 @@
         "alignable": "false"
     },
     "deit3_l_in21k": {
-        "model_name": "deit3_large_patch16_224_in21ft1k",
+        "model_name": "deit3_large_patch16_224.fb_in22k_ft_in1k",
         "source": "timm",
         "model_parameters": {
             "extract_cls_token": true,
@@ -594,6 +729,54 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_b": {
+        "model_name": "swin_base_patch4_window7_224",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_b_in22k": {
+        "model_name": "swin_base_patch4_window7_224.ms_in22k",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_l": {
+        "model_name": "swin_large_patch4_window7_224",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1536,
+        "alignable": "false"
+    },
+    "swin_l_in22k": {
+        "model_name": "swin_large_patch4_window7_224.ms_in22k",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1536,
         "alignable": "false"
     }
 }
