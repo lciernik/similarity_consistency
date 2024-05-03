@@ -1,425 +1,782 @@
 {
-    "dinov2-vit-large-p14":{
-        "model_name":"dinov2-vit-large-p14",
-        "source":"ssl",
+    "dinov2-vit-large-p14": {
+        "model_name": "dinov2-vit-large-p14",
+        "source": "ssl",
         "model_parameters": {
-            "extract_cls_token":true
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
-        "module_name":"norm",
+        "module_name": "norm",
         "objective": "Self-Supervised",
         "dataset": "LVD-142M",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "true"
     },
-    "dino-vit-base-p16":{
-        "model_name":"dino-vit-base-p16",
-        "source":"ssl",
-        "model_parameters":{
-            "extract_cls_token":true
+    "dino-vit-base-p16": {
+        "model_name": "dino-vit-base-p16",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
-        "module_name":"norm",
+        "module_name": "norm",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "true"
     },
-    "dreamsim_open_clip":{
-        "model_name":"DreamSim",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"open_clip_vitb32"
+    "dreamsim_open_clip": {
+        "model_name": "DreamSim",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "open_clip_vitb32"
         },
-        "module_name":"model.mlp",
+        "module_name": "model.mlp",
         "objective": "Image-Text",
         "dataset": "LAION400M + NIGHTS",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
     },
-    "dreamsim_dino":{
-        "model_name":"DreamSim",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"dino_vitb16", 
-            "extract_cls_token":true
+    "dreamsim_dino": {
+        "model_name": "DreamSim",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "dino_vitb16",
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
-        "module_name":"model.mlp",
+        "module_name": "model.mlp",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k + NIGHTS",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
     "mae-vit-base-p16": {
-        "model_name":"mae-vit-base-p16",
-        "source":"ssl",
-        "model_parameters":{
-            "extract_cls_token": true
+        "model_name": "mae-vit-base-p16",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
-        "module_name":"norm",
+        "module_name": "norm",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
     "mae-vit-large-p16": {
         "model_name": "mae-vit-large-p16",
         "source": "ssl",
         "model_parameters": {
-            "extract_cls_token": true
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
         "module_name": "norm",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
     },
     "mae-vit-huge-p14": {
         "model_name": "mae-vit-huge-p14",
         "source": "ssl",
         "model_parameters": {
-            "extract_cls_token": true
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
         "module_name": "norm",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1280,
+        "alignable": "false"
     },
-    "clip_RN50_openai":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"RN50", 
-            "dataset":"openai"
+    "clip_RN50_openai": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "RN50",
+            "dataset": "openai"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "WIT-400M",
         "architecture_class": "Transformer",
-        "architecture": "ResNet"
-    },    
-    "clip_vitB_openai":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-B-16", 
-            "dataset":"openai"
+        "architecture": "ResNet",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "clip_vitB_openai": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-B-16",
+            "dataset": "openai"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "WIT-400M",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
     },
-    "clip_vitB_laion400m":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-B-16", "dataset":"laion400m_e32"
+    "clip_vitB_laion400m": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-B-16",
+            "dataset": "laion400m_e32"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "LAION400M",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
     },
-    "clip_vitB_laion2b":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-B-16", 
-            "dataset":"laion2b_s34b_b88k"
+    "clip_vitB_laion2b": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-B-16",
+            "dataset": "laion2b_s34b_b88k"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "LAION2B",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
     },
-    "clip_vitL_openai":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-L-14", 
-            "dataset":"openai"
+    "clip_vitL_openai": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "openai"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "WIT-400M",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
-    "clip_vitL_laion400m":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-L-14", 
-            "dataset":"laion400m_e32"
+    "clip_vitL_laion400m": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion400m_e32"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "LAION400M",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "true"
     },
-    "clip_vitL_laion2b":{
-        "model_name":"OpenCLIP",
-        "source":"custom",
-        "model_parameters":{
-            "variant":"ViT-L-14", 
-            "dataset":"laion2b_s32b_b82k"
+    "clip_vitL_laion2b": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion2b_s32b_b82k"
         },
-        "module_name":"visual",
+        "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "LAION2B",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "true"
     },
-    "vgg16":{
-        "model_name":"vgg16",
-        "source":"torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
+    "siglip_vitB": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-B-16-SigLIP",
+            "dataset": "webli"
         },
-        "module_name":"classifier.3",
-        "objective": "Supervised",
-        "dataset": "ImageNet1k",
-        "architecture_class": "Convolutional",
-        "architecture": "VGG"
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "WebLI",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
-    "vgg19":{
-        "model_name":"vgg19",
-        "source":"torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
+    "clip_vitG_eva01": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA01-g-14",
+            "dataset": "laion400m_s11b_b41k"
         },
-        "module_name":"classifier.3",
-        "objective": "Supervised",
-        "dataset": "ImageNet1k",
-        "architecture_class": "Convolutional",
-        "architecture": "VGG"
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION400M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
     },
-    "resnet50":{
-        "model_name":"resnet50",
-        "source":"torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
+    "clip_vitG_eva01plus": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA01-g-14-plus",
+            "dataset": "merged2b_s11b_b114k"
         },
-        "module_name":"avgpool",
-        "objective": "Supervised",
-        "dataset": "ImageNet1k",
-        "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
     },
-    "resnet152":{
-        "model_name":"resnet152",
-        "source":"torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
+    "clip_vitL_eva02": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA02-L-14",
+            "dataset": "merged2b_s4b_b131k"
         },
-        "module_name":"avgpool",
-        "objective": "Supervised",
-        "dataset": "ImageNet1k",
-        "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
-    "resnext50":{
-        "model_name":"resnext50_32x4d",
-        "source":"timm",
-        "model_parameters":{},
-        "module_name":"global_pool",
-        "objective": "Supervised",
-        "dataset": "ImageNet1k",
-        "architecture_class": "Convolutional",
-        "architecture": "ResNeXt"
+    "clip_vitB_eva02": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "EVA02-B-16",
+            "dataset": "merged2b_s8b_b131k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "Merged2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignable": "false"
     },
-    "seresnet50":{
-        "model_name":"seresnet50",
-        "source":"timm",
-        "model_parameters":{},
-        "module_name":"global_pool",
+    "vgg16": {
+        "model_name": "vgg16",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "classifier.3",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "SE-ResNet"
+        "architecture": "VGG",
+        "embedding_dim": 4096,
+        "alignable": "true"
     },
-    "convnext_base":{
-        "model_name":"convnext_base",
-        "source":"timm",
-        "model_parameters":{},
-        "module_name":"head.flatten",
+    "vgg19": {
+        "model_name": "vgg19",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "classifier.3",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ConvNeXt"
+        "architecture": "VGG",
+        "embedding_dim": 4096,
+        "alignable": "false"
     },
-    "convnext_large":{
-        "model_name":"convnext_large",
-        "source":"timm",
-        "model_parameters":{},
-        "module_name":"head.flatten",
+    "resnet50": {
+        "model_name": "resnet50",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ConvNeXt"
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "true"
+    },
+    "resnet152": {
+        "model_name": "resnet152",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
+    },
+    "resnext50": {
+        "model_name": "resnext50_32x4d",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNeXt",
+        "embedding_dim": 2048,
+        "alignable": "false"
+    },
+    "seresnet50": {
+        "model_name": "seresnet50",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "SE-ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
+    },
+    "convnext_base": {
+        "model_name": "convnext_base",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.flatten",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ConvNeXt",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "convnext_large": {
+        "model_name": "convnext_large",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.flatten",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ConvNeXt",
+        "embedding_dim": 1536,
+        "alignable": "false"
     },
     "efficientnet_b3": {
         "model_name": "efficientnet_b3",
         "source": "torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
-        },        
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
         "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "EfficientNet"
+        "architecture": "EfficientNet",
+        "embedding_dim": 1536,
+        "alignable": "false"
     },
     "efficientnet_b4": {
         "model_name": "efficientnet_b4",
         "source": "torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
-        },        
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
         "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "EfficientNet"
+        "architecture": "EfficientNet",
+        "embedding_dim": 1792,
+        "alignable": "false"
     },
     "efficientnet_b5": {
         "model_name": "efficientnet_b5",
         "source": "torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
-        },        
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
         "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "EfficientNet"
+        "architecture": "EfficientNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
     },
     "efficientnet_b6": {
         "model_name": "efficientnet_b6",
         "source": "torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
-        },        
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
         "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "EfficientNet"
+        "architecture": "EfficientNet",
+        "embedding_dim": 2304,
+        "alignable": "false"
     },
     "efficientnet_b7": {
         "model_name": "efficientnet_b7",
         "source": "torchvision",
-        "model_parameters" :{
-            "weights":"DEFAULT"
-        },        
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
         "module_name": "avgpool",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "EfficientNet"
+        "architecture": "EfficientNet",
+        "embedding_dim": 2560,
+        "alignable": "false"
     },
     "simclr-rn50": {
         "model_name": "simclr-rn50",
         "source": "ssl",
-        "model_parameters":{},
+        "model_parameters": {},
         "module_name": "avgpool",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
     },
     "mocov2-rn50": {
         "model_name": "mocov2-rn50",
         "source": "ssl",
-        "model_parameters":{},
+        "model_parameters": {},
         "module_name": "avgpool",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
     },
     "vicreg-rn50": {
         "model_name": "vicreg-rn50",
         "source": "ssl",
-        "model_parameters":{},
+        "model_parameters": {},
         "module_name": "avgpool",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
     },
     "barlowtwins-rn50": {
         "model_name": "barlowtwins-rn50",
         "source": "ssl",
-        "model_parameters":{},
+        "model_parameters": {},
         "module_name": "avgpool",
         "objective": "Self-Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Convolutional",
-        "architecture": "ResNet"
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignable": "false"
     },
-    "vit_b":{
-        "model_name":"vit_base_patch16_224",
-        "source":"timm",
-        "model_parameters":{
-            "extract_cls_token":true
+    "vit_b": {
+        "model_name": "vit_base_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
         },
-        "module_name":"norm",
+        "module_name": "norm",
         "objective": "Supervised",
         "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
-    "vit_b_in21k":{
-        "model_name":"vit_base_patch16_224_in21k",
-        "source":"timm",
-        "model_parameters":{
-            "extract_cls_token":true
-        },        
-        "module_name":"norm",
+    "vit_b_in21k": {
+        "model_name": "vit_base_patch16_224.augreg_in21k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
         "objective": "Supervised",
         "dataset": "ImageNet21k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
     },
-    "vit_l_laion2b":{
-        "model_name":"vit_large_patch14_224_clip_laion2b",
-        "source":"timm",
-        "model_parameters":{
-            "extract_cls_token":true
-        },        
-        "module_name":"norm",
-        "objective": "Image-Text",
-        "dataset": "LAION2B",
+    "vit_l": {
+        "model_name": "vit_large_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
     },
-    "vit_h_in21k":{
-        "model_name":"vit_huge_patch14_224_in21k",
-        "source":"timm",
-        "model_parameters":{
-            "extract_cls_token":true
-        },        
-        "module_name":"norm",
+    "vit_l_in21k": {
+        "model_name": "vit_large_patch16_224.augreg_in21k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
         "objective": "Supervised",
         "dataset": "ImageNet21k",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
     },
-    "vit_huge_laion2b":{
-        "model_name":"vit_huge_patch14_224_clip_laion2b",
-        "source":"timm",
-        "model_parameters":{
-            "extract_cls_token":true
-        },        
-        "module_name":"norm",
+    "vit_l_laion2b": {
+        "model_name": "vit_large_patch14_clip_224.laion2b",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
         "objective": "Image-Text",
         "dataset": "LAION2B",
         "architecture_class": "Transformer",
-        "architecture": "ViT"
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "vit_h_in21k": {
+        "model_name": "vit_huge_patch14_224.orig_in21k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet21k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1280,
+        "alignable": "false"
+    },
+    "vit_huge_laion2b": {
+        "model_name": "vit_huge_patch14_clip_224.laion2b",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Image-Text",
+        "dataset": "LAION2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1280,
+        "alignable": "false"
+    },
+    "beit_b": {
+        "model_name": "beit_base_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "beit_b_in21k": {
+        "model_name": "beit_base_patch16_224.in22k_ft_in22k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet21k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "beit_l": {
+        "model_name": "beit_large_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "beit_l_in21k": {
+        "model_name": "beit_large_patch16_224.in22k_ft_in22k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet21k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "deit3_b": {
+        "model_name": "deit3_base_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "deit3_b_in21k": {
+        "model_name": "deit3_base_patch16_224.fb_in22k_ft_in1k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet21k + ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignable": "false"
+    },
+    "deit3_l": {
+        "model_name": "deit3_large_patch16_224",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "deit3_l_in21k": {
+        "model_name": "deit3_large_patch16_224.fb_in22k_ft_in1k",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Supervised",
+        "dataset": "ImageNet21k + ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_b": {
+        "model_name": "swin_base_patch4_window7_224",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_b_in22k": {
+        "model_name": "swin_base_patch4_window7_224.ms_in22k",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1024,
+        "alignable": "false"
+    },
+    "swin_l": {
+        "model_name": "swin_large_patch4_window7_224",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1536,
+        "alignable": "false"
+    },
+    "swin_l_in22k": {
+        "model_name": "swin_large_patch4_window7_224.ms_in22k",
+        "source": "timm",
+        "model_parameters": {},
+        "module_name": "head.global_pool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "SwinTransformer",
+        "embedding_dim": 1536,
+        "alignable": "false"
     }
 }
