@@ -9,7 +9,7 @@ from tqdm import tqdm
 import torch
 import torch.utils.data
 import webdataset
-from .datasets.builder import build_dataset
+from clip_benchmark.data.builder import build_dataset
 
 
 def get_parser_args():

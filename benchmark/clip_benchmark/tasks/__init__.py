@@ -1,4 +1,5 @@
-from .feature_combiner import ConcatFeatureCombiner, PCAConcatFeatureCombiner
+from model_similarity import compute_sim_matrix
+from feature_combiner import ConcatFeatureCombiner, PCAConcatFeatureCombiner
 
 
 def get_feature_combiner_cls(combiner_name):

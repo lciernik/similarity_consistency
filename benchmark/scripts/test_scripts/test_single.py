@@ -6,8 +6,8 @@ import random
 from itertools import product
 
 sys.path.append('..')
-from slurm import run_job
-from helper import load_models, get_hyperparams
+from ..slurm import run_job
+from ..helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "../models_config.json"
 DATASETS = "./webdatasets_test.txt"
@@ -35,7 +35,7 @@ if __name__ == "__main__":
 
     print(f"Testing single model {random_model} with hyper_params: {hyper_params}")
 
-    # Evaluate each model on all datasets and all hyperparameter configurations.
+    # Evaluate each model on all data and all hyperparameter configurations.
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
     export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
     clip_benchmark eval --dataset {DATASETS} \

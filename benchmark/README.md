@@ -137,7 +137,7 @@ Example with `eurosat`:
 
  `clip_benchmark eval --dataset=vtab/eurosat --task=zeroshot_classification --pretrained=laion400m_e32 --model=ViT-B-32-quickgelu --output=result.json --batch_size=64`
 
-See [clip_benchmark/datasets/builder.py#L634](clip_benchmark/datasets/builder.py#L634) for the full list of 
+See [clip_benchmark/data/constants.py](clip_benchmark/data/constants.py#L634) for the full list of 
 VTAB dataset collection.
 
 
@@ -360,7 +360,7 @@ clip_benchmark eval --pretrained_model openai openclip_base  --dataset vtab+ ret
 --output "{dataset}_{pretrained}_{model}_{language}_{task}.json"
 ```
 
-See [clip_benchmark/models.py#L6](clip_benchmark/models.py#L6) and [clip_benchmark/datasets/builder.py#L634](clip_benchmark/datasets/builder.py#L634) for more information
+See [clip_benchmark/models.py#L6](clip_benchmark/models.py#L6) and [clip_benchmark/datasets/builder.py#L634](clip_benchmark/data/datasets/builder.py#L634) for more information
 about the collections.
 
 ### Custom templates / prompts / classnames

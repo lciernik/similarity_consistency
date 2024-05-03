@@ -6,8 +6,8 @@ import random
 from itertools import product
 
 sys.path.append('..')
-from slurm import run_job
-from helper import load_models, get_hyperparams, prepare_for_combined_usage
+from ..slurm import run_job
+from ..helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "./test_models_config.json"
 DATASETS = "imagenet-subset-10k"  # "./webdatasets_test.txt"

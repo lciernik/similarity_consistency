@@ -1,13 +1,32 @@
-import torch
 import os
 
+import torch
 
-def _load_features(feature_root, model_id, split='train'):
-    features = torch.load(os.path.join(feature_root, model_id, f'features_{split}.pt'))
+## Load features and targets
+def load_features(feature_root, model_id=None, split='train'):
+    model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
+    features = torch.load(os.path.join(model_dir, f'features_{split}.pt'))
     return features
 
 
-def _check_models(feature_root, model_ids, split):
+def load_targets(feature_root, model_id=None, split='train'):
+    model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
+    targets = torch.load(os.path.join(model_dir, f'targets_{split}.pt'))
+    return targets
+
+
+def load_features_targets(feature_root, model_id=None, split='train'):
+    if isinstance(feature_root, list):
+        features = [load_features(f, model_id, split) for f in feature_root]
+        targets = load_targets(feature_root[0], model_id, split)
+    else:
+        features = load_features(feature_root, model_id, split)
+        targets = load_targets(feature_root, model_id, split)
+    return features, targets
+
+
+## Check if features exist for all models
+def check_models(feature_root, model_ids, split):
     prev_model_ids = model_ids
 
     model_ids = sorted(
