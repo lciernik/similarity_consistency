@@ -10,16 +10,15 @@ from itertools import product, combinations
 from typing import List
 
 import numpy as np
+import pandas as pd
 import torch
 
-from clip_benchmark.data.builder import (build_dataset,
-                                         get_dataset_collate_fn,
-                                         get_dataset_collection_from_file,
-                                         get_dataset_default_task)
-from clip_benchmark.data.constants import dataset_collection
+from clip_benchmark.data import (build_dataset, get_dataset_collate_fn, get_dataset_default_task,
+                                 get_feature_combiner_cls)
 from clip_benchmark.models import load_model
-from clip_benchmark.tasks import get_feature_combiner_cls, compute_sim_matrix
+from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks import linear_probe
+from clip_benchmark.utils.utils import as_list, get_list_of_datasets
 
 
 def get_parser_args():
@@ -73,9 +72,12 @@ def get_parser_args():
 
     # TASKS
     parser_eval.add_argument('--task', type=str, default="linear_probe",
-                             choices=["linear_probe", "model_similarity", "ensembling"],
+                             choices=["linear_probe", "model_similarity"],
                              help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
                                   "dataset.")
+    parser_eval.add_argument('--mode', type=str, default="single_model",
+                             choices=["single_model", "combined_models", "ensembling"],
+                             help="Mode to use for linear probe task.")
     parser_eval.add_argument('--eval_combined', action="store_true",
                              help="Whether the features of the different models should be used in combined fashion.")
     parser_eval.add_argument('--feature_combiner', type=str, default="concat",
@@ -138,12 +140,6 @@ def get_parser_args():
     return parser, args
 
 
-def _as_list(l):
-    if not l:
-        return []
-    return [l] if type(l) != list else l
-
-
 def _prepare_device(distributed):
     if torch.cuda.is_available():
         if distributed:
@@ -194,11 +190,11 @@ def _prepare_combined_args(args, model_comb):
 
 
 def _get_list_of_models(base):
-    models = _as_list(base.model)
-    srcs = _as_list(base.model_source)
-    params = _as_list(base.model_parameters)
+    models = as_list(base.model)
+    srcs = as_list(base.model_source)
+    params = as_list(base.model_parameters)
     params = [json.loads(x) for x in params]
-    module_names = _as_list(base.module_name)
+    module_names = as_list(base.module_name)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
     assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
@@ -218,21 +214,6 @@ def _get_model_id(model, model_parameters):
     if model_suffix:
         model_slug = f"{model_slug}_{model_suffix}"
     return model_slug
-
-
-def _get_list_of_datasets(base):
-    datasets = []
-    for name in _as_list(base.dataset):
-        if os.path.isfile(name):
-            # If path, read file, each line is a dataset name
-            datasets.extend(get_dataset_collection_from_file(name))
-        elif name in dataset_collection:
-            # if part of `dataset_collection`, retrieve from it
-            datasets.extend(dataset_collection[name])
-        else:
-            # if not, assume it is simply the name of the dataset
-            datasets.append(name)
-    return datasets
 
 
 def _prepare_ds_name(dataset):
@@ -256,14 +237,14 @@ def _single_option_to_multiple_datasets(cur_option, datasets, name):
 
 
 def _get_train_val_splits(train_split, val_split, val_proportion, datasets):
-    train_splits = _as_list(train_split)
+    train_splits = as_list(train_split)
     train_splits = _single_option_to_multiple_datasets(train_splits, datasets, "train_split")
     proportions, val_splits = None, None
     if val_split is not None:
-        val_splits = _as_list(val_split)
+        val_splits = as_list(val_split)
         val_splits = _single_option_to_multiple_datasets(val_splits, datasets, "val_split")
     if val_proportion is not None:
-        proportions = _as_list(val_proportion)
+        proportions = as_list(val_proportion)
         proportions = _single_option_to_multiple_datasets(proportions, datasets, "val_proportion")
 
     dataset_info = {}
@@ -275,6 +256,19 @@ def _get_train_val_splits(train_split, val_split, val_proportion, datasets):
         }
     return dataset_info
 
+
+def make_paths(args, dataset_name, task):
+    # TODO: implement
+    # require path for features
+    # require path for models
+    # require path for results
+
+    out_dir = ""
+    feature_dir = ""
+    model_dir = ""
+
+
+    pass
 
 def _make_output_fname(args, dataset_name, task):
     # dataset name for outpath
@@ -329,6 +323,69 @@ def _make_output_fname(args, dataset_name, task):
     return (out_res, out_pred, out_model), model_ids
 
 
+def make_results_df(exp_args, metrics, outpaths):
+    results_current_run = pd.DataFrame(index=range(1))
+
+    # experiment config
+    results_current_run["task"] = exp_args["task"]
+    results_current_run["mode"] = exp_args["mode"]
+    results_current_run["combiner"] = exp_args["combiner"]
+    # dataset
+    results_current_run["dataset"] = exp_args["dataset"]
+    results_current_run["feature_alignment"] = exp_args["feature_alignment"]
+    results_current_run["train_split"] = exp_args["train_split"]
+    results_current_run["val_split"] = exp_args["val_split"]
+    results_current_run["test_split"] = exp_args["split"]
+    # model(s)
+    results_current_run["model_ids"] = exp_args["model_ids"]
+    results_current_run["model"] = exp_args["model"]
+    results_current_run["model_source"] = exp_args["model_source"]
+    results_current_run["model_parameters"] = exp_args["model_parameters"]
+    results_current_run["module_name"] = exp_args["module_name"]
+    # hyperparameters
+    results_current_run["fewshot_k"] = exp_args["fewshot_k"]
+    results_current_run["fewshot_lr"] = exp_args["fewshot_lr"]
+    results_current_run["fewshot_epochs"] = exp_args["fewshot_epochs"]
+    results_current_run["batch_size"] = exp_args["batch_size"]
+    results_current_run["seed"] = exp_args["seed"]
+    # metrics
+    for key, value in metrics.items():
+        # skip if the key already exists
+        if key in results_current_run:
+            continue
+        results_current_run[key] = value
+    # store model checkpoint and predictions path
+    for key, value in outpaths.items():
+        results_current_run[key] = value
+
+    for col in results_current_run:
+        if results_current_run[col].dtype == "object":
+            try:
+                results_current_run[col] = results_current_run[col].apply(json.dumps)
+            except TypeError as e:
+                print(col)
+                print(results_current_run.loc[0, col])
+                raise e
+
+    return results_current_run
+
+
+def save_results(args, dataset_name, task, exp_args, metrics, outpaths):
+    if not os.path.exists(out_path):
+        print("\nCreating results directory...\n")
+        os.makedirs(out_path, exist_ok=True)
+
+    results_current_run = make_results_df(exp_args, metrics, outpaths)
+
+    if len(results_current_run) == 0:
+        raise ValueError("results_current_run had no entries")
+
+    database_path = os.path.join(out_path, "results.db")
+    conn = sqlite3.connect(database_path)
+    results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+    conn.close()
+
+
 def main():
     parser, base = get_parser_args()
     if not hasattr(base, "which"):
@@ -378,7 +435,7 @@ def main_model_sim(base):
     base.device = _prepare_device(base.distributed)
 
     # Get list of data to evaluate on
-    datasets = _get_list_of_datasets(base)
+    datasets = get_list_of_datasets(base)
 
     # Get train and val splits
     dataset_info = _get_train_val_splits(base.train_split, base.val_split, base.val_proportion, datasets)
@@ -395,23 +452,24 @@ def main_model_sim(base):
 
     # Compute CKA matrix
     sim_matrix, model_ids = compute_sim_matrix(base.sim_method,
-                                                base.feature_root,
-                                                model_ids,
-                                                train_split,
-                                                kernel=base.sim_kernel,
-                                                rsa_method=base.rsa_method,
-                                                corr_method=base.corr_method,
-                                                backend='torch',
-                                                unbiased=base.unbiased,
-                                                device=base.device,
-                                                sigma=base.sigma,
-                                                )
-    # Save the distance matrix
+                                               base.feature_root,
+                                               model_ids,
+                                               train_split,
+                                               kernel=base.sim_kernel,
+                                               rsa_method=base.rsa_method,
+                                               corr_method=base.corr_method,
+                                               backend='torch',
+                                               unbiased=base.unbiased,
+                                               device=base.device,
+                                               sigma=base.sigma,
+                                               )
+    # Save the similarity matrix
+    # TODO: save also config on the computed data
     if not os.path.exists(base.output):
         os.makedirs(base.output, exist_ok=True)
         if base.verbose:
             print(f'Created path ({base.output}), where results are to be stored ...')
-    out_res = os.path.join(base.output, f'{base.sim_method}_distance_matrix.pt')
+    out_res = os.path.join(base.output, f'{base.sim_method}_similarity_matrix.pt')
     if base.verbose:
         print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
     torch.save(sim_matrix, out_res)
@@ -434,7 +492,7 @@ def main_eval(base):
     models = _get_list_of_models(base)
 
     # Get list of data to evaluate on
-    datasets = _get_list_of_datasets(base)
+    datasets = get_list_of_datasets(base)
 
     # Get train and val splits
     dataset_info = _get_train_val_splits(base.train_split, base.val_split, base.val_proportion, datasets)
@@ -639,6 +697,7 @@ def run(args):
         raise ValueError(
             "Unsupported task: {}. task should be `linear_probe`".format(
                 task))
+    # TODO: save results to database
     dump = {
         "dataset": args.dataset,
         "model_ids": model_ids,
@@ -731,6 +790,7 @@ def run_combined(args):
             " `ensembling` or `captioning`".format(
                 task))
 
+    # TODO: save results to database
     dump = {
         "dataset": args.dataset,
         "model_ids": model_ids,

@@ -9,8 +9,9 @@ from tqdm import tqdm
 
 from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature_dl
 from clip_benchmark.data.data_utils import feature_extraction, get_fewshot_indices
+from clip_benchmark.data.feature_combiner import ConcatFeatureCombiner
+from clip_benchmark.eval.metrics import compute_metrics, accuracy
 from clip_benchmark.models.featurizer import Featurizer
-from clip_benchmark.tasks.feature_combiner import ConcatFeatureCombiner
 
 
 def assign_learning_rate(param_group, new_lr):
@@ -44,14 +45,14 @@ def train(dataloader, weight_decay, lr, epochs, autocast, device, seed, filename
     if filename is not None and os.path.exists(filename):
         print(f"Loading model from {filename}")
         model = torch.load(filename)
-        model = model.cuda()
+        model = model.cuda()  # TODO: Change this to use the device parameter
         model = torch.nn.DataParallel(model, device_ids=[x for x in range(torch.cuda.device_count())])
         return model
 
     input_shape, output_shape = dataloader.dataset[0][0].shape[0], dataloader.dataset.targets.max().item() + 1
     model = torch.nn.Linear(input_shape, output_shape)
     devices = [x for x in range(torch.cuda.device_count())]
-    model = model.cuda()
+    model = model.cuda()  # TODO: Change this to use the device parameter
     model = torch.nn.DataParallel(model, device_ids=devices)
     optimizer = torch.optim.AdamW(
         model.parameters(),

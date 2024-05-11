@@ -2,6 +2,15 @@ import os
 
 import torch
 
+from benchmark.clip_benchmark.data import dataset_collection, get_dataset_collection_from_file
+
+
+def as_list(l):
+    if not l:
+        return []
+    return [l] if type(l) != list else l
+
+
 ## Load features and targets
 def load_features(feature_root, model_id=None, split='train'):
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
@@ -40,3 +49,18 @@ def check_models(feature_root, model_ids, split):
     assert len(model_ids) > 1, f"At least two models are required for distance computation"
 
     return model_ids
+
+
+def get_list_of_datasets(base):
+    datasets = []
+    for name in as_list(base.dataset):
+        if os.path.isfile(name):
+            # If path, read file, each line is a dataset name
+            datasets.extend(get_dataset_collection_from_file(name))
+        elif name in dataset_collection:
+            # if part of `dataset_collection`, retrieve from it
+            datasets.extend(dataset_collection[name])
+        else:
+            # if not, assume it is simply the name of the dataset
+            datasets.append(name)
+    return datasets
