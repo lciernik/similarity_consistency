@@ -778,5 +778,32 @@
         "architecture": "SwinTransformer",
         "embedding_dim": 1536,
         "alignable": "false"
+    },
+    "segment_anything_vit_b": {
+        "model_name": "SegmentAnything",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "vit_b"
+        },
+        "module_name": "flatten",
+        "objective": "Supervised",
+        "dataset": "SA-1B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 256,
+        "alignable": "false"
+
+    },
+    "align_model": {
+        "model_name": "Kakaobrain_Align",
+        "source": "custom",
+        "model_parameters": {},
+        "module_name": "pooler",
+        "objective": "Image-Text",
+        "dataset": "COYO-700M",
+        "architecture_class": "Convolutional",
+        "architecture": "EfficientNet",
+        "embedding_dim": 640,
+        "alignable": "false"
     }
 }
