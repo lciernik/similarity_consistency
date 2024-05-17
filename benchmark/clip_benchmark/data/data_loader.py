@@ -18,6 +18,7 @@ def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, 
     train_labels = targets[idxs]
 
     if use_val_ds:
+        # TODO: adapt this to fewshot_k setting when using val_ds
         features_val, targets_val = load_features_targets(feature_dir, split='val')
         feature_val_dset = FeatureDataset(features_val, targets_val)
         feature_val_loader = DataLoader(

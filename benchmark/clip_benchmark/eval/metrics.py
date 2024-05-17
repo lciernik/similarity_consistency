@@ -28,13 +28,8 @@ def accuracy(output, target, topk=(1,)):
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) / n for k in topk]
 
 
-def compute_metrics(logits, target, out_fn=None, verbose=False):
+def compute_metrics(logits, target, verbose=False):
     pred = logits.argmax(dim=1)
-    if out_fn is not None:
-        with open(out_fn, 'wb') as f:
-            pickle.dump({'logits': logits, 'pred': pred, 'target': target}, f)
-            if verbose:
-                print(f"Stored test predictions in {out_fn}.")
 
     # measure accuracy
     if target.max() >= 5:
