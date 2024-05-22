@@ -6,10 +6,8 @@ RESULTS_PATH = ''
 
 
 def retrieve_performance(model_id: str, dataset_id: str):
-    conn = sqlite3.connect(RESULTS_PATH)
+    """conn = sqlite3.connect(RESULTS_PATH)
     df = pd.read_sql('SELECT * FROM "results"', conn)
-    conn.close()
+    conn.close()"""
     # TODO
-
-
-retrieve_imagenet_performance = partial(retrieve_performance())
+    return 1
