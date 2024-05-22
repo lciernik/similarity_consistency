@@ -107,19 +107,21 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     return parser, args
 
 
-def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str, str]) -> argparse.Namespace:
+def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str, str, str]) -> argparse.Namespace:
     args.model = model_info[0]  # model
     args.model_source = model_info[1]  # model_source
     args.model_parameters = model_info[2]  # model_parameters
     args.module_name = model_info[3]  # module_name
     args.feature_alignment = model_info[4]  # feature_alignment
+    args.model_key = model_info[5]  # model_key
     return args
 
 
-def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str, str]]) -> argparse.Namespace:
+def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str, str, str]]) -> argparse.Namespace:
     args.model = [tup[0] for tup in model_comb]
     args.model_source = [tup[1] for tup in model_comb]
     args.model_parameters = [tup[2] for tup in model_comb]
     args.module_name = [tup[3] for tup in model_comb]
     args.feature_alignment = [tup[4] for tup in model_comb]
+    args.model_key = [tup[5] for tup in model_comb]
     return args

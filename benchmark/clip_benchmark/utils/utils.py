@@ -106,16 +106,3 @@ def get_train_val_splits(
             "proportion": proportions[i] if proportions is not None else None
         }
     return dataset_info
-
-
-def get_model_id(model: str, model_parameters: Union[dict, None]) -> str:
-    if not model_parameters:
-        return model
-    model_slug = model
-    model_suffix = model_parameters.get("variant", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    model_suffix = model_parameters.get("dataset", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    return model_slug

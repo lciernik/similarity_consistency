@@ -20,7 +20,6 @@ from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, EnsembleModelEvaluator
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
-                                        get_model_id,
                                         get_train_val_splits,
                                         prepare_ds_name, )
 
@@ -60,34 +59,36 @@ def get_combination(
 
 def load_model_configs_args(base: argparse.Namespace) -> None:
     """Loads the model_configs file and transcribes its parameters into base."""
+    if base.models_config_file is None:
+        raise FileNotFoundError("Model config file not provided.")
+
     if not os.path.exists(base.models_config_file):
         raise FileNotFoundError(f"Model config file {base.models_config_file} does not exist.")
 
-    if base.models_config_file is not None:
-        with open(base.models_config_file, "r") as f:
-            model_configs = json.load(f)
+    with open(base.models_config_file, "r") as f:
+        model_configs = json.load(f)
 
-        model = []
-        model_source = []
-        model_parameters = []
-        module_name = []
-        feature_alignment = []
+    model = []
+    model_source = []
+    model_parameters = []
+    module_name = []
+    feature_alignment = []
 
-        for model_key in as_list(base.model_key):
-            model.append(model_configs[model_key]["model_name"])
-            model_source.append(model_configs[model_key]["source"])
-            model_parameters.append(model_configs[model_key]["model_parameters"])
-            module_name.append(model_configs[model_key]["module_name"])
-            feature_alignment.append(model_configs[model_key]["alignment"])
+    for model_key in as_list(base.model_key):
+        model.append(model_configs[model_key]["model_name"])
+        model_source.append(model_configs[model_key]["source"])
+        model_parameters.append(model_configs[model_key]["model_parameters"])
+        module_name.append(model_configs[model_key]["module_name"])
+        feature_alignment.append(model_configs[model_key]["alignment"])
 
-        setattr(base, "model", model)
-        setattr(base, "model_source", model_source)
-        setattr(base, "model_parameters", model_parameters)
-        setattr(base, "module_name", module_name)
-        setattr(base, "feature_alignment", feature_alignment)
+    setattr(base, "model", model)
+    setattr(base, "model_source", model_source)
+    setattr(base, "model_parameters", model_parameters)
+    setattr(base, "module_name", module_name)
+    setattr(base, "feature_alignment", feature_alignment)
 
 
-def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str]]:
+def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str, str]]:
     """Get list of models and config to evaluate."""
     models = as_list(base.model)
     srcs = as_list(base.model_source)
@@ -95,13 +96,15 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
     params = [json.loads(x) for x in params]
     module_names = as_list(base.module_name)
     feature_alignments = as_list(base.feature_alignment)
+    model_keys = as_list(base.model_key)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
     assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
     assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
     assert len(models) == len(feature_alignments), "The number of feature_alignment should be the same as the number of models"
+    assert len(models) == len(model_keys), "The number of model_key should be the same as the number of models"
 
-    return list(zip(models, srcs, params, module_names, feature_alignments))
+    return list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
 
 
 def get_hyperparams_name(args: argparse.Namespace) -> str:
@@ -143,7 +146,7 @@ def make_paths(args: argparse.Namespace, dataset_name: str):
     # Create model_ids based on the model and model_params
     # TODO: add aligned keyword to model_id
     # feature_alignment=args.feature_alignment if args.feature_alignment is not None else "no_alignment"
-    model_ids = [get_model_id(model, model_params) for model, model_params in zip(models, model_params)]
+    model_ids = as_list(args.model_key)
 
     # Create list of feature directories for each dataset and model_ids.
     feature_dirs = [os.path.join(args.feature_root, dataset_slug, model_id) for model_id in model_ids]
@@ -259,7 +262,7 @@ def main_model_sim(base):
     models = get_list_of_models(base)
 
     # Get model ids
-    model_ids = [get_model_id(model[0], model[2]) for model in models]
+    model_ids = as_list(base.model_key)
     model_ids = [(model_id + '-' + dataset).replace('/', '_') for model_id in model_ids]
 
     # Compute CKA matrix
