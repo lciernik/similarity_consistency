@@ -261,8 +261,18 @@ class BaseEvaluator:
                 if self.verbose:
                     print(f"Stored test predictions in {os.path.join(self.probe_out_dir, 'predictions.pkl')}.")
         else:
+            # TODO we should always store the predictions, otherwise we can't ensemble them
             if self.verbose:
                 print("No probe output directory specified. Not storing test set predictions.")
+
+    def load_test_set_predictions(self, linear_probe_dir):
+        with open(os.path.join(linear_probe_dir, 'predictions.pkl'), 'rb') as f:
+            predictions = pickle.load(f)
+            logits = predictions['logits']
+            target = predictions['target']
+            if self.verbose:
+                print(f"Loaded test predictions from {os.path.join(linear_probe_dir, 'predictions.pkl')}.")
+        return logits, target
 
     def _evaluate(self, train_loader, test_loader, best_wd, filename=None):
         linear_probe = LinearProbe(weight_decay=best_wd,
@@ -377,32 +387,6 @@ class EnsembleModelEvaluator(BaseEvaluator):
         if not len(model_ids) == len(feature_dirs) == len(linear_prob_dirs):
             raise ValueError("Number of models, feature directories and linear probe directories must be the same.")
 
-    def load_logits_targets(self, linear_probe_dir):
-        with open(os.path.join(linear_probe_dir, 'predictions.pkl'), 'rb') as f:
-            predictions = pickle.load(f)
-            logits = predictions['logits']
-            target = predictions['target']
-            if self.verbose:
-                print(f"Loaded test predictions from {os.path.join(linear_probe_dir, 'predictions.pkl')}.")
-        return logits, target
-
-    def retrain_linear_probe(self, idxs, feature_dir, model_fn):
-        # TODO We do not store the metric of this retrained model (in comparison to single Evaluator)
-        # Maybe one should remove the training and also rely on single Evaluator?
-        feature_train_loader, feature_test_loader = get_feature_dl(
-            feature_dir, self.batch_size, self.num_workers, self.fewshot_k, idxs)
-        best_wd = self.optimize_weight_decay(feature_train_loader)
-        linear_probe = LinearProbe(weight_decay=best_wd,
-                                   lr=self.lr,
-                                   epochs=self.epochs,
-                                   autocast=self.autocast,
-                                   device=self.device,
-                                   seed=self.seed)
-
-        linear_probe.train(feature_train_loader, filename=model_fn)
-        logits, target = linear_probe.infer(feature_test_loader)
-        return logits, target
-
     def check_equal_targets(self, model_targets):
         if not all([torch.equal(model_targets[model_id], model_targets[self.model_ids[0]]) for model_id in
                     self.model_ids]):
@@ -422,34 +406,17 @@ class EnsembleModelEvaluator(BaseEvaluator):
         return logits
 
     def evaluate(self):
-        idxs = None
         model_logits = {}
         model_targets = {}
         for model_id, feature_dir, linear_probe_dir in zip(self.model_ids, self.feature_dirs, self.linear_prob_dirs):
             # Try to load predictions directly for maximum speed
             pred_fn = os.path.join(linear_probe_dir, 'predictions.pkl')
             if os.path.isfile(pred_fn):
-                logits, target = self.load_logits_targets(model_id, linear_probe_dir)
+                logits, target = self.load_test_set_predictions(linear_probe_dir)
                 model_logits[model_id] = logits
                 model_targets[model_id] = target
-                continue
-
-            model_fn = os.path.join(linear_probe_dir, 'model.pkl')
-
-            # Retrain linear probe by loading precomputed features
-            if idxs is None:
-                targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
-                idxs = get_fewshot_indices(targets, self.fewshot_k)
-
-            logits, target = self.retrain_linear_probe(idxs, feature_dir, model_fn)
-            model_logits[model_id] = logits
-            model_targets[model_id] = target
-
-            # Save model Predictions
-            with open(pred_fn, 'wb') as f:
-                pickle.dump({'logits': logits, 'target': target}, f)
-                if self.verbose:
-                    print(f"Stored test predictions in {pred_fn}.")
+            else:
+                raise ValueError(f"Predictions for model {model_id} are missing, please run single evalutator first!")
 
         self.check_equal_targets(model_targets)
 
