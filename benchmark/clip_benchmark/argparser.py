@@ -1,5 +1,9 @@
 import argparse
+import json
+import os
 from typing import Tuple, List
+
+from clip_benchmark.utils.utils import as_list
 
 
 def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
@@ -117,7 +121,8 @@ def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str
     return args
 
 
-def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str, str, str]]) -> argparse.Namespace:
+def prepare_combined_args(args: argparse.Namespace,
+                          model_comb: List[Tuple[str, str, dict, str, str, str]]) -> argparse.Namespace:
     args.model = [tup[0] for tup in model_comb]
     args.model_source = [tup[1] for tup in model_comb]
     args.model_parameters = [tup[2] for tup in model_comb]
@@ -125,3 +130,36 @@ def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, 
     args.feature_alignment = [tup[4] for tup in model_comb]
     args.model_key = [tup[5] for tup in model_comb]
     return args
+
+
+def load_model_configs_args(base: argparse.Namespace) -> argparse.Namespace:
+    """Loads the model_configs file and transcribes its parameters into base."""
+    if base.models_config_file is None:
+        raise FileNotFoundError("Model config file not provided.")
+
+    if not os.path.exists(base.models_config_file):
+        raise FileNotFoundError(f"Model config file {base.models_config_file} does not exist.")
+
+    with open(base.models_config_file, "r") as f:
+        model_configs = json.load(f)
+
+    model = []
+    model_source = []
+    model_parameters = []
+    module_name = []
+    feature_alignment = []
+
+    for model_key in as_list(base.model_key):
+        model.append(model_configs[model_key]["model_name"])
+        model_source.append(model_configs[model_key]["source"])
+        model_parameters.append(model_configs[model_key]["model_parameters"])
+        module_name.append(model_configs[model_key]["module_name"])
+        feature_alignment.append(model_configs[model_key]["alignment"])
+
+    setattr(base, "model", model)
+    setattr(base, "model_source", model_source)
+    setattr(base, "model_parameters", model_parameters)
+    setattr(base, "module_name", module_name)
+    setattr(base, "feature_alignment", feature_alignment)
+
+    return base

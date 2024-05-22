@@ -1,6 +1,7 @@
+import os
+
 import torch
 import torch.nn.functional as F
-import os
 from tqdm import tqdm
 
 

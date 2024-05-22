@@ -1,4 +1,3 @@
-"""Console script for clip_benchmark."""
 import argparse
 import json
 import os
@@ -7,21 +6,23 @@ import sqlite3
 import sys
 from copy import copy
 from itertools import product, combinations, islice
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Optional, Any
 
 import numpy as np
 import pandas as pd
 import torch
 
-from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args
+from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
 from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.tasks import compute_sim_matrix
-from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, EnsembleModelEvaluator
+from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
+                                                         EnsembleModelEvaluator)
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
                                         get_train_val_splits,
-                                        prepare_ds_name, )
+                                        prepare_ds_name,
+                                        world_info_from_env, all_paths_exists)
 
 
 def prepare_device(distributed: bool) -> str:
@@ -57,37 +58,6 @@ def get_combination(
     return combs[int(os.environ["SLURM_ARRAY_TASK_ID"])]
 
 
-def load_model_configs_args(base: argparse.Namespace) -> None:
-    """Loads the model_configs file and transcribes its parameters into base."""
-    if base.models_config_file is None:
-        raise FileNotFoundError("Model config file not provided.")
-
-    if not os.path.exists(base.models_config_file):
-        raise FileNotFoundError(f"Model config file {base.models_config_file} does not exist.")
-
-    with open(base.models_config_file, "r") as f:
-        model_configs = json.load(f)
-
-    model = []
-    model_source = []
-    model_parameters = []
-    module_name = []
-    feature_alignment = []
-
-    for model_key in as_list(base.model_key):
-        model.append(model_configs[model_key]["model_name"])
-        model_source.append(model_configs[model_key]["source"])
-        model_parameters.append(model_configs[model_key]["model_parameters"])
-        module_name.append(model_configs[model_key]["module_name"])
-        feature_alignment.append(model_configs[model_key]["alignment"])
-
-    setattr(base, "model", model)
-    setattr(base, "model_source", model_source)
-    setattr(base, "model_parameters", model_parameters)
-    setattr(base, "module_name", module_name)
-    setattr(base, "feature_alignment", feature_alignment)
-
-
 def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str, str]]:
     """Get list of models and config to evaluate."""
     models = as_list(base.model)
@@ -101,7 +71,8 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
     assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
     assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
-    assert len(models) == len(feature_alignments), "The number of feature_alignment should be the same as the number of models"
+    assert len(models) == len(
+        feature_alignments), "The number of feature_alignment should be the same as the number of models"
     assert len(models) == len(model_keys), "The number of model_key should be the same as the number of models"
 
     return list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
@@ -133,28 +104,28 @@ def check_root_paths(args: argparse.Namespace) -> None:
             print(f'Created path ({args.output_root}), where results are to be stored ...')
 
 
-def make_paths(args: argparse.Namespace, dataset_name: str):
+def make_paths(
+        args: argparse.Namespace,
+        dataset_name: str
+) -> Tuple[List[str], List[str], str, str, Optional[List[str]], List[str]]:
     check_root_paths(args)
 
     task, mode = args.task, args.mode
 
-    dataset_slug = dataset_name.replace('/', '_')
-
-    models = as_list(args.model)
-    model_params = as_list(args.model_parameters)
-
-    # Create model_ids based on the model and model_params
-    # TODO: add aligned keyword to model_id
-    # feature_alignment=args.feature_alignment if args.feature_alignment is not None else "no_alignment"
     model_ids = as_list(args.model_key)
 
-    # Create list of feature directories for each dataset and model_ids.
-    feature_dirs = [os.path.join(args.feature_root, dataset_slug, model_id) for model_id in model_ids]
-
+    dataset_slug = dataset_name.replace('/', '_')
     hyperparams_slug = get_hyperparams_name(args)
     model_slug = '__'.join(model_ids)
     if task == "linear_probe" and mode == "combined_models":
         model_slug = model_slug + f"_{args.feature_combiner}"
+
+    # Create list of feature directories for each dataset and model_ids.
+    feature_dirs = [os.path.join(args.feature_root, dataset_slug, model_id) for model_id in model_ids]
+    if not all_paths_exists(feature_dirs):
+        raise FileNotFoundError(f"Not all feature directories exist: {feature_dirs}. "
+                                f"Cannot evaluate linear probe with multiple models. "
+                                f"Run the linear probe for each model separately first.")
 
     # Create list of model checkpoint directories (for the linear probe) for each dataset, model_id, and hyperparameter
     # combination
@@ -164,14 +135,26 @@ def make_paths(args: argparse.Namespace, dataset_name: str):
         model_dirs = [os.path.join(args.model_root, dataset_slug, model_id, hyperparams_slug) for model_id in model_ids]
 
     # Create output path based on the task, mode, dataset, (combined) model_ids
-    out_dir_root = os.path.join(args.output_root, task, mode, dataset_slug, model_slug)
-    out_dir_pred = os.path.join(out_dir_root, hyperparams_slug)
-    if not os.path.exists(out_dir_pred):
-        os.makedirs(out_dir_pred, exist_ok=True)
+    results_dir = os.path.join(args.output_root, task, mode, dataset_slug, model_slug)
+    predictions_dir = os.path.join(results_dir, hyperparams_slug)
+    if not os.path.exists(predictions_dir):
+        os.makedirs(predictions_dir, exist_ok=True)
         if args.verbose:
-            print(f'Created path ({out_dir_root}), where results are to be stored ...')
+            print(f'Created path ({results_dir}), where results are to be stored ...')
 
-    return feature_dirs, model_dirs, out_dir_root, out_dir_pred, model_ids
+    if task == "linear_probe" and mode == "ensemble":
+        # In this case, we need to pass the predictions directories of the individual models
+        single_prediction_dirs = [
+            os.path.join(args.output_root, task, 'single_model', dataset_slug, model_id, hyperparams_slug)
+            for model_id in model_ids]
+        # Check if the single prediction directories exist
+        if not all_paths_exists(single_prediction_dirs):
+            raise FileNotFoundError(f"Not all single prediction directories exist: {single_prediction_dirs}. Cannot "
+                                    f"evaluate ensemble model.")
+    else:
+        single_prediction_dirs = None
+
+    return feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids
 
 
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
@@ -236,7 +219,7 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
 
 def main():
     parser, base = get_parser_args()
-    load_model_configs_args(base)
+    base = load_model_configs_args(base)
 
     if base.task == "model_similarity":
         main_model_sim(base)
@@ -254,28 +237,27 @@ def main_model_sim(base):
     dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
 
     dataset = datasets[int(os.environ["SLURM_ARRAY_TASK_ID"])]
-    train_split = dataset_info[dataset]["train_split"]
+    dataset_name = prepare_ds_name(dataset)
+    dataset_slug = dataset_name.replace('/', '_')
 
-    # Get list of models to evaluate
-    models = get_list_of_models(base)
+    train_split = dataset_info[dataset]["train_split"]  # TODO: change this, as it might not be necessary
 
-    # Get model ids
     model_ids = as_list(base.model_key)
-    model_ids = [(model_id + '-' + dataset).replace('/', '_') for model_id in model_ids]
+
+    feature_root = os.path.join(base.feature_root, dataset_slug)
 
     # Compute CKA matrix
-    sim_matrix, model_ids, method_slug = compute_sim_matrix(base.sim_method,
-                                                            base.feature_root,
-                                                            model_ids,
-                                                            train_split,
+    sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
+                                                            feature_root=feature_root,
+                                                            model_ids=model_ids,
+                                                            split=train_split,
                                                             kernel=base.sim_kernel,
                                                             rsa_method=base.rsa_method,
                                                             corr_method=base.corr_method,
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma,
-                                                            )
+                                                            sigma=base.sigma, )
     # Save the similarity matrix
     if not os.path.exists(base.output_root):
         os.makedirs(base.output_root, exist_ok=True)
@@ -308,6 +290,7 @@ def main_eval(base):
     datasets = get_list_of_datasets(base)
 
     # Get train and val splits
+    # TODO: this can be removed as we are not using a validation set????
     dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
 
     if base.verbose:
@@ -346,7 +329,6 @@ def main_eval(base):
         args = arg_fn(args, model_info)
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
-        # args.val_split = dataset_info[dataset]["val_split"]  # This is currently not used
         args.val_proportion = dataset_info[dataset]["proportion"]  # This should be set for WD tuning!
         args.fewshot_k = fewshot_k
         args.fewshot_lr = fewshot_lr
@@ -366,6 +348,21 @@ def main_eval(base):
             raise e
 
 
+def get_base_evaluator_args(
+        args: argparse.Namespace,
+        feature_dirs: List[str],
+        model_dirs: List[str],
+        predictions_dir: str
+) -> Dict[str, Any]:
+    base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
+                   "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
+                   "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp,
+                   "probe_out_dir": predictions_dir, "verbose": args.verbose,
+                   "val_proportion": args.val_proportion}
+    return base_kwargs
+
+
 def run(args):
     # device
     args.device = prepare_device(args.distributed)
@@ -376,10 +373,9 @@ def run(args):
     mode = args.mode
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
-    # if task == "auto":
-    #     task = get_dataset_default_task(dataset_name)
 
-    feature_dirs, model_dirs, out_dir_root, out_dir_pred, model_ids = make_paths(args, dataset_name)
+    feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = make_paths(args,
+                                                                                                           dataset_name)
 
     if dataset_name.startswith('wds'):
         dataset_root = os.path.join(args.dataset_root, 'wds', f'wds_{dataset_name.replace("/", "-")}')
@@ -390,27 +386,29 @@ def run(args):
         print(f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'")
 
     if task == 'linear_probe':
-        base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
-                       "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
-                       "fewshot_k": args.fewshot_k, "normalize": args.normalize, "amp": args.amp,
-                       "probe_out_dir": out_dir_pred, "verbose": args.verbose, "val_proportion": args.val_proportion}
+        base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
             evaluator = SingleModelEvaluator(
-                model=model, train_dataloader=train_dataloader, eval_dataloader=eval_dataloader, model_id=model_ids[0],
-                feature_dir=feature_dirs[0], **base_kwargs
+                model=model,
+                train_dataloader=train_dataloader,
+                eval_dataloader=eval_dataloader,
+                **base_kwargs
             )
 
         elif mode == "combined_models":
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
             evaluator = CombinedModelEvaluator(
-                feature_dirs=feature_dirs, feature_combiner_cls=feature_combiner_cls, **base_kwargs
+                feature_combiner_cls=feature_combiner_cls,
+                **base_kwargs
             )
 
         elif mode == "ensemble":
             evaluator = EnsembleModelEvaluator(
-                model_ids=model_ids, feature_dirs=feature_dirs, linear_prob_dirs=model_dirs, **base_kwargs
+                model_ids=model_ids,
+                single_prediction_dirs=single_prediction_dirs,
+                **base_kwargs
             )
 
         else:
@@ -428,29 +426,9 @@ def run(args):
         args=args,
         model_ids=model_ids,
         metrics=metrics,
-        out_path=out_dir_root
+        out_path=results_dir
     )
     return 0
-
-
-def world_info_from_env():
-    # from openclip
-    local_rank = 0
-    for v in ('LOCAL_RANK', 'MPI_LOCALRANKID', 'SLURM_LOCALID', 'OMPI_COMM_WORLD_LOCAL_RANK'):
-        if v in os.environ:
-            local_rank = int(os.environ[v])
-            break
-    global_rank = 0
-    for v in ('RANK', 'PMI_RANK', 'SLURM_PROCID', 'OMPI_COMM_WORLD_RANK'):
-        if v in os.environ:
-            global_rank = int(os.environ[v])
-            break
-    world_size = 1
-    for v in ('WORLD_SIZE', 'PMI_SIZE', 'SLURM_NTASKS', 'OMPI_COMM_WORLD_SIZE'):
-        if v in os.environ:
-            world_size = int(os.environ[v])
-            break
-    return local_rank, global_rank, world_size
 
 
 if __name__ == "__main__":

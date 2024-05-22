@@ -50,7 +50,6 @@ def load_thingsvision_model(
     module_name: str,
     feature_alignment: Optional[str] = None,
 ):
-    # TODO add feature alignment only if the model has it as an option
     extractor = get_extractor(
         model_name=model_name,
         source=source,
