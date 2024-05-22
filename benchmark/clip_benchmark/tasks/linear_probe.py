@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature_dl
-from clip_benchmark.data.data_utils import feature_extraction, get_fewshot_indices
+from clip_benchmark.data.data_utils import get_fewshot_indices
 from clip_benchmark.eval.metrics import compute_metrics, accuracy
 from clip_benchmark.models.featurizer import Featurizer
 
@@ -95,9 +95,8 @@ class LinearProbe:
                 if (i % 20) == 1:
                     num_samples = i * len(x)
                     try:
-                        samples_per_epoch = len(dataloader)
-                        percent_complete = 100.0 * i / len(dataloader)
-                        progress_message = f"[{num_samples}/{samples_per_epoch} ({percent_complete:.0f}%)]"
+                        percent_complete = 100.0 * i / len_loader
+                        progress_message = f"[{num_samples}/{len_loader} ({percent_complete:.0f}%)]"
                     except TypeError:
                         progress_message = f"[{num_samples} samples]"
                     print(
@@ -227,10 +226,9 @@ class BaseEvaluator:
     @staticmethod
     def optimize_weight_decay(train_loader, val_loader, train_val_loader, wd_tuner):
         if val_loader is not None and train_val_loader is not None:
-            # TODO: Does it make sense that the WeightDecayTuner tests every weight decay value with a linear probe
-            #  initialized with the same seed?
             best_wd = wd_tuner.tune_weight_decay(train_loader,
                                                  val_loader)
+            # TODO ensure that this does not leak additional data in few-shot setting
             train_loader = train_val_loader
         else:
             best_wd = 0
@@ -289,13 +287,12 @@ class SingleModelEvaluator(BaseEvaluator):
         if not self.check_feature_existence(self.feature_dir, self.verbose):
             # We need to generate features if these do not exist
             featurizer = Featurizer(model=self.model, normalize=self.normalize).to(self.device)
-            feature_extraction(featurizer=featurizer,
-                               train_dataloader=self.train_dataloader,
-                               val_dataloader=self.val_dataloader,
-                               eval_dataloader=self.eval_dataloader,
-                               feature_dir=self.feature_dir,
-                               device=self.device,
-                               autocast=self.autocast)
+            featurizer.feature_extraction(train_dataloader=self.train_dataloader,
+                                          val_dataloader=self.val_dataloader,
+                                          eval_dataloader=self.eval_dataloader,
+                                          feature_dir=self.feature_dir,
+                                          device=self.device,
+                                          autocast=self.autocast)
 
     def evaluate(self):
         self.ensure_feature_availability()
@@ -330,7 +327,7 @@ class CombinedModelEvaluator(BaseEvaluator):
             self.feature_dirs = [feature_dir for feature_dir, available in zip(feature_dirs, available_features) if
                                  available]
             if self.verbose:
-                print(f"Using only available features: {feature_dirs}")
+                print(f"Using only available features: {self.feature_dirs}")
         else:
             self.feature_dirs = feature_dirs
 

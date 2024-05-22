@@ -8,7 +8,7 @@ import torch
 from tqdm import tqdm
 
 from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature_dl
-from clip_benchmark.data.data_utils import feature_extraction, get_fewshot_indices
+from clip_benchmark.data.data_utils import get_fewshot_indices
 from clip_benchmark.data.feature_combiner import ConcatFeatureCombiner
 from clip_benchmark.eval.metrics import compute_metrics, accuracy
 from clip_benchmark.models.featurizer import Featurizer
@@ -186,7 +186,7 @@ def evaluate(model, train_dataloader, dataloader, fewshot_k, batch_size, num_wor
     if not os.path.exists(os.path.join(feature_dir, 'targets_train.pt')):
         # We need to generate features if these do not exist
         featurizer = Featurizer(model, normalize).cuda()
-        feature_extraction(featurizer, train_dataloader, dataloader, feature_dir, device, autocast, val_dataloader)
+        featurizer.feature_extraction(train_dataloader, dataloader, feature_dir, device, autocast, val_dataloader)
 
     use_val_ds = val_dataloader is not None
     feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
