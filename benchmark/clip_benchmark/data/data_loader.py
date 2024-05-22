@@ -55,7 +55,8 @@ def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, fe
                             normalize):
     list_features, targets = load_features_targets(feature_dirs, split='train')
 
-    assert all([len(feat) == len(list_features[0]) for feat in list_features])
+    if not all([len(feat) == len(list_features[0]) for feat in list_features]):
+        raise ValueError("Features of the different models have different number of samples.")
 
     idxs = get_fewshot_indices(targets, fewshot_k)
 

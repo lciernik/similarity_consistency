@@ -1,6 +1,5 @@
 """Console script for clip_benchmark."""
 import argparse
-import csv
 import json
 import os
 import random
@@ -14,149 +13,12 @@ import numpy as np
 import pandas as pd
 import torch
 
+from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args
 from clip_benchmark.data import (build_dataset, get_dataset_collate_fn, get_feature_combiner_cls)
 from clip_benchmark.models import load_model
 from clip_benchmark.tasks import compute_sim_matrix
-from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, \
-    EnsembleModelEvaluator
-from clip_benchmark.utils.utils import as_list, get_list_of_datasets
-
-
-def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
-    """Get the parser arguments."""
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
-
-    parser_eval = subparsers.add_parser('eval', help='Evaluate')
-    # DATASET
-    parser_eval.add_argument('--dataset', type=str, default="cifar10", nargs="+",
-                             help="Dataset(s) to use for the benchmark. Can be the name of a dataset, or a collection "
-                                  "name ('vtab', 'vtab+', 'imagenet_robustness', 'retrieval') or path of a text file "
-                                  "where each line is a dataset name")
-    parser_eval.add_argument('--dataset_root', default="root", type=str,
-                             help="dataset root folder where the data are downloaded. Can be in the form of a "
-                                  "template depending on dataset name, e.g., --dataset_root='data/{dataset}'. "
-                                  "This is useful if you evaluate on multiple data.")
-    parser_eval.add_argument('--split', type=str, default="test", help="Dataset split to use")
-    parser_eval.add_argument('--test_split', dest="split", action='store', type=str, default="test",
-                             help="Dataset split to use")
-    parser_eval.add_argument('--train_split', type=str, nargs='+', default="train",
-                             help="Dataset(s) train split names")
-    mutually_exclusive = parser_eval.add_mutually_exclusive_group()
-    mutually_exclusive.add_argument('--val_split', default=None, type=str, nargs="+",
-                                    help="Dataset(s) validation split names. Mutually exclusive with val_proportion.")
-    mutually_exclusive.add_argument('--val_proportion', default=None, type=float, nargs="+",
-                                    help="what is the share of the train dataset will be used for validation part, "
-                                         "if it doesn't predefined. Mutually exclusive with val_split")
-    parser_eval.add_argument('--wds_cache_dir', default=None, type=str,
-                             help="optional cache directory for webdataset only")
-    parser_eval.add_argument('--custom_classname_file', default=None, type=str,
-                             help="use custom json file with classnames for each dataset, where keys are dataset "
-                                  "names and values are list of classnames.")
-
-    # FEATURES
-    parser_eval.add_argument('--feature_root', default="features", type=str,
-                             help="feature root folder where the features are stored.")
-    # TODO: change alignment to argument such that it can be model specific, b/c some model do not have alignment.
-    parser_eval.add_argument('--feature_alignment', nargs='?', const='gLocal',
-                             type=lambda x: None if x == '' else x)
-    parser_eval.add_argument('--normalize', dest='normalize', action="store_true", default=True,
-                             help="enable features normalization")
-    parser_eval.add_argument('--no-normalize', dest='normalize', action='store_false',
-                             help="disable features normalization")
-
-    # MODEL(S)
-    parser_eval.add_argument('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
-                             help="Thingsvision model string")
-    parser_eval.add_argument('--model_source', type=str, nargs="+", default=["ssl"],
-                             help="For each model, indicate the source of the model. "
-                                  "See thingsvision for more details.")
-    parser_eval.add_argument('--model_parameters', nargs="+", type=str,
-                             help='A serialized JSON dictionary of key-value pairs.')
-    parser_eval.add_argument('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
-
-    # TASKS
-    parser_eval.add_argument('--task', type=str, default="linear_probe",
-                             choices=["linear_probe", "model_similarity"],
-                             help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
-                                  "dataset.")
-    parser_eval.add_argument('--mode', type=str, default="single_model",
-                             choices=["single_model", "combined_models", "ensemble"],
-                             help="Mode to use for linear probe task.")
-    parser_eval.add_argument('--eval_combined', action="store_true",
-                             help="Whether the features of the different models should be used in combined fashion.")
-    parser_eval.add_argument('--feature_combiner', type=str, default="concat",
-                             choices=['concat', 'concat_pca'], help="Feature combiner to use")
-
-    parser_eval.add_argument('--fewshot_k', default=[-1], type=int, nargs="+",
-                             help="for linear probe, how many shots. -1 = whole dataset.")
-    parser_eval.add_argument('--fewshot_epochs', default=[10], type=int, nargs='+',
-                             help="for linear probe, how many epochs.")
-    parser_eval.add_argument('--fewshot_lr', default=[0.1], type=float, nargs='+',
-                             help="for linear probe, what is the learning rate.")
-    parser_eval.add_argument('--batch_size', default=64, type=int)
-    parser_eval.add_argument('--no_amp', action="store_false", dest="amp", default=True,
-                             help="whether to use mixed precision")
-    parser_eval.add_argument("--skip_load", action="store_true",
-                             help="for linear probes, when everything is cached, no need to load model.")
-    parser_eval.add_argument('--skip_existing', default=False, action="store_true",
-                             help="whether to skip an evaluation if the output file exists.")
-
-    ### Model similarity
-    parser_eval.add_argument('--sim_method', type=str, default="cka",
-                             choices=['cka', 'rsa'], help="Method to use for model similarity task.")
-    parser_eval.add_argument('--sim_kernel', type=str, default="linear",
-                             choices=['linear'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
-    parser_eval.add_argument('--rsa_method', type=str, default="correlation",
-                             choices=['cosine', 'correlation'],
-                             help="Method used during RSA. Ignored if sim_method is cka.")
-    parser_eval.add_argument('--corr_method', type=str, default="spearman",
-                             choices=['pearson', 'spearman'],
-                             help="Kernel used during CKA. Ignored if sim_method is cka.")
-    parser_eval.add_argument('--sigma', type=float, default=None, help="sigma for CKA rbf kernel.")
-    parser_eval.add_argument('--biased_cka', action="store_false", dest="unbiased", help="use biased CKA")
-
-    # STORAGE
-    parser_eval.add_argument('--output_root', default="results", type=str,
-                             help="Path to root folder where the results are stored.")
-    parser_eval.add_argument('--model_root', default="models", type=str,
-                             help="Path to root folder where linear probe model checkpoints are stored.")
-
-    # GENERAL
-    parser_eval.add_argument('--num_workers', default=4, type=int)
-
-    parser_eval.add_argument("--distributed", action="store_true", help="evaluation in parallel")
-    parser_eval.add_argument('--quiet', dest='verbose', action="store_false",
-                             help="suppress verbose messages")
-
-    # REPRODUCABILITY
-    parser_eval.add_argument('--seed', default=[0], type=int, nargs='+', help="random seed.")
-
-    parser_eval.set_defaults(which='eval')
-
-    parser_build = subparsers.add_parser('build', help='Build CSV from evaluations')
-    parser_build.add_argument('files', type=str, nargs="+", help="path(s) of JSON result files")
-    parser_build.add_argument('--output', type=str, default="benchmark.csv", help="CSV output file")
-    parser_build.set_defaults(which='build')
-
-    args = parser.parse_args()
-    return parser, args
-
-
-def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str]) -> argparse.Namespace:
-    args.model = model_info[0]  # model
-    args.model_source = model_info[1]  # model_source
-    args.model_parameters = model_info[2]  # model_parameters
-    args.module_name = model_info[3]  # module_name
-    return args
-
-
-def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str]]) -> argparse.Namespace:
-    args.model = [tup[0] for tup in model_comb]
-    args.model_source = [tup[1] for tup in model_comb]
-    args.model_parameters = [tup[2] for tup in model_comb]
-    args.module_name = [tup[3] for tup in model_comb]
-    return args
+from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, EnsembleModelEvaluator
+from clip_benchmark.utils.utils import as_list, get_list_of_datasets, get_train_val_splits, prepare_ds_name
 
 
 def prepare_device(distributed: bool) -> str:
@@ -218,48 +80,6 @@ def get_model_id(model: str, model_parameters: Union[dict, None]) -> str:
     if model_suffix:
         model_slug = f"{model_slug}_{model_suffix}"
     return model_slug
-
-
-def prepare_ds_name(dataset: str) -> str:
-    if dataset.startswith("wds/"):
-        return dataset.replace("wds/", "", 1)
-    else:
-        return dataset
-
-
-def single_option_to_multiple_datasets(cur_option: List[str], datasets: List[str], name: str) -> List[str]:
-    cur_len = len(cur_option)
-    ds_len = len(datasets)
-    if cur_len != ds_len:
-        # If user wants to use same value for all datasets
-        if cur_len == 1:
-            return [cur_option[0]] * ds_len
-        else:
-            raise ValueError(f"The incommensurable number of {name}")
-    else:
-        return cur_option
-
-
-def get_train_val_splits(train_split, val_split, val_proportion, datasets):
-    # TODO add typing
-    train_splits = as_list(train_split)
-    train_splits = single_option_to_multiple_datasets(train_splits, datasets, "train_split")
-    proportions, val_splits = None, None
-    if val_split is not None:
-        val_splits = as_list(val_split)
-        val_splits = single_option_to_multiple_datasets(val_splits, datasets, "val_split")
-    if val_proportion is not None:
-        proportions = as_list(val_proportion)
-        proportions = single_option_to_multiple_datasets(proportions, datasets, "val_proportion")
-
-    dataset_info = {}
-    for i in range(len(datasets)):
-        dataset_info[datasets[i]] = {
-            "train_split": train_splits[i],
-            "val_split": val_splits[i] if val_splits is not None else None,
-            "proportion": proportions[i] if proportions is not None else None
-        }
-    return dataset_info
 
 
 def get_hyperparams_name(args: argparse.Namespace) -> str:
@@ -393,47 +213,10 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
 
 def main():
     parser, base = get_parser_args()
-    if not hasattr(base, "which"):
-        parser.print_help()
-        return
-
-    if base.which == "build":
-        main_build(base)
-    elif base.which == "eval":
-        if base.mode == "model_similarity":
-            main_model_sim(base)
-        else:
-            main_eval(base)
-
-
-def main_build(base):
-    # Build a benchmark single CSV file from a set of evaluations (JSON files)
-    rows = []
-    fieldnames = set()
-
-    def process_file(fpath: str):
-        data = json.load(open(fpath))
-        row = {}
-        row.update(data["metrics"])
-        row.update(data)
-        del row["metrics"]
-        row['model_fullname'] = "__".join(row['model_ids'])
-        for field in row.keys():
-            fieldnames.add(field)
-        rows.append(row)
-
-    for path in base.files:
-        if os.path.isdir(path):
-            files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith(".json")]
-            for file in files:
-                process_file(file)
-        else:
-            process_file(path)
-    with open(base.output_root, 'w') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for row in rows:
-            writer.writerow(row)
+    if base.task == "model_similarity":
+        main_model_sim(base)
+    else:
+        main_eval(base)
 
 
 def main_model_sim(base):
@@ -653,7 +436,7 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         else:
             val_dataloader = None
 
-        return model, train_dataloader, val_dataloader, eval_dataloader
+    return model, train_dataloader, val_dataloader, eval_dataloader
 
 
 def run(args):

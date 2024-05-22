@@ -1,4 +1,5 @@
 import os
+from typing import List, Union, Dict, Optional
 
 import torch
 
@@ -64,3 +65,49 @@ def get_list_of_datasets(base):
             # if not, assume it is simply the name of the dataset
             datasets.append(name)
     return datasets
+
+
+def prepare_ds_name(dataset: str) -> str:
+    if dataset.startswith("wds/"):
+        return dataset.replace("wds/", "", 1)
+    else:
+        return dataset
+
+
+def single_option_to_multiple_datasets(cur_option: List[str], datasets: List[str], name: str) -> List[str]:
+    cur_len = len(cur_option)
+    ds_len = len(datasets)
+    if cur_len != ds_len:
+        # If user wants to use same value for all datasets
+        if cur_len == 1:
+            return [cur_option[0]] * ds_len
+        else:
+            raise ValueError(f"The incommensurable number of {name}")
+    else:
+        return cur_option
+
+
+def get_train_val_splits(
+        train_split: Union[str, List[str]],
+        val_split: Union[str, List[str]],
+        val_proportion: Union[float, List[float]],
+        datasets: List[str]
+) -> Dict[str, Dict[str, Optional[Union[str, float]]]]:
+    train_splits = as_list(train_split)
+    train_splits = single_option_to_multiple_datasets(train_splits, datasets, "train_split")
+    proportions, val_splits = None, None
+    if val_split is not None:
+        val_splits = as_list(val_split)
+        val_splits = single_option_to_multiple_datasets(val_splits, datasets, "val_split")
+    if val_proportion is not None:
+        proportions = as_list(val_proportion)
+        proportions = single_option_to_multiple_datasets(proportions, datasets, "val_proportion")
+
+    dataset_info = {}
+    for i in range(len(datasets)):
+        dataset_info[datasets[i]] = {
+            "train_split": train_splits[i],
+            "val_split": val_splits[i] if val_splits is not None else None,
+            "proportion": proportions[i] if proportions is not None else None
+        }
+    return dataset_info
