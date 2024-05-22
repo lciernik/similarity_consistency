@@ -356,7 +356,7 @@ class CombinedModelEvaluator(BaseEvaluator):
             self.feature_dirs, self.batch_size, self.num_workers, self.fewshot_k, self.feature_combiner_cls,
             self.normalize)
 
-        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
+        best_wd = self.optimize_weight_decay(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
@@ -391,7 +391,7 @@ class EnsembleModelEvaluator(BaseEvaluator):
         # Maybe one should remove the training and also rely on single Evaluator?
         feature_train_loader, feature_test_loader = get_feature_dl(
             feature_dir, self.batch_size, self.num_workers, self.fewshot_k, idxs)
-        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
+        best_wd = self.optimize_weight_decay(feature_train_loader)
         linear_probe = LinearProbe(weight_decay=best_wd,
                                    lr=self.lr,
                                    epochs=self.epochs,
@@ -456,5 +456,5 @@ class EnsembleModelEvaluator(BaseEvaluator):
         logits = self.ensemble_logits(model_logits)
         self.store_test_set_predictions(logits, model_targets[self.model_ids[0]])
         metric_dict = compute_metrics(logits, model_targets[self.model_ids[0]])
-        metric_dict = {"test_metrics": metric_dict, "weight_decay": best_wd}
+        metric_dict = {"test_metrics": metric_dict}
         return metric_dict

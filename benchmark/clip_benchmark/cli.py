@@ -117,22 +117,20 @@ def make_paths(args: argparse.Namespace, dataset_name: str):
     # Create list of feature directories for each dataset and model_ids.
     feature_dirs = [os.path.join(args.feature_root, dataset_slug, model_id) for model_id in model_ids]
 
+    hyperparams_slug = get_hyperparams_name(args)
+    model_slug = '__'.join(model_ids)
+    if task == "linear_probe" and mode == "combined_models":
+        model_slug = model_slug + f"_{args.feature_combiner}"
+
     # Create list of model checkpoint directories (for the linear probe) for each dataset, model_id, and hyperparameter
     # combination
-    hyperparams_slug = get_hyperparams_name(args)
     if task == "linear_probe" and mode == "combined_models":
-        model_slug = '__'.join(model_ids) + f"_{args.feature_combiner}"
         model_dirs = [os.path.join(args.model_root, dataset_slug, model_slug, hyperparams_slug)]
     else:
         model_dirs = [os.path.join(args.model_root, dataset_slug, model_id, hyperparams_slug) for model_id in model_ids]
 
-    # create output path based on the task, mode, dataset, (combined) model_ids
-    # NOTE: In this folder we will store the results of different hyperparameter combinations in a results database.
-    model_slug = '__'.join(model_ids)
-    if task == "linear_probe" and mode == "combined_models":
-        model_slug = model_slug + f"_{args.feature_combiner}"
+    # Create output path based on the task, mode, dataset, (combined) model_ids
     out_dir_root = os.path.join(args.output_root, task, mode, dataset_slug, model_slug)
-    # TODO: remove out_dir_pred because we store the predictions.pkl in the model directory
     out_dir_pred = os.path.join(out_dir_root, hyperparams_slug)
     if not os.path.exists(out_dir_pred):
         os.makedirs(out_dir_pred, exist_ok=True)
@@ -356,34 +354,27 @@ def run(args):
         print(f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'")
 
     if task == 'linear_probe':
+        base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
+                       "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
+                       "fewshot_k": args.fewshot_k, "normalize": args.normalize, "amp": args.amp,
+                       "probe_out_dir": out_dir_pred, "verbose": args.verbose, "val_proportion": args.val_proportion}
+
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
             evaluator = SingleModelEvaluator(
-                model=model, train_dataloader=train_dataloader, eval_dataloader=eval_dataloader,
-                normalize=args.normalize, model_id=model_ids[0],
-                feature_dir=feature_dirs[0], batch_size=args.batch_size, num_workers=args.num_workers,
-                lr=args.fewshot_lr, epochs=args.fewshot_epochs, seed=args.seed, device=args.device,
-                fewshot_k=args.fewshot_k, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose,
-                val_proportion=args.val_proportion
+                model=model, train_dataloader=train_dataloader, eval_dataloader=eval_dataloader, model_id=model_ids[0],
+                feature_dir=feature_dirs[0], **base_kwargs
             )
 
         elif mode == "combined_models":
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
             evaluator = CombinedModelEvaluator(
-                feature_dirs=feature_dirs, feature_combiner_cls=feature_combiner_cls,
-                batch_size=args.batch_size, num_workers=args.num_workers, lr=args.fewshot_lr,
-                epochs=args.fewshot_epochs, seed=args.seed, device=args.device, fewshot_k=args.fewshot_k,
-                normalize=args.normalize, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose,
-                val_proportion=args.val_proportion
+                feature_dirs=feature_dirs, feature_combiner_cls=feature_combiner_cls, **base_kwargs
             )
 
         elif mode == "ensemble":
             evaluator = EnsembleModelEvaluator(
-                model_ids=model_ids, feature_dirs=feature_dirs, linear_prob_dirs=model_dirs,
-                batch_size=args.batch_size, num_workers=args.num_workers, lr=args.fewshot_lr,
-                epochs=args.fewshot_epochs, seed=args.seed, device=args.device, fewshot_k=args.fewshot_k,
-                normalize=args.normalize, amp=args.amp, probe_out_dir=out_dir_pred, verbose=args.verbose,
-                val_proportion=args.val_proportion
+                model_ids=model_ids, feature_dirs=feature_dirs, linear_prob_dirs=model_dirs, **base_kwargs
             )
 
         else:
