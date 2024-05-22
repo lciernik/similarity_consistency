@@ -23,5 +23,5 @@ if __name__ == "__main__":
             job_cmd=job_cmd,
             partition='cpu-9m',
             log_dir='./logs',
-            num_jobs_in_array=len(num_model_it)
+            num_jobs_in_array=1
         )
