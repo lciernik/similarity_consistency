@@ -32,10 +32,8 @@ if __name__ == "__main__":
                                     --feature_root {FEATURES_ROOT} \
                                     --output {OUTPUT_ROOT} \
                                     --task=linear_probe \
-                                    --model {' '.join(model_names)} \
-                                    --model_source {' '.join(sources)} \
-                                    --model_parameters {' '.join([f"'{json.dumps(x)}'" for x in model_parameters])} \
-                                    --module_name {' '.join(module_names)} \
+                                    --model_key {models} \
+                                    --models_config_file {MODELS_CONFIG} \
                                     --batch_size=64 \
                                     --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                     --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \

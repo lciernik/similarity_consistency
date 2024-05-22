@@ -35,23 +35,16 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     # FEATURES
     aa('--feature_root', default="features", type=str,
        help="feature root folder where the features are stored.")
-    # TODO: change alignment to argument such that it can be model specific, b/c some model do not have alignment.
-    aa('--feature_alignment', nargs='?', const='gLocal',
-       type=lambda x: None if x == '' else x)
     aa('--normalize', dest='normalize', action="store_true", default=True,
        help="enable features normalization")
     aa('--no-normalize', dest='normalize', action='store_false',
        help="disable features normalization")
 
     # MODEL(S)
-    aa('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
-       help="Thingsvision model string")
-    aa('--model_source', type=str, nargs="+", default=["ssl"],
-       help="For each model, indicate the source of the model. "
-            "See thingsvision for more details.")
-    aa('--model_parameters', nargs="+", type=str,
-       help='A serialized JSON dictionary of key-value pairs.')
-    aa('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
+    aa('--model_key', type=str, nargs="+", default=["dinov2-vit-large-p14"],
+       help="Models to use from the models config file.")
+    aa('--models_config_file', default=None, type=str,
+       help="Path to the models config file.")
 
     # TASKS
     aa('--task', type=str, default="linear_probe",
@@ -114,17 +107,21 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     return parser, args
 
 
-def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str]) -> argparse.Namespace:
+def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str, str, str]) -> argparse.Namespace:
     args.model = model_info[0]  # model
     args.model_source = model_info[1]  # model_source
     args.model_parameters = model_info[2]  # model_parameters
     args.module_name = model_info[3]  # module_name
+    args.feature_alignment = model_info[4]  # feature_alignment
+    args.model_key = model_info[5]  # model_key
     return args
 
 
-def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str]]) -> argparse.Namespace:
+def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str, str, str]]) -> argparse.Namespace:
     args.model = [tup[0] for tup in model_comb]
     args.model_source = [tup[1] for tup in model_comb]
     args.model_parameters = [tup[2] for tup in model_comb]
     args.module_name = [tup[3] for tup in model_comb]
+    args.feature_alignment = [tup[4] for tup in model_comb]
+    args.model_key = [tup[5] for tup in model_comb]
     return args
