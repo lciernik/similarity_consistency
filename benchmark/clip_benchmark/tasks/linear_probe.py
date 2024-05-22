@@ -5,6 +5,8 @@ from contextlib import suppress
 
 import numpy as np
 import torch
+from sklearn.model_selection import train_test_split
+from torch.utils.data import Subset, DataLoader
 from tqdm import tqdm
 
 from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature_dl
@@ -224,23 +226,28 @@ class BaseEvaluator:
             return False
         return True
 
-    @staticmethod
-    def optimize_weight_decay(train_loader, wd_tuner, val_proportion):
-        if val_proportion > 0:
+    def _create_train_val_loaders(self, train_loader):
+        train_dataset = train_loader.dataset
+        targets = np.array(train_dataset.targets)
+        train_indices, val_indices = train_test_split(
+            np.arange(targets.shape[0]),
+            test_size=self.val_proportion,
+            stratify=targets
+        )
+        tmp_train_dataset = Subset(train_dataset, indices=train_indices)
+        tmp_val_dataset = Subset(train_dataset, indices=val_indices)
+
+        tmp_train_loader = DataLoader(tmp_train_dataset, batch_size=train_loader.batch_size,
+                                      shuffle=True, num_workers=train_loader.num_workers)
+        tmp_val_loader = DataLoader(tmp_val_dataset, batch_size=train_loader.batch_size,
+                                    shuffle=True, num_workers=train_loader.num_workers)
+        return tmp_train_loader, tmp_val_loader
+
+    def optimize_weight_decay(self, train_loader):
+        if self.val_proportion > 0:
             # Split train set into train and validation
-            train_size = len(train_loader.dataset)
-            val_size = int(val_proportion * train_size)
-            train_size = train_size - val_size
-            # TODO maybe enforce class balance?
-            tmp_train_data, tmp_val_data = torch.utils.data.random_split(train_loader.dataset, [train_size, val_size])
-            tmp_train_loader = torch.utils.data.DataLoader(tmp_train_data, batch_size=train_loader.batch_size,
-                                                           shuffle=True, num_workers=train_loader.num_workers)
-            tmp_val_loader = torch.utils.data.DataLoader(tmp_val_data, batch_size=train_loader.batch_size,
-                                                         shuffle=False, num_workers=train_loader.num_workers)
-
-            best_wd = wd_tuner.tune_weight_decay(tmp_train_loader,
-                                                 tmp_val_loader)
-
+            tmp_train_loader, tmp_val_loader = self._create_train_val_loaders(train_loader)
+            best_wd = self.wd_tuner.tune_weight_decay(tmp_train_loader, tmp_val_loader)
         else:
             # TODO Enable Weight Decay Settings without Validation Set
             best_wd = 0
@@ -265,12 +272,17 @@ class BaseEvaluator:
                                    device=self.device,
                                    seed=self.seed)
         linear_probe.train(train_loader, filename=filename)
-        logits, target = linear_probe.infer(test_loader)
 
-        self.store_test_set_predictions(logits, target)
+        train_logits, train_targets = linear_probe.infer(train_loader)
+        train_metrics = compute_metrics(train_logits, train_targets, self.verbose)
 
-        metric_dict = compute_metrics(logits, target, self.verbose)
-        metric_dict = {**metric_dict, "best_weight_decay": best_wd}
+        test_logits, test_targets = linear_probe.infer(test_loader)
+        test_metrics = compute_metrics(test_logits, test_targets, self.verbose)
+
+        self.store_test_set_predictions(test_logits, test_targets)
+
+        metric_dict = {"train_metrics": train_metrics, "test_metrics": test_metrics, "best_weight_decay": best_wd}
+
         return metric_dict
 
     def evaluate(self):
@@ -309,7 +321,7 @@ class SingleModelEvaluator(BaseEvaluator):
         feature_train_loader, feature_test_loader = get_feature_dl(
             self.feature_dir, self.batch_size, self.num_workers, self.fewshot_k, self.use_val_ds)
 
-        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
+        best_wd = self.optimize_weight_decay(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
@@ -444,4 +456,5 @@ class EnsembleModelEvaluator(BaseEvaluator):
         logits = self.ensemble_logits(model_logits)
         self.store_test_set_predictions(logits, model_targets[self.model_ids[0]])
         metric_dict = compute_metrics(logits, model_targets[self.model_ids[0]])
+        metric_dict = {"test_metrics": metric_dict, "weight_decay": best_wd}
         return metric_dict
