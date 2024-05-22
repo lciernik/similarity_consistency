@@ -322,6 +322,7 @@ class CombinedModelEvaluator(BaseEvaluator):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, normalize, amp, probe_out_dir,
                          verbose)
 
+        # TODO: maybe this is bad to do it here, as the storing paths contain all the models
         available_features = [self.check_feature_existence(feature_dir, verbose) for feature_dir in feature_dirs]
         if not any(available_features):
             raise ValueError("Features of all models are missing. Please generate features first.")

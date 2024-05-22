@@ -7,7 +7,7 @@ import sqlite3
 import sys
 from copy import copy
 from itertools import product, combinations
-from typing import List, Tuple, Union, Dict
+from typing import List, Tuple, Dict
 
 import numpy as np
 import pandas as pd
@@ -18,7 +18,11 @@ from clip_benchmark.data import (build_dataset, get_dataset_collate_fn, get_feat
 from clip_benchmark.models import load_model
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, EnsembleModelEvaluator
-from clip_benchmark.utils.utils import as_list, get_list_of_datasets, get_train_val_splits, prepare_ds_name
+from clip_benchmark.utils.utils import (as_list,
+                                        get_list_of_datasets,
+                                        get_model_id,
+                                        get_train_val_splits,
+                                        prepare_ds_name, )
 
 
 def prepare_device(distributed: bool) -> str:
@@ -67,19 +71,6 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
     assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
 
     return list(zip(models, srcs, params, module_names))
-
-
-def get_model_id(model: str, model_parameters: Union[dict, None]) -> str:
-    if not model_parameters:
-        return model
-    model_slug = model
-    model_suffix = model_parameters.get("variant", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    model_suffix = model_parameters.get("dataset", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    return model_slug
 
 
 def get_hyperparams_name(args: argparse.Namespace) -> str:
@@ -239,33 +230,29 @@ def main_model_sim(base):
     model_ids = [(model_id + '-' + dataset).replace('/', '_') for model_id in model_ids]
 
     # Compute CKA matrix
-    sim_matrix, model_ids = compute_sim_matrix(base.sim_method,
-                                               base.feature_root,
-                                               model_ids,
-                                               train_split,
-                                               kernel=base.sim_kernel,
-                                               rsa_method=base.rsa_method,
-                                               corr_method=base.corr_method,
-                                               backend='torch',
-                                               unbiased=base.unbiased,
-                                               device=base.device,
-                                               sigma=base.sigma,
-                                               )
+    sim_matrix, model_ids, method_slug = compute_sim_matrix(base.sim_method,
+                                                            base.feature_root,
+                                                            model_ids,
+                                                            train_split,
+                                                            kernel=base.sim_kernel,
+                                                            rsa_method=base.rsa_method,
+                                                            corr_method=base.corr_method,
+                                                            backend='torch',
+                                                            unbiased=base.unbiased,
+                                                            device=base.device,
+                                                            sigma=base.sigma,
+                                                            )
     # Save the similarity matrix
     if not os.path.exists(base.output_root):
         os.makedirs(base.output_root, exist_ok=True)
         if base.verbose:
             print(f'Created path ({base.output_root}), where results are to be stored ...')
-    if base.sim_method == 'cka':
-        sim_config_slug = f"cka_kernel_{base.sim_kernel}_unbiased_{base.unbiased}_sigma_{base.sigma}"
-    else:
-        sim_config_slug = f"rsa_method_{base.rsa_method}_corr_method_{base.corr_method}"
 
-    out_res = os.path.join(base.output_root, f'{sim_config_slug}_similarity_matrix.pt')
+    out_res = os.path.join(base.output_root, f'{method_slug}_similarity_matrix.pt')
     if base.verbose:
         print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
     torch.save(sim_matrix, out_res)
-    with open(os.path.join(base.output_root, f'{sim_config_slug}_model_ids.txt'), "w") as file:
+    with open(os.path.join(base.output_root, f'{method_slug}_model_ids.txt'), "w") as file:
         for string in model_ids:
             file.write(string + "\n")
 
