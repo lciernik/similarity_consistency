@@ -259,7 +259,7 @@ class BaseEvaluator:
             with open(os.path.join(self.probe_out_dir, 'predictions.pkl'), 'wb') as f:
                 pickle.dump({'logits': logits, 'pred': logits.argmax(dim=1), 'target': target}, f)
                 if self.verbose:
-                    print(f"Stored test predictions in {os.path.join(self.probe_out_dir, 'test_predictions.pkl')}.")
+                    print(f"Stored test predictions in {os.path.join(self.probe_out_dir, 'predictions.pkl')}.")
         else:
             if self.verbose:
                 print("No probe output directory specified. Not storing test set predictions.")
