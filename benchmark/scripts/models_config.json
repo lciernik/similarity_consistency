@@ -12,7 +12,22 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "true"
+        "alignment": null
+    },
+    "dinov2-vit-large-p14_gLocal": {
+        "model_name": "dinov2-vit-large-p14",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "LVD-142M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignment": "gLocal"
     },
     "dino-vit-base-p16": {
         "model_name": "dino-vit-base-p16",
@@ -27,9 +42,24 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "true"
+        "alignment": null
     },
-    "dreamsim_open_clip": {
+    "dino-vit-base-p16_gLocal": {
+        "model_name": "dino-vit-base-p16",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal"
+    },
+    "DreamSim_open_clip_vitb32": {
         "model_name": "DreamSim",
         "source": "custom",
         "model_parameters": {
@@ -41,9 +71,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignable": "false"
+        "alignment": null
     },
-    "dreamsim_dino": {
+    "DreamSim_dino_vitb16": {
         "model_name": "DreamSim",
         "source": "custom",
         "model_parameters": {
@@ -57,7 +87,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
     "mae-vit-base-p16": {
         "model_name": "mae-vit-base-p16",
@@ -72,7 +102,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
     "mae-vit-large-p16": {
         "model_name": "mae-vit-large-p16",
@@ -87,7 +117,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
     "mae-vit-huge-p14": {
         "model_name": "mae-vit-huge-p14",
@@ -102,9 +132,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_RN50_openai": {
+    "OpenCLIP_RN50_openai": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -117,9 +147,9 @@
         "architecture_class": "Transformer",
         "architecture": "ResNet",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitB_openai": {
+    "OpenCLIP_ViT-B-16_openai": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -132,9 +162,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitB_laion400m": {
+    "OpenCLIP_ViT-B-16_laion400m_e32": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -147,9 +177,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitB_laion2b": {
+    "OpenCLIP_ViT-B-16_laion2b_s34b_b88k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -162,9 +192,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitL_openai": {
+    "OpenCLIP_ViT-L-14_openai": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -177,9 +207,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitL_laion400m": {
+    "OpenCLIP_ViT-L-14_laion400m_e32": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -192,9 +222,24 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "true"
+        "alignment": null
     },
-    "clip_vitL_laion2b": {
+    "OpenCLIP_ViT-L-14_laion400m_e32_gLocal": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion400m_e32"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION400M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal"
+    },
+    "OpenCLIP_ViT-L-14_laion2b_s32b_b82k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -207,9 +252,24 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "true"
+        "alignment": null
     },
-    "siglip_vitB": {
+    "OpenCLIP_ViT-L-14_laion2b_s32b_b82k_gLocal": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion2b_s32b_b82k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal"
+    },
+    "OpenCLIP_ViT-B-16-SigLIP_webli": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -222,9 +282,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitG_eva01": {
+    "OpenCLIP_EVA01-g-14_laion400m_s11b_b41k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -237,9 +297,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitG_eva01plus": {
+    "OpenCLIP_EVA01-g-14-plus_merged2b_s11b_b114k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -252,9 +312,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitL_eva02": {
+    "OpenCLIP_EVA02-L-14_merged2b_s4b_b131k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -267,9 +327,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "clip_vitB_eva02": {
+    "OpenCLIP_EVA02-B-16_merged2b_s8b_b131k": {
         "model_name": "OpenCLIP",
         "source": "custom",
         "model_parameters": {
@@ -282,7 +342,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignable": "false"
+        "alignment": null
     },
     "vgg16": {
         "model_name": "vgg16",
@@ -296,7 +356,21 @@
         "architecture_class": "Convolutional",
         "architecture": "VGG",
         "embedding_dim": 4096,
-        "alignable": "true"
+        "alignment": null
+    },
+    "vgg16_gLocal": {
+        "model_name": "vgg16",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "classifier.3",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "VGG",
+        "embedding_dim": 4096,
+        "alignment": "gLocal"
     },
     "vgg19": {
         "model_name": "vgg19",
@@ -310,7 +384,7 @@
         "architecture_class": "Convolutional",
         "architecture": "VGG",
         "embedding_dim": 4096,
-        "alignable": "false"
+        "alignment": null
     },
     "resnet50": {
         "model_name": "resnet50",
@@ -324,7 +398,21 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "true"
+        "alignment": null
+    },
+    "resnet50_gLocal": {
+        "model_name": "resnet50",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignment": "gLocal"
     },
     "resnet152": {
         "model_name": "resnet152",
@@ -338,9 +426,9 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
-    "resnext50": {
+    "resnext50_32x4d": {
         "model_name": "resnext50_32x4d",
         "source": "timm",
         "model_parameters": {},
@@ -350,7 +438,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNeXt",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "seresnet50": {
         "model_name": "seresnet50",
@@ -362,7 +450,7 @@
         "architecture_class": "Convolutional",
         "architecture": "SE-ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "convnext_base": {
         "model_name": "convnext_base",
@@ -374,7 +462,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ConvNeXt",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
     "convnext_large": {
         "model_name": "convnext_large",
@@ -386,7 +474,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ConvNeXt",
         "embedding_dim": 1536,
-        "alignable": "false"
+        "alignment": null
     },
     "efficientnet_b3": {
         "model_name": "efficientnet_b3",
@@ -400,7 +488,7 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 1536,
-        "alignable": "false"
+        "alignment": null
     },
     "efficientnet_b4": {
         "model_name": "efficientnet_b4",
@@ -414,7 +502,7 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 1792,
-        "alignable": "false"
+        "alignment": null
     },
     "efficientnet_b5": {
         "model_name": "efficientnet_b5",
@@ -428,7 +516,7 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "efficientnet_b6": {
         "model_name": "efficientnet_b6",
@@ -442,7 +530,7 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2304,
-        "alignable": "false"
+        "alignment": null
     },
     "efficientnet_b7": {
         "model_name": "efficientnet_b7",
@@ -456,7 +544,7 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2560,
-        "alignable": "false"
+        "alignment": null
     },
     "simclr-rn50": {
         "model_name": "simclr-rn50",
@@ -468,7 +556,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "mocov2-rn50": {
         "model_name": "mocov2-rn50",
@@ -480,7 +568,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "vicreg-rn50": {
         "model_name": "vicreg-rn50",
@@ -492,7 +580,7 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
     "barlowtwins-rn50": {
         "model_name": "barlowtwins-rn50",
@@ -504,9 +592,9 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_b": {
+    "vit_base_patch16_224": {
         "model_name": "vit_base_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -519,9 +607,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_b_in21k": {
+    "vit_base_patch16_224.augreg_in21k": {
         "model_name": "vit_base_patch16_224.augreg_in21k",
         "source": "timm",
         "model_parameters": {
@@ -534,9 +622,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_l": {
+    "vit_large_patch16_224": {
         "model_name": "vit_large_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -549,9 +637,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_l_in21k": {
+    "vit_large_patch16_224.augreg_in21k": {
         "model_name": "vit_large_patch16_224.augreg_in21k",
         "source": "timm",
         "model_parameters": {
@@ -564,9 +652,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_l_laion2b": {
+    "vit_large_patch14_clip_224.laion2b": {
         "model_name": "vit_large_patch14_clip_224.laion2b",
         "source": "timm",
         "model_parameters": {
@@ -579,9 +667,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_h_in21k": {
+    "vit_huge_patch14_224.orig_in21k": {
         "model_name": "vit_huge_patch14_224.orig_in21k",
         "source": "timm",
         "model_parameters": {
@@ -594,9 +682,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignable": "false"
+        "alignment": null
     },
-    "vit_huge_laion2b": {
+    "vit_huge_patch14_clip_224.laion2b": {
         "model_name": "vit_huge_patch14_clip_224.laion2b",
         "source": "timm",
         "model_parameters": {
@@ -609,9 +697,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignable": "false"
+        "alignment": null
     },
-    "beit_b": {
+    "beit_base_patch16_224": {
         "model_name": "beit_base_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -624,9 +712,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "beit_b_in21k": {
+    "beit_base_patch16_224.in22k_ft_in22k": {
         "model_name": "beit_base_patch16_224.in22k_ft_in22k",
         "source": "timm",
         "model_parameters": {
@@ -639,9 +727,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "beit_l": {
+    "beit_large_patch16_224": {
         "model_name": "beit_large_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -654,9 +742,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "beit_l_in21k": {
+    "beit_large_patch16_224.in22k_ft_in22k": {
         "model_name": "beit_large_patch16_224.in22k_ft_in22k",
         "source": "timm",
         "model_parameters": {
@@ -669,9 +757,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "deit3_b": {
+    "deit3_base_patch16_224": {
         "model_name": "deit3_base_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -684,9 +772,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "deit3_b_in21k": {
+    "deit3_base_patch16_224.fb_in22k_ft_in1k": {
         "model_name": "deit3_base_patch16_224.fb_in22k_ft_in1k",
         "source": "timm",
         "model_parameters": {
@@ -699,9 +787,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignable": "false"
+        "alignment": null
     },
-    "deit3_l": {
+    "deit3_large_patch16_224": {
         "model_name": "deit3_large_patch16_224",
         "source": "timm",
         "model_parameters": {
@@ -714,9 +802,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "deit3_l_in21k": {
+    "deit3_large_patch16_224.fb_in22k_ft_in1k": {
         "model_name": "deit3_large_patch16_224.fb_in22k_ft_in1k",
         "source": "timm",
         "model_parameters": {
@@ -729,9 +817,9 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "swin_b": {
+    "swin_base_patch4_window7_224": {
         "model_name": "swin_base_patch4_window7_224",
         "source": "timm",
         "model_parameters": {},
@@ -741,9 +829,9 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "swin_b_in22k": {
+    "swin_base_patch4_window7_224.ms_in22k": {
         "model_name": "swin_base_patch4_window7_224.ms_in22k",
         "source": "timm",
         "model_parameters": {},
@@ -753,9 +841,9 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1024,
-        "alignable": "false"
+        "alignment": null
     },
-    "swin_l": {
+    "swin_large_patch4_window7_224": {
         "model_name": "swin_large_patch4_window7_224",
         "source": "timm",
         "model_parameters": {},
@@ -765,9 +853,9 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1536,
-        "alignable": "false"
+        "alignment": null
     },
-    "swin_l_in22k": {
+    "swin_large_patch4_window7_224.ms_in22k": {
         "model_name": "swin_large_patch4_window7_224.ms_in22k",
         "source": "timm",
         "model_parameters": {},
@@ -777,6 +865,6 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1536,
-        "alignable": "false"
+        "alignment": null
     }
 }

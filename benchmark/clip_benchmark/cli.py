@@ -58,19 +58,50 @@ def get_combination(
     return combs[int(os.environ["SLURM_ARRAY_TASK_ID"])]
 
 
-def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str]]:
+def load_model_configs_args(base: argparse.Namespace) -> None:
+    """Loads the model_configs file and transcribes its parameters into base."""
+    if not os.path.exists(base.models_config_file):
+        raise FileNotFoundError(f"Model config file {base.models_config_file} does not exist.")
+
+    if base.models_config_file is not None:
+        with open(base.models_config_file, "r") as f:
+            model_configs = json.load(f)
+
+        model = []
+        model_source = []
+        model_parameters = []
+        module_name = []
+        feature_alignment = []
+
+        for model_key in as_list(base.model_key):
+            model.append(model_configs[model_key]["model_name"])
+            model_source.append(model_configs[model_key]["source"])
+            model_parameters.append(model_configs[model_key]["model_parameters"])
+            module_name.append(model_configs[model_key]["module_name"])
+            feature_alignment.append(model_configs[model_key]["alignment"])
+
+        setattr(base, "model", model)
+        setattr(base, "model_source", model_source)
+        setattr(base, "model_parameters", model_parameters)
+        setattr(base, "module_name", module_name)
+        setattr(base, "feature_alignment", feature_alignment)
+
+
+def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str]]:
     """Get list of models and config to evaluate."""
     models = as_list(base.model)
     srcs = as_list(base.model_source)
     params = as_list(base.model_parameters)
     params = [json.loads(x) for x in params]
     module_names = as_list(base.module_name)
+    feature_alignments = as_list(base.feature_alignment)
 
     assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
     assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
     assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
+    assert len(models) == len(feature_alignments), "The number of feature_alignment should be the same as the number of models"
 
-    return list(zip(models, srcs, params, module_names))
+    return list(zip(models, srcs, params, module_names, feature_alignments))
 
 
 def get_hyperparams_name(args: argparse.Namespace) -> str:
@@ -204,6 +235,8 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
 
 def main():
     parser, base = get_parser_args()
+    load_model_configs_args(base)
+
     if base.task == "model_similarity":
         main_model_sim(base)
     else:
