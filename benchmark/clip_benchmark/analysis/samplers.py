@@ -1,4 +1,4 @@
-from typing import Dict, Callable
+from typing import Dict, Callable, List
 import numpy as np
 import random
 
@@ -43,5 +43,38 @@ class RandomSampler(Sampler):
     """
 
     def sample(self):
-        selected_models = random.choices(list(self.models.keys()), k=self.k)
+        selected_models = random.sample(list(self.models.keys()), k=self.k)
         return selected_models
+
+
+class ClusterSampler(Sampler):
+
+    def __init__(self, cluster_assignment: Dict[int, List[str]], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cluster_assignment = cluster_assignment
+
+    def sample(self):
+        available_clusters = list(self.cluster_assignment.keys())
+        assert len(available_clusters) >= self.k
+
+        selected_clusters = random.sample(available_clusters, k=self.k)
+
+        model_set = []
+        for cluster in selected_clusters:
+            model_set.append(random.choice(self.cluster_assignment[cluster]))
+
+        return model_set
+
+
+class OneClusterSampler(Sampler):
+
+    def __init__(self, cluster_assignment: Dict[int, List[str]], *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cluster_assignment = cluster_assignment
+
+    def sample(self):
+        available_clusters = list(self.cluster_assignment.keys())
+        selected_cluster = random.choice(available_clusters)
+        model_options = self.cluster_assignment[selected_cluster]
+        model_set = random.sample(model_options, k=min(self.k, len(model_options)))
+        return model_set

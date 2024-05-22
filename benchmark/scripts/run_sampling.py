@@ -1,7 +1,5 @@
 import os
-import json
 from slurm import run_job
-from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "./scripts/models_config.json"
 BASE_PROJECT_PATH = "/home/space/diverse_priors"

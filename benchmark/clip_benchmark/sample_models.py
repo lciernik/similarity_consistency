@@ -1,11 +1,11 @@
 import os.path
-from typing import Dict, Callable
+from typing import Dict, List
 import json
 from enum import Enum
-from typing import List
-from analysis.utils import retrieve_performance
-from analysis.samplers import TopKSampler, RandomSampler
 from functools import partial
+
+from analysis.utils import retrieve_performance
+from analysis.samplers import TopKSampler, RandomSampler, ClusterSampler, OneClusterSampler
 
 
 class SamplingStrategy(Enum):
@@ -16,7 +16,7 @@ class SamplingStrategy(Enum):
 
 
 def build_sampler(sampling_strategy: SamplingStrategy, num_models: int,
-                  models: Dict, selection_dataset: str):
+                  models: Dict, selection_dataset: str, cluster_assignment: Dict[int, List[str]]):
     # Returns the performance for a given model
     model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset)
 
@@ -24,7 +24,11 @@ def build_sampler(sampling_strategy: SamplingStrategy, num_models: int,
     if sampling_strategy == SamplingStrategy.RANDOM:
         sampler = RandomSampler(**default_args)
     elif sampling_strategy == SamplingStrategy.TOP_K:
-        sampler = TopKSampler(**default_args, model_scoring_fn=model_scoring_fn)
+        sampler = TopKSampler(model_scoring_fn=model_scoring_fn, **default_args)
+    elif sampling_strategy == SamplingStrategy.CLUSTER:
+        sampler = ClusterSampler(cluster_assignment=cluster_assignment, **default_args)
+    elif sampling_strategy == SamplingStrategy.ONE_CLUSTER:
+        sampler = OneClusterSampler(cluster_assignment=cluster_assignment, **default_args)
     else:
         raise ValueError(f"Unknown sampling strategy. Possible values are {list(SamplingStrategy)}")
     return sampler
@@ -35,10 +39,16 @@ def main(num_models: int,
          output_root: str,
          model_config_path: str,
          selection_dataset: str,
-         num_samples: int):
+         num_samples: int,
+         cluster_assignment_path: str):
     # Retrieve model definitions
     with open(model_config_path, 'r') as f:
         models = json.load(f)
+
+    cluster_assignment = None
+    if cluster_assignment_path is not None:
+        with open(cluster_assignment_path, 'r') as f:
+            cluster_assignment = json.load(f)
 
     os.makedirs(output_root, exist_ok=True)
 
@@ -46,7 +56,8 @@ def main(num_models: int,
         sampler = build_sampler(sampling_strategy=SamplingStrategy(sampling_strategy),
                                 num_models=num_models,
                                 models=models,
-                                selection_dataset=selection_dataset)
+                                selection_dataset=selection_dataset,
+                                cluster_assignment=cluster_assignment)
 
         model_sets = []
         n_sets = min(num_samples, sampler.max_available_samples())
@@ -68,6 +79,7 @@ if __name__ == '__main__':
     parser.add_argument('--model_config_path', default='scripts/models_config.json')
     parser.add_argument('--selection_dataset', default='imagenet-1k')
     parser.add_argument('--num_samples', type=int, default=10)
+    parser.add_argument('--cluster_assignment_path')
     parser.add_argument('--output_root')
     args = parser.parse_args()
 
