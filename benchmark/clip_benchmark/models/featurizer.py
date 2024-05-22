@@ -16,7 +16,7 @@ class Featurizer(torch.nn.Module):
             image_features = F.normalize(image_features, dim=-1)
         return image_features
 
-    def feature_extraction(self, train_dataloader, eval_dataloader, feature_dir, device, autocast, val_dataloader=None):
+    def feature_extraction(self, train_dataloader, eval_dataloader, feature_dir, device, autocast):
         """
         Extract features from the dataset using the featurizer model and store them in the feature_dir
         """
@@ -24,10 +24,8 @@ class Featurizer(torch.nn.Module):
         devices = [x for x in range(torch.cuda.device_count())]
         self.model = torch.nn.DataParallel(self.model, device_ids=devices)
 
-        splits = ["_train", "_val", "_test"]
-        for save_str, loader in zip(splits, [train_dataloader, val_dataloader, eval_dataloader]):
-            if loader is None:
-                continue
+        splits = ["_train", "_test"]
+        for save_str, loader in zip(splits, [train_dataloader, eval_dataloader]):
             features = []
             targets = []
             num_batches_tracked = 0

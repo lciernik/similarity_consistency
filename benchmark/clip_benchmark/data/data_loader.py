@@ -6,7 +6,7 @@ from clip_benchmark.data.feature_datasets import FeatureDataset, CombinedFeature
 from clip_benchmark.utils.utils import load_features_targets
 
 
-def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, idxs=None):
+def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, idxs=None):
     """
     Load the features from the feature_dir and return the dataloaders for training, validation, and testing
     """
@@ -16,26 +16,6 @@ def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, 
         idxs = get_fewshot_indices(targets, fewshot_k)
     train_features = features[idxs]
     train_labels = targets[idxs]
-
-    if use_val_ds:
-        # TODO: adapt this to fewshot_k setting when using val_ds
-        features_val, targets_val = load_features_targets(feature_dir, split='val')
-        feature_val_dset = FeatureDataset(features_val, targets_val)
-        feature_val_loader = DataLoader(
-            feature_val_dset, batch_size=batch_size,
-            shuffle=True, num_workers=num_workers,
-            pin_memory=True,
-        )
-        feature_train_val_dset = FeatureDataset(np.concatenate((train_features, features_val)),
-                                                np.concatenate((train_labels, targets_val)))
-        feature_train_val_loader = DataLoader(
-            feature_train_val_dset, batch_size=batch_size,
-            shuffle=True, num_workers=num_workers,
-            pin_memory=True,
-        )
-    else:
-        feature_val_loader = None
-        feature_train_val_loader = None
     feature_train_dset = FeatureDataset(train_features, train_labels)
     feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
                                       shuffle=True, num_workers=num_workers,
@@ -48,7 +28,7 @@ def get_feature_dl(feature_dir, batch_size, num_workers, fewshot_k, use_val_ds, 
         shuffle=False, num_workers=num_workers,
         pin_memory=True,
     )
-    return feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader
+    return feature_train_loader, feature_test_loader
 
 
 def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, feature_combiner_cls, use_val_ds,

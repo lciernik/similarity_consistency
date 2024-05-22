@@ -177,7 +177,7 @@ class BaseEvaluator:
     def __init__(self,
                  batch_size, num_workers, lr, epochs, seed, device,
                  fewshot_k, normalize=True, amp=True,
-                 probe_out_dir=None, verbose=False):
+                 probe_out_dir=None, verbose=False, val_proportion=0):
         super().__init__()
 
         self.batch_size = batch_size
@@ -194,6 +194,7 @@ class BaseEvaluator:
         self.fewshot_k = fewshot_k
         self.probe_out_dir = probe_out_dir
         self.verbose = verbose
+        self.val_proportion = val_proportion
 
         self.wd_tuner = WeightDecayTuner(self.lr, self.epochs, self.autocast, self.device, self.verbose, self.seed)
 
@@ -224,16 +225,27 @@ class BaseEvaluator:
         return True
 
     @staticmethod
-    def optimize_weight_decay(train_loader, val_loader, train_val_loader, wd_tuner):
-        if val_loader is not None and train_val_loader is not None:
-            best_wd = wd_tuner.tune_weight_decay(train_loader,
-                                                 val_loader)
-            # TODO ensure that this does not leak additional data in few-shot setting
-            train_loader = train_val_loader
+    def optimize_weight_decay(train_loader, wd_tuner, val_proportion):
+        if val_proportion > 0:
+            # Split train set into train and validation
+            train_size = len(train_loader.dataset)
+            val_size = int(val_proportion * train_size)
+            train_size = train_size - val_size
+            # TODO maybe enforce class balance?
+            tmp_train_data, tmp_val_data = torch.utils.data.random_split(train_loader.dataset, [train_size, val_size])
+            tmp_train_loader = torch.utils.data.DataLoader(tmp_train_data, batch_size=train_loader.batch_size,
+                                                           shuffle=True, num_workers=train_loader.num_workers)
+            tmp_val_loader = torch.utils.data.DataLoader(tmp_val_data, batch_size=train_loader.batch_size,
+                                                         shuffle=False, num_workers=train_loader.num_workers)
+
+            best_wd = wd_tuner.tune_weight_decay(tmp_train_loader,
+                                                 tmp_val_loader)
+
         else:
+            # TODO Enable Weight Decay Settings without Validation Set
             best_wd = 0
-            train_loader = train_loader
-        return best_wd, train_loader
+
+        return best_wd
 
     def store_test_set_predictions(self, logits, target):
         if self.probe_out_dir:
@@ -269,26 +281,23 @@ class SingleModelEvaluator(BaseEvaluator):
     def __init__(self,
                  batch_size, num_workers, lr, epochs, seed, device,
                  fewshot_k, model_id, feature_dir, model=None,
-                 train_dataloader=None, eval_dataloader=None, val_dataloader=None, normalize=True,
-                 amp=True, probe_out_dir=None, verbose=False):
+                 train_dataloader=None, eval_dataloader=None, normalize=True,
+                 amp=True, probe_out_dir=None, verbose=False, val_proportion=0):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, normalize, amp, probe_out_dir,
-                         verbose)
+                         verbose, val_proportion)
 
         self.model_id = self.check_single_instance(model_id, "model id")
         self.feature_dir = self.check_single_instance(feature_dir, "feature directory")
 
         self.model = model
         self.train_dataloader = train_dataloader
-        self.val_dataloader = val_dataloader
         self.eval_dataloader = eval_dataloader
-        self.use_val_ds = val_dataloader is not None
 
     def ensure_feature_availability(self):
         if not self.check_feature_existence(self.feature_dir, self.verbose):
             # We need to generate features if these do not exist
             featurizer = Featurizer(model=self.model, normalize=self.normalize).to(self.device)
             featurizer.feature_extraction(train_dataloader=self.train_dataloader,
-                                          val_dataloader=self.val_dataloader,
                                           eval_dataloader=self.eval_dataloader,
                                           feature_dir=self.feature_dir,
                                           device=self.device,
@@ -297,15 +306,12 @@ class SingleModelEvaluator(BaseEvaluator):
     def evaluate(self):
         self.ensure_feature_availability()
 
-        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
+        feature_train_loader, feature_test_loader = get_feature_dl(
             self.feature_dir, self.batch_size, self.num_workers, self.fewshot_k, self.use_val_ds)
 
-        best_wd, train_loader = self.optimize_weight_decay(feature_train_loader,
-                                                           feature_val_loader,
-                                                           feature_train_val_loader,
-                                                           self.wd_tuner)
+        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
 
-        return self._evaluate(train_loader=train_loader,
+        return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
                               best_wd=best_wd,
                               filename=self.linear_probe_fn)
@@ -313,11 +319,11 @@ class SingleModelEvaluator(BaseEvaluator):
 
 class CombinedModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device,
-                 fewshot_k, feature_dirs, feature_combiner_cls, use_val_ds,
-                 normalize=True, amp=True, probe_out_dir=None, verbose=False):
+                 fewshot_k, feature_dirs, feature_combiner_cls,
+                 normalize=True, amp=True, probe_out_dir=None, verbose=False, val_proportion=0):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, normalize, amp, probe_out_dir,
-                         verbose)
+                         verbose, val_proportion)
 
         # TODO: maybe this is bad to do it here, as the storing paths contain all the models
         available_features = [self.check_feature_existence(feature_dir, verbose) for feature_dir in feature_dirs]
@@ -332,17 +338,15 @@ class CombinedModelEvaluator(BaseEvaluator):
             self.feature_dirs = feature_dirs
 
         self.feature_combiner_cls = feature_combiner_cls
-        self.use_val_ds = use_val_ds
 
     def evaluate(self):
-        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_combined_feature_dl(
+        feature_train_loader, feature_test_loader = get_combined_feature_dl(
             self.feature_dirs, self.batch_size, self.num_workers, self.fewshot_k, self.feature_combiner_cls,
-            self.use_val_ds, self.normalize)
+            self.normalize)
 
-        best_wd, train_loader = self.optimize_weight_decay(feature_train_loader, feature_val_loader,
-                                                           feature_train_val_loader, self.wd_tuner)
+        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
 
-        return self._evaluate(train_loader=train_loader,
+        return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
                               best_wd=best_wd,
                               filename=self.linear_probe_fn)
@@ -351,16 +355,15 @@ class CombinedModelEvaluator(BaseEvaluator):
 class EnsembleModelEvaluator(BaseEvaluator):
     def __init__(self,
                  batch_size, num_workers, lr, epochs, seed, device,
-                 fewshot_k, model_ids, feature_dirs, linear_prob_dirs, use_val_ds,
-                 normalize=True, amp=True, probe_out_dir=None, verbose=False):
+                 fewshot_k, model_ids, feature_dirs, linear_prob_dirs,
+                 normalize=True, amp=True, probe_out_dir=None, verbose=False, val_proportion=0):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, normalize, amp, probe_out_dir,
-                         verbose)
+                         verbose, val_proportion)
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs
         self.linear_prob_dirs = linear_prob_dirs
         if not len(model_ids) == len(feature_dirs) == len(linear_prob_dirs):
             raise ValueError("Number of models, feature directories and linear probe directories must be the same.")
-        self.use_val_ds = use_val_ds
 
     def load_logits_targets(self, linear_probe_dir):
         with open(os.path.join(linear_probe_dir, 'predictions.pkl'), 'rb') as f:
@@ -371,10 +374,12 @@ class EnsembleModelEvaluator(BaseEvaluator):
                 print(f"Loaded test predictions from {os.path.join(linear_probe_dir, 'predictions.pkl')}.")
         return logits, target
 
-    def retrain_linear_probe(self, idxs, feature_dir, best_wd, model_fn):
-        feature_train_loader, feature_val_loader, feature_train_val_loader, feature_test_loader = get_feature_dl(
-            feature_dir, self.batch_size, self.num_workers, self.fewshot_k, self.use_val_ds, idxs)
-
+    def retrain_linear_probe(self, idxs, feature_dir, model_fn):
+        # TODO We do not store the metric of this retrained model (in comparison to single Evaluator)
+        # Maybe one should remove the training and also rely on single Evaluator?
+        feature_train_loader, feature_test_loader = get_feature_dl(
+            feature_dir, self.batch_size, self.num_workers, self.fewshot_k, idxs)
+        best_wd = self.optimize_weight_decay(feature_train_loader, self.wd_tuner, self.val_proportion)
         linear_probe = LinearProbe(weight_decay=best_wd,
                                    lr=self.lr,
                                    epochs=self.epochs,
@@ -406,9 +411,6 @@ class EnsembleModelEvaluator(BaseEvaluator):
 
     def evaluate(self):
         idxs = None
-        # ATM Disable Weight Decay tuning for ensembles
-        # TODO (marcomorik, lciernik): Implement Weight Decay tuning for ensembles
-        best_wd = 0
         model_logits = {}
         model_targets = {}
         for model_id, feature_dir, linear_probe_dir in zip(self.model_ids, self.feature_dirs, self.linear_prob_dirs):
@@ -427,7 +429,7 @@ class EnsembleModelEvaluator(BaseEvaluator):
                 targets = torch.load(os.path.join(feature_dir, 'targets_train.pt'))
                 idxs = get_fewshot_indices(targets, self.fewshot_k)
 
-            logits, target = self.retrain_linear_probe(idxs, feature_dir, best_wd, model_fn)
+            logits, target = self.retrain_linear_probe(idxs, feature_dir, model_fn)
             model_logits[model_id] = logits
             model_targets[model_id] = target
 
@@ -442,7 +444,4 @@ class EnsembleModelEvaluator(BaseEvaluator):
         logits = self.ensemble_logits(model_logits)
         self.store_test_set_predictions(logits, model_targets[self.model_ids[0]])
         metric_dict = compute_metrics(logits, model_targets[self.model_ids[0]])
-
-        metric_dict = {**metric_dict, "weight_decay": best_wd, }
-
         return metric_dict

@@ -23,12 +23,9 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Dataset split to use")
     aa('--train_split', type=str, nargs='+', default="train",
        help="Dataset(s) train split names")
-    mutually_exclusive = parser.add_mutually_exclusive_group()
-    mutually_exclusive.add_argument('--val_split', default=None, type=str, nargs="+",
-                                    help="Dataset(s) validation split names. Mutually exclusive with val_proportion.")
-    mutually_exclusive.add_argument('--val_proportion', default=None, type=float, nargs="+",
-                                    help="what is the share of the train dataset will be used for validation part, "
-                                         "if it doesn't predefined. Mutually exclusive with val_split")
+    aa('--val_proportion', default=None, type=float, nargs="+",
+       help="what is the share of the train dataset will be used for validation part, "
+            "if it doesn't predefined.")
     aa('--wds_cache_dir', default=None, type=str,
        help="optional cache directory for webdataset only")
     aa('--custom_classname_file', default=None, type=str,

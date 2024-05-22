@@ -6,7 +6,7 @@ import random
 import sqlite3
 import sys
 from copy import copy
-from itertools import product, combinations
+from itertools import product, combinations, islice
 from typing import List, Tuple, Dict
 
 import numpy as np
@@ -14,8 +14,8 @@ import pandas as pd
 import torch
 
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args
-from clip_benchmark.data import (build_dataset, get_dataset_collate_fn, get_feature_combiner_cls)
-from clip_benchmark.models import load_model
+from clip_benchmark.data import (get_feature_combiner_cls)
+from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe import SingleModelEvaluator, CombinedModelEvaluator, EnsembleModelEvaluator
 from clip_benchmark.utils.utils import (as_list,
@@ -217,7 +217,7 @@ def main_model_sim(base):
     datasets = get_list_of_datasets(base)
 
     # Get train and val splits
-    dataset_info = get_train_val_splits(base.train_split, base.val_split, base.val_proportion, datasets)
+    dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
 
     dataset = datasets[int(os.environ["SLURM_ARRAY_TASK_ID"])]
     train_split = dataset_info[dataset]["train_split"]
@@ -274,7 +274,7 @@ def main_eval(base):
     datasets = get_list_of_datasets(base)
 
     # Get train and val splits
-    dataset_info = get_train_val_splits(base.train_split, base.val_split, base.val_proportion, datasets)
+    dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
 
     if base.verbose:
         print(f"Models: {models}")
@@ -287,7 +287,7 @@ def main_eval(base):
         model_combinations = []
         for i in range(2, min(n_models + 1, 11)):
             # TODO this is only for fast testing till we find better combinations
-            model_combinations += list(combinations(models, i))[:10]
+            model_combinations += list(islice(combinations(models, i), 10))
 
         runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
@@ -312,8 +312,8 @@ def main_eval(base):
         args = arg_fn(args, model_info)
         args.dataset = dataset
         args.train_split = dataset_info[dataset]["train_split"]
-        args.val_split = dataset_info[dataset]["val_split"]
-        args.val_proportion = dataset_info[dataset]["proportion"]
+        # args.val_split = dataset_info[dataset]["val_split"]  # This is currently not used
+        args.val_proportion = dataset_info[dataset]["proportion"]  # This should be set for WD tuning!
         args.fewshot_k = fewshot_k
         args.fewshot_lr = fewshot_lr
         args.fewshot_epochs = fewshot_epochs
@@ -330,100 +330,6 @@ def main_eval(base):
                 flush=True)
             print(e, flush=True)
             raise e
-
-
-def get_extraction_model_n_dataloader(args, dataset_root, task):
-    if args.skip_load or isinstance(args.model, list):
-        model, transform, collate_fn, dataloader = None, None, None, None
-    else:
-        assert isinstance(args.model, str), "model should be a string"
-        if args.verbose:
-            print(
-                f"Load model and use {'no' if args.feature_alignment is None else args.feature_alignment} feature "
-                f"alignment",
-                flush=True)
-        model, transform = load_model(
-            model_name=args.model,
-            source=args.model_source,
-            model_parameters=args.model_parameters,
-            module_name=args.module_name,
-            feature_alignment=args.feature_alignment,
-            device=args.device
-        )
-
-        eval_dataset = build_dataset(
-            dataset_name=args.dataset,
-            root=dataset_root,
-            transform=transform,
-            split=args.split,  # by default this is the test split
-            download=True,
-            task=task,
-            custom_classname_file=args.custom_classname_file,
-            wds_cache_dir=args.wds_cache_dir,
-        )
-        collate_fn = get_dataset_collate_fn(args.dataset)
-        if args.verbose:
-            try:
-                print(f"Dataset size: {len(eval_dataset)}")
-            except TypeError:
-                print("IterableDataset has no len()")
-            print(f"Dataset split: {args.split}")
-            if hasattr(eval_dataset, "classes") and eval_dataset.classes:
-                try:
-                    print(f"Dataset classes: {eval_dataset.classes}")
-                    print(f"Dataset number of classes: {len(eval_dataset.classes)}")
-                except AttributeError:
-                    print("Dataset has no classes.")
-
-        # Get the dataloader for the split we want to evaluate on, by default this is the test split
-        if args.dataset.startswith("wds/"):
-            eval_dataloader = torch.utils.data.DataLoader(
-                eval_dataset.batched(args.batch_size), batch_size=None,
-                shuffle=False, num_workers=args.num_workers,
-            )
-        else:
-            eval_dataloader = torch.utils.data.DataLoader(
-                eval_dataset, batch_size=args.batch_size,
-                shuffle=False, num_workers=args.num_workers,
-                collate_fn=collate_fn
-            )
-        # we also need the train and validation splits for linear probing.
-        train_dataset = build_dataset(
-            dataset_name=args.dataset,
-            root=dataset_root,
-            transform=transform,
-            split=args.train_split,
-            download=True,
-        )
-        if args.val_split is not None:
-            val_dataset = build_dataset(
-                dataset_name=args.dataset,
-                root=dataset_root,
-                transform=transform,
-                split=args.val_split,
-                download=True,
-            )
-        elif args.val_proportion is not None:
-            train_dataset, val_dataset = torch.utils.data.random_split(train_dataset,
-                                                                       [1 - args.val_proportion,
-                                                                        args.val_proportion])
-        else:
-            val_dataset = None
-        train_dataloader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=args.batch_size,
-            shuffle=False, num_workers=args.num_workers,
-            collate_fn=collate_fn, pin_memory=True,
-        )
-        if val_dataset is not None:
-            val_dataloader = torch.utils.data.DataLoader(
-                val_dataset, batch_size=args.batch_size,
-                shuffle=False, num_workers=args.num_workers,
-                collate_fn=collate_fn, pin_memory=True,
-            )
-        else:
-            val_dataloader = None
-
-    return model, train_dataloader, val_dataloader, eval_dataloader
 
 
 def run(args):
@@ -451,15 +357,14 @@ def run(args):
 
     if task == 'linear_probe':
         if mode == "single_model":
-            model, train_dataloader, val_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args,
-                                                                                                         dataset_root,
-                                                                                                         task)
+            model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
             evaluator = SingleModelEvaluator(
                 model=model, train_dataloader=train_dataloader, eval_dataloader=eval_dataloader,
-                val_dataloader=val_dataloader, normalize=args.normalize, model_id=model_ids[0],
+                normalize=args.normalize, model_id=model_ids[0],
                 feature_dir=feature_dirs[0], batch_size=args.batch_size, num_workers=args.num_workers,
                 lr=args.fewshot_lr, epochs=args.fewshot_epochs, seed=args.seed, device=args.device,
-                fewshot_k=args.fewshot_k, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose
+                fewshot_k=args.fewshot_k, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose,
+                val_proportion=args.val_proportion
             )
 
         elif mode == "combined_models":
@@ -468,8 +373,8 @@ def run(args):
                 feature_dirs=feature_dirs, feature_combiner_cls=feature_combiner_cls,
                 batch_size=args.batch_size, num_workers=args.num_workers, lr=args.fewshot_lr,
                 epochs=args.fewshot_epochs, seed=args.seed, device=args.device, fewshot_k=args.fewshot_k,
-                use_val_ds=args.val_proportion is not None or args.val_split is not None,
-                normalize=args.normalize, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose
+                normalize=args.normalize, amp=args.amp, probe_out_dir=model_dirs[0], verbose=args.verbose,
+                val_proportion=args.val_proportion
             )
 
         elif mode == "ensemble":
@@ -477,8 +382,8 @@ def run(args):
                 model_ids=model_ids, feature_dirs=feature_dirs, linear_prob_dirs=model_dirs,
                 batch_size=args.batch_size, num_workers=args.num_workers, lr=args.fewshot_lr,
                 epochs=args.fewshot_epochs, seed=args.seed, device=args.device, fewshot_k=args.fewshot_k,
-                use_val_ds=args.val_proportion is not None or args.val_split is not None,
                 normalize=args.normalize, amp=args.amp, probe_out_dir=out_dir_pred, verbose=args.verbose,
+                val_proportion=args.val_proportion
             )
 
         else:
