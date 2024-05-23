@@ -14,7 +14,7 @@ from torchvision.datasets import (CIFAR10, CIFAR100, DTD, GTSRB, MNIST, PCAM,
                                   ImageFolder, ImageNet, OxfordIIITPet,
                                   RenderedSST2, StanfordCars)
 
-from clip_benchmark.data.constants import all_imagenet_wordnet_ids
+from clip_benchmark.data.constants import all_imagenet_wordnet_ids, dataset_collection
 from clip_benchmark.data.datasets import flickr, voc2007, xtd200, babel_imagenet, imagenetv2, caltech101, \
     winoground, sugar_crepe, multilingual_mscoco, objectnet
 
@@ -967,3 +967,6 @@ def image_captions_collate_fn(batch):
 
 def get_dataset_collection_from_file(path):
     return [l.strip() for l in open(path).readlines()]
+
+def get_dataset_collection():
+    return dataset_collection

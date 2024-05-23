@@ -15,7 +15,7 @@ import torch
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
 from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
-from clip_benchmark.tasks.model_similarity import compute_sim_matrix
+from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
                                                          EnsembleModelEvaluator)
 from clip_benchmark.utils.utils import (as_list,
@@ -63,7 +63,6 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
     models = as_list(base.model)
     srcs = as_list(base.model_source)
     params = as_list(base.model_parameters)
-    params = [json.loads(x) for x in params]
     module_names = as_list(base.module_name)
     feature_alignments = as_list(base.feature_alignment)
     model_keys = as_list(base.model_key)
@@ -121,10 +120,11 @@ def make_paths(
 
     # Create list of feature directories for each dataset and model_ids.
     feature_dirs = [os.path.join(args.feature_root, dataset_name, model_id) for model_id in model_ids]
-    if not all_paths_exists(feature_dirs):
-        raise FileNotFoundError(f"Not all feature directories exist: {feature_dirs}. "
-                                f"Cannot evaluate linear probe with multiple models. "
-                                f"Run the linear probe for each model separately first.")
+    if task == "linear_probe" and mode != "single_model":
+        if not all_paths_exists(feature_dirs):
+            raise FileNotFoundError(f"Not all feature directories exist: {feature_dirs}. "
+                                    f"Cannot evaluate linear probe with multiple models. "
+                                    f"Run the linear probe for each model separately first.")
 
     # Create list of model checkpoint directories (for the linear probe) for each dataset, model_id, and hyperparameter
     # combination
@@ -232,14 +232,10 @@ def main_model_sim(base):
     # Get list of data to evaluate on
     datasets = get_list_of_datasets(base)
 
-    # Get train and val splits
-    dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
-
     dataset = datasets[int(os.environ["SLURM_ARRAY_TASK_ID"])]
     dataset_name = prepare_ds_name(dataset)
-    dataset_slug = dataset_name.replace('/', '_')
 
-    train_split = dataset_info[dataset]["train_split"]  # TODO: change this, as it might not be necessary
+    train_split = base.train_split
 
     model_ids = as_list(base.model_key)
 
@@ -288,10 +284,6 @@ def main_eval(base):
     # Get list of data to evaluate on
     datasets = get_list_of_datasets(base)
 
-    # Get train and val splits
-    # TODO: this can be removed as we are not using a validation set????
-    dataset_info = get_train_val_splits(base.train_split, base.val_proportion, datasets)
-
     if base.verbose:
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
@@ -327,8 +319,9 @@ def main_eval(base):
         args = copy(base)
         args = arg_fn(args, model_info)
         args.dataset = dataset
-        args.train_split = dataset_info[dataset]["train_split"]
-        args.val_proportion = dataset_info[dataset]["proportion"]  # This should be set for WD tuning!
+
+        args.train_split = base.train_split
+        args.val_proportion = base.val_proportion  # This should be set for WD tuning!
         args.fewshot_k = fewshot_k
         args.fewshot_lr = fewshot_lr
         args.fewshot_epochs = fewshot_epochs
@@ -356,9 +349,8 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp,
-                   "probe_out_dir": predictions_dir, "verbose": args.verbose,
-                   "val_proportion": args.val_proportion}
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp, 
+                   "verbose": args.verbose, "val_proportion": args.val_proportion}
     return base_kwargs
 
 
@@ -376,8 +368,12 @@ def run(args):
     feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = make_paths(args,
                                                                                                            dataset_name)
 
-    if dataset_name.startswith('wds'):
-        dataset_root = os.path.join(args.dataset_root, 'wds', dataset_name)
+    if dataset_name.startswith("wds"):
+        dataset_root = os.path.join(
+            args.dataset_root, 
+            "wds", 
+            f"wds_{args.dataset.replace('wds/', '', 1).replace('/', '-')}"
+            )
     else:
         dataset_root = args.dataset_root
 

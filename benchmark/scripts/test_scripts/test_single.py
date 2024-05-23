@@ -5,8 +5,8 @@ from datetime import datetime
 from itertools import product
 
 sys.path.append('..')
-from ..slurm import run_job
-from ..helper import load_models, get_hyperparams
+from slurm import run_job
+from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "../models_config.json"
 DATASETS = "./webdatasets_test.txt"
@@ -62,6 +62,6 @@ if __name__ == "__main__":
         job_name=f"test_single",
         job_cmd=job_cmd,
         partition='gpu-2h',
-        log_dir='./logs',
+        log_dir=f'{BASE_PATH_EXP}/logs',
         num_jobs_in_array=num_jobs
     )

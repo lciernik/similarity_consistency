@@ -3,7 +3,7 @@ from typing import List, Union, Dict, Optional
 
 import torch
 
-from benchmark.clip_benchmark.data import dataset_collection, get_dataset_collection_from_file
+from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
 
 
 def as_list(l):
@@ -54,6 +54,7 @@ def check_models(feature_root, model_ids, split):
 
 def get_list_of_datasets(base):
     datasets = []
+    dataset_collection = get_dataset_collection()
     for name in as_list(base.dataset):
         if os.path.isfile(name):
             # If path, read file, each line is a dataset name
