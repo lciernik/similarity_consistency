@@ -160,31 +160,40 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     results_current_run = pd.DataFrame(index=range(1))
 
     # experiment config
-    results_current_run["task"] = exp_args["task"]
-    results_current_run["mode"] = exp_args["mode"]
-    results_current_run["combiner"] = exp_args["combiner"]
+    results_current_run["task"] = exp_args.task
+    results_current_run["mode"] = exp_args.mode
+    results_current_run["combiner"] = exp_args.feature_combiner if exp_args.task == 'linear_probe' and exp_args.mode=='combined_models' else None
     # dataset
-    results_current_run["dataset"] = exp_args["dataset"]
-    results_current_run["feature_normalization"] = exp_args["normalize"]
-    results_current_run["feature_alignment"] = exp_args["feature_alignment"]
-    results_current_run["train_split"] = exp_args["train_split"]
-    results_current_run["val_split"] = exp_args["val_split"]
-    results_current_run["test_split"] = exp_args["split"]
+    results_current_run["dataset"] = exp_args.dataset
+    results_current_run["feature_normalization"] = exp_args.normalize
+    results_current_run["feature_alignment"] = exp_args.feature_alignment
+    results_current_run["train_split"] = exp_args.train_split
+    results_current_run["val_proportion"] = exp_args.val_proportion
+    results_current_run["test_split"] = exp_args.split
     # model(s)
     results_current_run["model_ids"] = model_ids
-    results_current_run["model"] = exp_args["model"]
-    results_current_run["model_source"] = exp_args["model_source"]
-    results_current_run["model_parameters"] = exp_args["model_parameters"]
-    results_current_run["module_name"] = exp_args["module_name"]
+    results_current_run["model"] = exp_args.model
+    results_current_run["model_source"] = exp_args.model_source
+    results_current_run["model_parameters"] = exp_args.model_parameters
+    results_current_run["module_name"] = exp_args.module_name
     # hyperparameters
-    results_current_run["fewshot_k"] = exp_args["fewshot_k"]
-    results_current_run["fewshot_lr"] = exp_args["fewshot_lr"]
-    results_current_run["fewshot_epochs"] = exp_args["fewshot_epochs"]
-    results_current_run["batch_size"] = exp_args["batch_size"]
-    results_current_run["seed"] = exp_args["seed"]
+    results_current_run["fewshot_k"] = exp_args.fewshot_k
+    results_current_run["fewshot_lr"] = exp_args.fewshot_lr
+    results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
+    results_current_run["batch_size"] = exp_args.batch_size
+    results_current_run["seed"] = exp_args.seed
     # metrics
-    for key, value in metrics.items():
-        # skip if the key already exists
+    def flatten_metrics(curr_metrics):
+        new_metrics = {}
+        if 'train_metrics' in curr_metrics:
+            new_metrics.update({f'train_{k}': v for k, v in curr_metrics['train_metrics'].items()})
+        if 'test_metrics' in curr_metrics:
+            new_metrics.update({f'test_{k}': v for k, v in curr_metrics['test_metrics'].items()})
+        new_metrics.update({k: v for k, v in curr_metrics.items() if not isinstance(v, dict)})
+        return new_metrics
+
+    flattened_metrics = flatten_metrics(metrics)
+    for key, value in flattened_metrics.items():
         if key in results_current_run:
             continue
         results_current_run[key] = value
@@ -376,6 +385,8 @@ def run(args):
             )
     else:
         dataset_root = args.dataset_root
+
+    print(dataset_root)
 
     if args.verbose:
         print(f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'")

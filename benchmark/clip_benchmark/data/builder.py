@@ -53,6 +53,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
     use_classnames_and_templates = task in ('zeroshot_classification', 'linear_probe')
     if use_classnames_and_templates:  # Only load templates and classnames if we have to
         current_folder = os.path.dirname(__file__)
+        current_folder = os.path.join(current_folder, 'datasets')
 
         # Load <LANG>_classnames.json (packaged with CLIP benchmark that are used by default)
         default_classname_file = os.path.join(current_folder, language + "_classnames.json")
@@ -105,6 +106,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
             shell=True)
 
     train = (split == "train")
+
     if dataset_name == "cifar10":
         assert split in ("train", "test"), f"Only `train` and `test` split available for {dataset_name}"
         ds = CIFAR10(root=root, train=train, transform=transform, download=download, **kwargs)
@@ -583,6 +585,10 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         indices = np.array(list(map(list, indices_map.values()))).flatten()
         ds = Subset(ds_in, indices=indices)
         ds.classes = ds_in.classes
+        if ds is None:
+            print("imagenet-subset-10k dataset build did not work")
+        else:
+            print("successfully build imagenet-subset-10k dataset")
     elif dataset_name.startswith("tfds/"):
         # TFDS data support using `timm` and `tensorflow_datasets`
         prefix, *name_list = dataset_name.split("/")
@@ -605,6 +611,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         raise ValueError(f"Unsupported dataset: {dataset_name}.")
 
     default_dataset_for_templates = "imagenet1k"
+
     if dataset_name.startswith("tfds/") or dataset_name.startswith("vtab/") or dataset_name.startswith("wds/"):
         prefix, *rest = dataset_name.split("/")
         short_name = "/".join(rest)
