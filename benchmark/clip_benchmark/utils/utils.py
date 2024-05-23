@@ -68,10 +68,10 @@ def get_list_of_datasets(base):
 
 
 def prepare_ds_name(dataset: str) -> str:
-    if dataset.startswith("wds/"):
-        return dataset.replace("wds/", "", 1)
-    else:
-        return dataset
+    # if dataset.startswith("wds/"):
+    #     dataset = dataset.replace("wds/", "", 1)
+    dataset = dataset.replace("/", "_")
+    return dataset
 
 
 def single_option_to_multiple_datasets(cur_option: List[str], datasets: List[str], name: str) -> List[str]:

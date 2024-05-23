@@ -15,7 +15,7 @@ import torch
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
 from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
-from clip_benchmark.tasks import compute_sim_matrix
+from clip_benchmark.tasks.model_similarity import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
                                                          EnsembleModelEvaluator)
 from clip_benchmark.utils.utils import (as_list,
@@ -114,14 +114,13 @@ def make_paths(
 
     model_ids = as_list(args.model_key)
 
-    dataset_slug = dataset_name.replace('/', '_')
     hyperparams_slug = get_hyperparams_name(args)
     model_slug = '__'.join(model_ids)
     if task == "linear_probe" and mode == "combined_models":
         model_slug = model_slug + f"_{args.feature_combiner}"
 
     # Create list of feature directories for each dataset and model_ids.
-    feature_dirs = [os.path.join(args.feature_root, dataset_slug, model_id) for model_id in model_ids]
+    feature_dirs = [os.path.join(args.feature_root, dataset_name, model_id) for model_id in model_ids]
     if not all_paths_exists(feature_dirs):
         raise FileNotFoundError(f"Not all feature directories exist: {feature_dirs}. "
                                 f"Cannot evaluate linear probe with multiple models. "
@@ -130,12 +129,12 @@ def make_paths(
     # Create list of model checkpoint directories (for the linear probe) for each dataset, model_id, and hyperparameter
     # combination
     if task == "linear_probe" and mode == "combined_models":
-        model_dirs = [os.path.join(args.model_root, dataset_slug, model_slug, hyperparams_slug)]
+        model_dirs = [os.path.join(args.model_root, dataset_name, model_slug, hyperparams_slug)]
     else:
-        model_dirs = [os.path.join(args.model_root, dataset_slug, model_id, hyperparams_slug) for model_id in model_ids]
+        model_dirs = [os.path.join(args.model_root, dataset_name, model_id, hyperparams_slug) for model_id in model_ids]
 
     # Create output path based on the task, mode, dataset, (combined) model_ids
-    results_dir = os.path.join(args.output_root, task, mode, dataset_slug, model_slug)
+    results_dir = os.path.join(args.output_root, task, mode, dataset_name, model_slug)
     predictions_dir = os.path.join(results_dir, hyperparams_slug)
     if not os.path.exists(predictions_dir):
         os.makedirs(predictions_dir, exist_ok=True)
@@ -145,7 +144,7 @@ def make_paths(
     if task == "linear_probe" and mode == "ensemble":
         # In this case, we need to pass the predictions directories of the individual models
         single_prediction_dirs = [
-            os.path.join(args.output_root, task, 'single_model', dataset_slug, model_id, hyperparams_slug)
+            os.path.join(args.output_root, task, 'single_model', dataset_name, model_id, hyperparams_slug)
             for model_id in model_ids]
         # Check if the single prediction directories exist
         if not all_paths_exists(single_prediction_dirs):
@@ -378,7 +377,7 @@ def run(args):
                                                                                                            dataset_name)
 
     if dataset_name.startswith('wds'):
-        dataset_root = os.path.join(args.dataset_root, 'wds', f'wds_{dataset_name.replace("/", "-")}')
+        dataset_root = os.path.join(args.dataset_root, 'wds', dataset_name)
     else:
         dataset_root = args.dataset_root
 
