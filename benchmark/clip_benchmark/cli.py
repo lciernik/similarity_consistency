@@ -6,7 +6,7 @@ import sqlite3
 import sys
 from copy import copy
 from itertools import product, combinations, islice
-from typing import List, Tuple, Dict, Optional, Any
+from typing import List, Tuple, Dict, Any
 
 import numpy as np
 import pandas as pd
@@ -18,11 +18,11 @@ from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
                                                          EnsembleModelEvaluator)
+from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
-                                        get_train_val_splits,
                                         prepare_ds_name,
-                                        world_info_from_env, all_paths_exists)
+                                        world_info_from_env)
 
 
 def prepare_device(distributed: bool) -> str:
@@ -77,92 +77,15 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
     return list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
 
 
-def get_hyperparams_name(args: argparse.Namespace) -> str:
-    """Get the hyperparameters name for the output path."""
-    fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-    subpath = os.path.join(fewshot_slug,
-                           f"fewshot_lr_{args.fewshot_lr}",
-                           f"fewshot_epochs_{args.fewshot_epochs}",
-                           f"batch_size_{args.batch_size}",
-                           f"seed_{args.seed:02d}",
-                           )
-    return subpath
-
-
-def check_root_paths(args: argparse.Namespace) -> None:
-    """Check existence of the feature, model and output folders."""
-    if not os.path.exists(args.dataset_root):
-        raise FileNotFoundError(f"Dataset root folder {args.dataset_root} does not exist.")
-    if not os.path.exists(args.feature_root):
-        raise FileNotFoundError(f"Feature root folder {args.feature_root} does not exist.")
-    if not os.path.exists(args.model_root):
-        raise FileNotFoundError(f"Model root folder {args.model_root} does not exist.")
-    if not os.path.exists(args.output_root):
-        os.makedirs(args.output_root, exist_ok=True)
-        if args.verbose:
-            print(f'Created path ({args.output_root}), where results are to be stored ...')
-
-
-def make_paths(
-        args: argparse.Namespace,
-        dataset_name: str
-) -> Tuple[List[str], List[str], str, str, Optional[List[str]], List[str]]:
-    check_root_paths(args)
-
-    task, mode = args.task, args.mode
-
-    model_ids = as_list(args.model_key)
-
-    hyperparams_slug = get_hyperparams_name(args)
-    model_slug = '__'.join(model_ids)
-    if task == "linear_probe" and mode == "combined_models":
-        model_slug = model_slug + f"_{args.feature_combiner}"
-
-    # Create list of feature directories for each dataset and model_ids.
-    feature_dirs = [os.path.join(args.feature_root, dataset_name, model_id) for model_id in model_ids]
-    if task == "linear_probe" and mode != "single_model":
-        if not all_paths_exists(feature_dirs):
-            raise FileNotFoundError(f"Not all feature directories exist: {feature_dirs}. "
-                                    f"Cannot evaluate linear probe with multiple models. "
-                                    f"Run the linear probe for each model separately first.")
-
-    # Create list of model checkpoint directories (for the linear probe) for each dataset, model_id, and hyperparameter
-    # combination
-    if task == "linear_probe" and mode == "combined_models":
-        model_dirs = [os.path.join(args.model_root, dataset_name, model_slug, hyperparams_slug)]
-    else:
-        model_dirs = [os.path.join(args.model_root, dataset_name, model_id, hyperparams_slug) for model_id in model_ids]
-
-    # Create output path based on the task, mode, dataset, (combined) model_ids
-    results_dir = os.path.join(args.output_root, task, mode, dataset_name, model_slug)
-    predictions_dir = os.path.join(results_dir, hyperparams_slug)
-    if not os.path.exists(predictions_dir):
-        os.makedirs(predictions_dir, exist_ok=True)
-        if args.verbose:
-            print(f'Created path ({results_dir}), where results are to be stored ...')
-
-    if task == "linear_probe" and mode == "ensemble":
-        # In this case, we need to pass the predictions directories of the individual models
-        single_prediction_dirs = [
-            os.path.join(args.output_root, task, 'single_model', dataset_name, model_id, hyperparams_slug)
-            for model_id in model_ids]
-        # Check if the single prediction directories exist
-        if not all_paths_exists(single_prediction_dirs):
-            raise FileNotFoundError(f"Not all single prediction directories exist: {single_prediction_dirs}. Cannot "
-                                    f"evaluate ensemble model.")
-    else:
-        single_prediction_dirs = None
-
-    return feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids
-
-
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
     results_current_run = pd.DataFrame(index=range(1))
 
     # experiment config
     results_current_run["task"] = exp_args.task
     results_current_run["mode"] = exp_args.mode
-    results_current_run["combiner"] = exp_args.feature_combiner if exp_args.task == 'linear_probe' and exp_args.mode=='combined_models' else None
+    results_current_run["combiner"] = exp_args.feature_combiner \
+        if exp_args.task == 'linear_probe' and exp_args.mode == 'combined_models' \
+        else None
     # dataset
     results_current_run["dataset"] = exp_args.dataset
     results_current_run["feature_normalization"] = exp_args.normalize
@@ -182,6 +105,7 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
     results_current_run["batch_size"] = exp_args.batch_size
     results_current_run["seed"] = exp_args.seed
+
     # metrics
     def flatten_metrics(curr_metrics):
         new_metrics = {}
@@ -248,7 +172,7 @@ def main_model_sim(base):
 
     model_ids = as_list(base.model_key)
 
-    feature_root = os.path.join(base.feature_root, dataset_slug)
+    feature_root = os.path.join(base.feature_root, dataset_name)
 
     # Compute CKA matrix
     sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
@@ -358,7 +282,7 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp, 
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp,
                    "verbose": args.verbose, "val_proportion": args.val_proportion}
     return base_kwargs
 
@@ -374,15 +298,17 @@ def run(args):
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
 
-    feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = make_paths(args,
-                                                                                                           dataset_name)
+    path_maker = PathMaker(args, dataset_name)
+
+    dirs = path_maker.make_paths()
+    feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(
-            args.dataset_root, 
-            "wds", 
+            args.dataset_root,
+            "wds",
             f"wds_{args.dataset.replace('wds/', '', 1).replace('/', '-')}"
-            )
+        )
     else:
         dataset_root = args.dataset_root
 

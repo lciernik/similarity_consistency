@@ -130,5 +130,5 @@ def world_info_from_env():
     return local_rank, global_rank, world_size
 
 
-def all_paths_exists(list_of_paths: List[str])->bool:
+def all_paths_exist(list_of_paths: List[str])->bool:
     return all([os.path.exists(p) for p in list_of_paths])
