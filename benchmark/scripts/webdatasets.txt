@@ -17,3 +17,13 @@ wds/vtab/pets
 wds/vtab/pcam
 wds/vtab/resisc45
 wds/vtab/svhn
+wds/imagenet1k
+wds/imagenetv2
+wds/imagenet-a
+wds/imagenet-r
+wds/imagenet_sketch
+cifar100-coarse
+entity13
+entity30
+living17
+nonliving26

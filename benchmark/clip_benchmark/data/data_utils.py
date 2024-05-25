@@ -56,8 +56,6 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         transform=transform,
         split=args.split,  # by default this is the test split
         download=True,
-        task=task,
-        custom_classname_file=args.custom_classname_file,
         wds_cache_dir=args.wds_cache_dir,
     )
     collate_fn = get_dataset_collate_fn(args.dataset)
