@@ -191,11 +191,11 @@ def main_model_sim(base):
     if not os.path.exists(out_path):
         os.makedirs(out_path, exist_ok=True)
         if base.verbose:
-            print(f'Created path ({out_path}), where results are to be stored ...')
+            print(f'\nCreated path ({out_path}), where results are to be stored ...\n')
 
     out_res = os.path.join(out_path, f'similarity_matrix.pt')
     if base.verbose:
-        print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
+        print(f"\nDump {base.sim_method.upper()} matrix to: {out_res}\n")
     torch.save(sim_matrix, out_res)
     with open(os.path.join(out_path, f'model_ids.txt'), "w") as file:
         for string in model_ids:
@@ -219,8 +219,8 @@ def main_eval(base):
     datasets = get_list_of_datasets(base)
 
     if base.verbose:
-        print(f"Models: {models}")
-        print(f"Datasets: {datasets}")
+        print(f"\nModels: {models}")
+        print(f"Datasets: {datasets}\n")
 
     if base.mode != "single_model":
         # TODO: implement different ways how to select the model combinations
@@ -304,8 +304,8 @@ def run(args):
     dirs = path_maker.make_paths()
     feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
     if args.verbose:
-        print(f"{feature_dirs=}, {model_dirs=}, {results_dir=}, "
-              f"{predictions_dir=}, {single_prediction_dirs=}, {model_ids=}")
+        print(f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, "
+              f"{predictions_dir=}, {single_prediction_dirs=}, {model_ids=}\n")
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(
@@ -317,7 +317,7 @@ def run(args):
         dataset_root = args.dataset_root
 
     if args.verbose:
-        print(f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'")
+        print(f"\n Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n")
 
     base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
 
@@ -331,7 +331,7 @@ def run(args):
         )
 
         if args.verbose:
-            print(f"Extracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...")
+            print(f"\nExtracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...\n")
 
         evaluator.ensure_feature_availability()
 

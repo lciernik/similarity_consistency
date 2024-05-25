@@ -19,23 +19,14 @@ BASE_PATH_EXP = os.path.join(BASE_PATH_EXP, current_datetime)
 os.makedirs(BASE_PATH_EXP, exist_ok=True)
 
 FEATURES_ROOT = os.path.join(BASE_PATH_EXP, 'features')
-OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results')
-MODEL_ROOT = os.path.join(BASE_PATH_EXP, 'models')
 os.makedirs(FEATURES_ROOT, exist_ok=True)
-os.makedirs(OUTPUT_ROOT, exist_ok=True)
-os.makedirs(MODEL_ROOT, exist_ok=True)
 
 if __name__ == "__main__":
     # Select random model
     models, n_models = load_models(MODELS_CONFIG)
     random_model = random.choice(list(models.keys()))
 
-    # Select random hyperparameters
-    hyper_params, _ = get_hyperparams(num_seeds=1, size="small")
-    hyper_params = {k: [random.choice(v)] for k, v in hyper_params.items()}
-    num_jobs = len(list(product(*hyper_params.values())))
-
-    print(f"Testing single model {random_model} with hyper_params: {hyper_params}")
+    print(f"Testing feature extraction with {random_model}.")
 
     # Evaluate each model on all data and all hyperparameter configurations.
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
@@ -43,19 +34,12 @@ if __name__ == "__main__":
     clip_benchmark --dataset={DATASETS} \
                    --dataset_root={DATASETS_ROOT} \
                    --feature_root={FEATURES_ROOT} \
-                   --output_root={OUTPUT_ROOT} \
-                   --model_root={MODEL_ROOT} \
-                   --task=linear_probe \
-                   --mode=single_model \
+                   --task=feature_extraction \
                    --model_key={random_model} \
                    --models_config_file={MODELS_CONFIG} \
                    --batch_size=64 \
-                   --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
-                   --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
-                   --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                    --train_split train \
-                   --test_split test \
-                   --seed {' '.join(hyper_params['seeds'])} 
+                   --test_split test
     """
 
     run_job(
@@ -63,5 +47,5 @@ if __name__ == "__main__":
         job_cmd=job_cmd,
         partition='gpu-2h',
         log_dir=f'{BASE_PATH_EXP}/logs',
-        num_jobs_in_array=num_jobs
+        num_jobs_in_array=1
     )

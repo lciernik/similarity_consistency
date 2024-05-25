@@ -1,14 +1,15 @@
 import os
 import pickle
 from contextlib import suppress
-from typing import List, Union, Any
+from typing import List, Union, Any, Optional
 
 import numpy as np
 import torch
 from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset, DataLoader
+from torch.utils.data import DataLoader
 
 from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature_dl
+from clip_benchmark.data.data_utils import SubsetWithTargets
 from clip_benchmark.eval.metrics import compute_metrics
 from clip_benchmark.models.featurizer import Featurizer
 from clip_benchmark.tasks.linear_probe import LinearProbe
@@ -17,8 +18,8 @@ from clip_benchmark.tasks.weight_decay_tuner import WeightDecayTuner
 
 class BaseEvaluator:
     def __init__(self, batch_size: int, num_workers: int, lr: float, epochs: int, seed: int, device: str,
-                 fewshot_k: int, model_dirs: List[str], predictions_dir: str, normalize: bool = True, amp: bool = True,
-                 verbose: bool = False, val_proportion: float = 0) -> None:
+                 fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str], normalize: bool = True, 
+                 amp: bool = True, verbose: bool = False, val_proportion: float = 0) -> None:
         super().__init__()
 
         self.batch_size = batch_size
@@ -33,7 +34,10 @@ class BaseEvaluator:
 
         self.normalize = normalize
         self.fewshot_k = fewshot_k
-        self.linear_probe_fns = [os.path.join(model_dir, 'model.pkl') for model_dir in model_dirs]
+        if model_dirs is not None:
+            self.linear_probe_fns = [os.path.join(model_dir, 'model.pkl') for model_dir in model_dirs]
+        else:
+            self.linear_probe_fns = None
         self.predictions_dir = predictions_dir
         self.verbose = verbose
         self.val_proportion = val_proportion
@@ -73,8 +77,8 @@ class BaseEvaluator:
             stratify=targets,
             random_state=self.seed
         )
-        tmp_train_dataset = Subset(train_dataset, indices=train_indices)
-        tmp_val_dataset = Subset(train_dataset, indices=val_indices)
+        tmp_train_dataset = SubsetWithTargets(train_dataset, indices=train_indices)
+        tmp_val_dataset = SubsetWithTargets(train_dataset, indices=val_indices)
 
         tmp_train_loader = DataLoader(tmp_train_dataset, batch_size=train_loader.batch_size,
                                       shuffle=True, num_workers=train_loader.num_workers)
@@ -84,6 +88,8 @@ class BaseEvaluator:
 
     def optimize_weight_decay(self, train_loader):
         if self.val_proportion > 0:
+            if self.verbose:
+                print(f"\nTuning weight decay parameter of linear probe.\n")
             # Split train set into train and validation
             tmp_train_loader, tmp_val_loader = self._create_train_val_loaders(train_loader)
             best_wd = self.wd_tuner.tune_weight_decay(tmp_train_loader, tmp_val_loader)

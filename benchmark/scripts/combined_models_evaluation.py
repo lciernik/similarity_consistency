@@ -21,26 +21,29 @@ if __name__ == "__main__":
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=10)
 
+    val_proportion = 0.2
+
     for combiner in COMBINERS:
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                 export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                clip_benchmark eval --dataset {DATASETS} \
-                                    --dataset_root {DATASETS_ROOT} \
-                                    --feature_root {FEATURES_ROOT} \
-                                    --model_root {MODELS_ROOT} \
-                                    --output_root {OUTPUT_ROOT} \
-                                    --task=linear_probe \
-                                    --mode=combined_models \
-                                    --model_key {models} \
-                                    --models_config_file {MODELS_CONFIG} \
-                                    --batch_size=64 \
-                                    --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
-                                    --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
-                                    --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                                    --train_split train \
-                                    --test_split test \
-                                    --seed {' '.join(hyper_params['seeds'])} \
-                                    --feature_combiner {combiner}
+                clip_benchmark --dataset {DATASETS} \
+                               --dataset_root {DATASETS_ROOT} \
+                               --feature_root {FEATURES_ROOT} \
+                               --model_root {MODELS_ROOT} \
+                               --output_root {OUTPUT_ROOT} \
+                               --task=linear_probe \
+                               --mode=combined_models \
+                               --model_key {models} \
+                               --models_config_file {MODELS_CONFIG} \
+                               --batch_size=64 \
+                               --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
+                               --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
+                               --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
+                               --train_split train \
+                               --test_split test \
+                               --val_proportion \
+                               --seed {' '.join(hyper_params['seeds'])} \
+                               --feature_combiner {combiner}
                 """
 
         run_job(

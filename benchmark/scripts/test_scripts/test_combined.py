@@ -10,7 +10,8 @@ from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "../models_config.json"
-DATASETS = "./webdatasets_test.txt"
+# DATASETS = "./webdatasets_test.txt"
+DATASETS = "wds/vtab/cifar10"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets/wds/wds_{dataset_cleaned}"
 FEATURES_ROOT = "/home/space/diverse_priors/features"
 
@@ -20,8 +21,7 @@ current_datetime = datetime.now().strftime("%Y_%m_%d_%H_%M")
 BASE_PATH_EXP = os.path.join(BASE_PATH_EXP, current_datetime)
 os.makedirs(BASE_PATH_EXP, exist_ok=True)
 
-OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results', 'combined_models', '{fewshot_k}', '{dataset}', '{model}',
-                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
+OUTPUT_ROOT = os.path.join(BASE_PATH_EXP, 'results')
 
 COMBINERS = ["concat", "concat_pca"]
 
@@ -30,8 +30,6 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
     models2combine = random.sample(list(models.keys()), 2)
     models = {k: v for k, v in models.items() if k in models2combine}
-    # Prepare job command input
-    model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
 
     # Select random hyperparameters
     hyper_params, _ = get_hyperparams(num_seeds=10)
@@ -48,12 +46,12 @@ if __name__ == "__main__":
             clip_benchmark eval --dataset {DATASETS} \
                                 --dataset_root {DATASETS_ROOT} \
                                 --feature_root {FEATURES_ROOT} \
+                                --model_root {MODELS_ROOT} \
                                 --output_root {OUTPUT_ROOT} \
                                 --task=linear_probe \
-                                --model {' '.join(model_names)} \
-                                --model_source {' '.join(sources)} \
-                                --model_parameters {' '.join([f"'{json.dumps(x)}'" for x in model_parameters])} \
-                                --module_name {' '.join(module_names)} \
+                                --mode=combined_models \
+                                --model_key {models} \
+                                --models_config_file {MODELS_CONFIG} \
                                 --batch_size=64 \
                                 --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                 --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
@@ -61,7 +59,6 @@ if __name__ == "__main__":
                                 --train_split train \
                                 --test_split test \
                                 --seed {' '.join(hyper_params['seeds'])} \
-                                --eval_combined \
                                 --feature_combiner {combiner}
             """
 
@@ -69,6 +66,6 @@ if __name__ == "__main__":
         job_name=f"test_combined",
         job_cmd=job_cmd,
         partition='gpu-2h',
-        log_dir='./logs',
+        log_dir=f'{BASE_PATH_EXP}/logs',
         num_jobs_in_array=num_jobs
     )

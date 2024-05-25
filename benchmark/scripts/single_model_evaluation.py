@@ -4,7 +4,8 @@ from slurm import run_job
 from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "./models_config.json"
-DATASETS = "./webdatasets.txt"
+# DATASETS = "./webdatasets.txt"
+DATASETS = "imagenet-subset-10k"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -17,7 +18,9 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=10)
+    hyper_params, num_jobs = get_hyperparams(num_seeds=10, size='small')
+
+    val_proportion = 0.2
 
     # Evaluate
     for key, model_config in models.items():
@@ -38,6 +41,7 @@ if __name__ == "__main__":
                             --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                             --train_split train \
                             --test_split test \
+                            --val_proportion {val_proportion} \
                             --seed {' '.join(hyper_params['seeds'])} 
         """
 

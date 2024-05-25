@@ -1,1 +1,1 @@
-wds/vtab/cifar10
+imagenet-subset-10k

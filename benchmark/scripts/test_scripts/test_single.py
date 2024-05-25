@@ -27,13 +27,27 @@ os.makedirs(MODEL_ROOT, exist_ok=True)
 
 if __name__ == "__main__":
     # Select random model
-    models, n_models = load_models(MODELS_CONFIG)
-    random_model = random.choice(list(models.keys()))
+    # models, n_models = load_models(MODELS_CONFIG)
+    # random_model = random.choice(list(models.keys()))
 
     # Select random hyperparameters
-    hyper_params, _ = get_hyperparams(num_seeds=1, size="small")
-    hyper_params = {k: [random.choice(v)] for k, v in hyper_params.items()}
+    # hyper_params, _ = get_hyperparams(num_seeds=1, size='small')
+    # hyper_params = {k: [random.choice(v)] for k, v in hyper_params.items()}
+    
+
+    # Set previous run hyperparameters
+    random_model="dinov2-vit-large-p14 mae-vit-large-p16"
+
+    hyper_params = dict(
+            fewshot_lrs=['0.1'],
+            fewshot_ks=['-1'],
+            fewshot_epochs=['10'],
+            seeds=['0'],
+        )
+    
     num_jobs = len(list(product(*hyper_params.values())))
+
+    val_proportion = 0.2
 
     print(f"Testing single model {random_model} with hyper_params: {hyper_params}")
 
@@ -47,7 +61,7 @@ if __name__ == "__main__":
                    --model_root={MODEL_ROOT} \
                    --task=linear_probe \
                    --mode=single_model \
-                   --model_key={random_model} \
+                   --model_key {random_model} \
                    --models_config_file={MODELS_CONFIG} \
                    --batch_size=64 \
                    --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
@@ -55,6 +69,7 @@ if __name__ == "__main__":
                    --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                    --train_split train \
                    --test_split test \
+                   --val_proportion={val_proportion} \
                    --seed {' '.join(hyper_params['seeds'])} 
     """
 
