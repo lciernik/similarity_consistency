@@ -302,6 +302,7 @@ def run(args):
 
     dirs = path_maker.make_paths()
     feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
+    print(f"{feature_dirs=}, {model_dirs=}, {results_dir=}, {predictions_dir=}, {single_prediction_dirs=}, {model_ids=}")
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(
