@@ -187,16 +187,17 @@ def main_model_sim(base):
                                                             device=base.device,
                                                             sigma=base.sigma, )
     # Save the similarity matrix
-    if not os.path.exists(base.output_root):
-        os.makedirs(base.output_root, exist_ok=True)
+    out_path = os.path.join(base.output_root, dataset_name, method_slug)
+    if not os.path.exists(out_path):
+        os.makedirs(out_path, exist_ok=True)
         if base.verbose:
-            print(f'Created path ({base.output_root}), where results are to be stored ...')
+            print(f'Created path ({out_path}), where results are to be stored ...')
 
-    out_res = os.path.join(base.output_root, f'{method_slug}_similarity_matrix.pt')
+    out_res = os.path.join(out_path, f'similarity_matrix.pt')
     if base.verbose:
         print(f"Dump {base.sim_method.upper()} matrix to: {out_res}")
     torch.save(sim_matrix, out_res)
-    with open(os.path.join(base.output_root, f'{method_slug}_model_ids.txt'), "w") as file:
+    with open(os.path.join(out_path, f'model_ids.txt'), "w") as file:
         for string in model_ids:
             file.write(string + "\n")
 
@@ -221,7 +222,7 @@ def main_eval(base):
         print(f"Models: {models}")
         print(f"Datasets: {datasets}")
 
-    if base.eval_combined:
+    if base.mode != "single_model":
         # TODO: implement different ways how to select the model combinations
         # Now assumption that passed models are combined together (all permutations)
         n_models = len(models)
@@ -302,7 +303,9 @@ def run(args):
 
     dirs = path_maker.make_paths()
     feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
-    print(f"{feature_dirs=}, {model_dirs=}, {results_dir=}, {predictions_dir=}, {single_prediction_dirs=}, {model_ids=}")
+    if args.verbose:
+        print(f"{feature_dirs=}, {model_dirs=}, {results_dir=}, "
+              f"{predictions_dir=}, {single_prediction_dirs=}, {model_ids=}")
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(
@@ -313,13 +316,26 @@ def run(args):
     else:
         dataset_root = args.dataset_root
 
-    print(dataset_root)
-
     if args.verbose:
         print(f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'")
 
-    if task == 'linear_probe':
-        base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
+    base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
+
+    if task == 'feature_extraction':
+        model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
+        evaluator = SingleModelEvaluator(
+            model=model,
+            train_dataloader=train_dataloader,
+            eval_dataloader=eval_dataloader,
+            **base_kwargs
+        )
+
+        if args.verbose:
+            print(f"Extracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...")
+
+        evaluator.ensure_feature_availability()
+
+    elif task == 'linear_probe':
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
@@ -348,19 +364,21 @@ def run(args):
             raise ValueError(
                 "Unsupported mode: {}. mode should be `single_model`, `combined_models`, or `ensemble`".format(
                     mode))
+
+        metrics = evaluator.evaluate()
+
+        save_results(
+            args=args,
+            model_ids=model_ids,
+            metrics=metrics,
+            out_path=results_dir
+        )
+
     else:
         raise ValueError(
-            "Unsupported task: {}. task should be `linear_probe`".format(
+            "Unsupported task: {}. task should be `feature_extraction` or `linear_probe`".format(
                 task))
 
-    metrics = evaluator.evaluate()
-
-    save_results(
-        args=args,
-        model_ids=model_ids,
-        metrics=metrics,
-        out_path=results_dir
-    )
     return 0
 
 

@@ -7,13 +7,12 @@ MODELS_CONFIG = "./models_config.json"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 
-# DATASETS = "./webdatasets.txt"
-# DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
-
-DATASETS = "./imagenet_subset.txt"
+DATASETS = "imagenet-subset-10k"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
+MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
+OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
 SIM_METHOD = 'cka'  # Distance matrix computation method
 private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_METHOD}"
@@ -23,14 +22,10 @@ private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_ME
 # private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_METHOD}_correlation_{CORR_METHOD}"
 # --corr_method {CORR_METHOD}
 
-OUTPUT_ROOT = os.path.join(private_out_root, 'imagenet_subset_10k')
-
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
     print(f"Run CKA distance matrix experiment with {n_models} models.")
-    # Prepare the models for combined usage.
-    model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
 
     # Nr of jobs in the array is equal to the number of datasets.
     njobs = count_nr_datasets(DATASETS)
@@ -43,10 +38,8 @@ if __name__ == "__main__":
                                             --feature_root {FEATURES_ROOT} \
                                             --output {OUTPUT_ROOT} \
                                             --task=model_similarity \
-                                            --model {' '.join(model_names)} \
-                                            --model_source {' '.join(sources)} \
-                                            --model_parameters {' '.join([f"'{json.dumps(x)}'" for x in model_parameters])} \
-                                            --module_name {' '.join(module_names)} \
+                                            --model_key {models} \
+                                            --models_config_file {MODELS_CONFIG} \
                                             --train_split train \
                                             --sim_method {SIM_METHOD} 
                     """

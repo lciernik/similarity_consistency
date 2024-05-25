@@ -975,5 +975,6 @@ def image_captions_collate_fn(batch):
 def get_dataset_collection_from_file(path):
     return [l.strip() for l in open(path).readlines()]
 
+
 def get_dataset_collection():
     return dataset_collection

@@ -1,24 +1,21 @@
 import os
-import json
-from slurm import run_job
-from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
-MODELS_CONFIG = "test_scripts/test_models_config.json"  # "./models_config.json"
-DATASETS = "imagenet-subset-10k"  # "./webdatasets.txt"
+from helper import load_models, get_hyperparams
+from slurm import run_job
+
+MODELS_CONFIG = "./models_config.json"
+DATASETS = "./webdatasets.txt"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
-DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets', 'wds', 'wds_{dataset_cleaned}')
-
+DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
-
-OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results', '{task}', '{fewshot_k}', '{dataset}', '{model}',
-                           'fewshot_lr_{fewshot_lr}', 'fewshot_epochs_{fewshot_epochs}', 'seed_{seed}')
+MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
+OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    # Prepare job command input
-    model_names, sources, model_parameters, module_names = prepare_for_combined_usage(models)
+
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=10, size="small")
 
@@ -27,8 +24,10 @@ if __name__ == "__main__":
             clip_benchmark eval --dataset {DATASETS} \
                                 --dataset_root {DATASETS_ROOT} \
                                 --feature_root {FEATURES_ROOT} \
-                                --output {OUTPUT_ROOT} \
-                                --task=ensembling \
+                                --model_root {MODELS_ROOT} \
+                                --output_root {OUTPUT_ROOT} \
+                                --task=linear_probe \
+                                --mode=ensemble \
                                 --model_key {models} \
                                 --models_config_file {MODELS_CONFIG} \
                                 --batch_size=64 \
@@ -38,7 +37,6 @@ if __name__ == "__main__":
                                 --train_split train \
                                 --test_split test \
                                 --seed {' '.join(hyper_params['seeds'])} \
-                                --eval_combined \
             """
 
     run_job(

@@ -43,7 +43,7 @@ if __name__ == "__main__":
             clip_benchmark eval --dataset {DATASETS} \
                                 --dataset_root {DATASETS_ROOT} \
                                 --feature_root {FEATURES_ROOT} \
-                                --output {OUTPUT_ROOT} \
+                                --output_root {OUTPUT_ROOT} \
                                 --task=ensembling \
                                 --model {' '.join(model_names)} \
                                 --model_source {' '.join(sources)} \

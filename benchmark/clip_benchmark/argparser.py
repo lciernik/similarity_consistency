@@ -52,14 +52,12 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
 
     # TASKS
     aa('--task', type=str, default="linear_probe",
-       choices=["linear_probe", "model_similarity"],
+       choices=["feature_extraction", "linear_probe", "model_similarity"],
        help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
             "dataset.")
     aa('--mode', type=str, default="single_model",
        choices=["single_model", "combined_models", "ensemble"],
        help="Mode to use for linear probe task.")
-    aa('--eval_combined', action="store_true",
-       help="Whether the features of the different models should be used in combined fashion.")
     aa('--feature_combiner', type=str, default="concat",
        choices=['concat', 'concat_pca'], help="Feature combiner to use")
 

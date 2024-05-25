@@ -15,9 +15,10 @@ class PathMaker:
         self.feature_root = args.feature_root
         self.model_root = args.model_root
         self.output_root = args.output_root
-        self.feature_combiner = args.feature_combiner
+        self._check_root_paths()
 
         self.model_ids = as_list(args.model_key)
+        self.feature_combiner = args.feature_combiner
         self.hyperparams_slug = self._get_hyperparams_name(args)
         self.model_slug = self._create_model_slug()
 
@@ -47,9 +48,9 @@ class PathMaker:
             raise FileNotFoundError(f"Dataset root folder {self.dataset_root} does not exist.")
         if not os.path.exists(self.feature_root):
             raise FileNotFoundError(f"Feature root folder {self.feature_root} does not exist.")
-        if not os.path.exists(self.model_root):
+        if not os.path.exists(self.model_root) and self.task == "linear_probe":
             raise FileNotFoundError(f"Model root folder {self.model_root} does not exist.")
-        if not os.path.exists(self.output_root):
+        if not os.path.exists(self.output_root) and self.task == "linear_probe":
             os.makedirs(self.output_root, exist_ok=True)
             if self.verbose:
                 print(f'Created path ({self.output_root}), where results are to be stored ...')
@@ -94,8 +95,11 @@ class PathMaker:
         return single_prediction_dirs
 
     def make_paths(self) -> Tuple[List[str], List[str], str, str, Optional[List[str]], List[str]]:
-        self._check_root_paths()
         feature_dirs = self._get_feature_dirs()
+
+        if self.task == "feature_extraction":
+            return feature_dirs, None, None, None, None, self.model_ids
+
         model_dirs = self._get_model_dirs()
         results_dir, predictions_dir = self._get_results_and_predictions_dirs()
 

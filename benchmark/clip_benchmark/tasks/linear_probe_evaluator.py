@@ -55,9 +55,14 @@ class BaseEvaluator:
             if verbose:
                 print(f'Create path to store features: {feature_dir}')
             return False
-        if not os.path.exists(os.path.join(feature_dir, 'targets_train.pt')):
-            return False
-        return True
+        all_exist = True
+        for filename in ['features_train.pt', 'features_test.pt', 'targets_train.pt', 'targets_test.pt']:
+            if not os.path.exists(os.path.join(feature_dir, filename)):
+                all_exist = False
+                if verbose:
+                    print(f"File {filename} is missing in {feature_dir}.")
+                break
+        return all_exist
 
     def _create_train_val_loaders(self, train_loader):
         train_dataset = train_loader.dataset
@@ -155,6 +160,9 @@ class SingleModelEvaluator(BaseEvaluator):
                                           feature_dir=self.feature_dir,
                                           device=self.device,
                                           autocast=self.autocast)
+        else:
+            if self.verbose:
+                print(f"Features are already available in {self.feature_dir}.")
 
     def evaluate(self):
         self.ensure_feature_availability()
