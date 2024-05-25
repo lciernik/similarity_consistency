@@ -21,22 +21,22 @@ if __name__ == "__main__":
 
     job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
             export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-            clip_benchmark eval --dataset {DATASETS} \
-                                --dataset_root {DATASETS_ROOT} \
-                                --feature_root {FEATURES_ROOT} \
-                                --model_root {MODELS_ROOT} \
-                                --output_root {OUTPUT_ROOT} \
-                                --task=linear_probe \
-                                --mode=ensemble \
-                                --model_key {models} \
-                                --models_config_file {MODELS_CONFIG} \
-                                --batch_size=64 \
-                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
-                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
-                                --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                                --train_split train \
-                                --test_split test \
-                                --seed {' '.join(hyper_params['seeds'])} \
+            clip_benchmark --dataset {DATASETS} \
+                           --dataset_root {DATASETS_ROOT} \
+                           --feature_root {FEATURES_ROOT} \
+                           --model_root {MODELS_ROOT} \
+                           --output_root {OUTPUT_ROOT} \
+                           --task=linear_probe \
+                           --mode=ensemble \
+                           --model_key {models} \
+                           --models_config_file {MODELS_CONFIG} \
+                           --batch_size=64 \
+                           --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
+                           --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
+                           --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
+                           --train_split train \
+                           --test_split test \
+                           --seed {' '.join(hyper_params['seeds'])} \
             """
 
     run_job(

@@ -32,7 +32,7 @@ class PathMaker:
                                f"fewshot_lr_{args.fewshot_lr}",
                                f"fewshot_epochs_{args.fewshot_epochs}",
                                f"batch_size_{args.batch_size}",
-                               f"seed_{args.seed:02d}",
+                               f"seed_{args.seed}",
                                )
         return subpath
 
