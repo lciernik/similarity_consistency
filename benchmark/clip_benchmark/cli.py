@@ -78,6 +78,7 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
 
 
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
+    
     results_current_run = pd.DataFrame(index=range(1))
 
     # experiment config
@@ -89,16 +90,16 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     # dataset
     results_current_run["dataset"] = exp_args.dataset
     results_current_run["feature_normalization"] = exp_args.normalize
-    results_current_run["feature_alignment"] = exp_args.feature_alignment
+    results_current_run["feature_alignment"] = json.dumps(exp_args.feature_alignment)
     results_current_run["train_split"] = exp_args.train_split
     results_current_run["val_proportion"] = exp_args.val_proportion
     results_current_run["test_split"] = exp_args.split
     # model(s)
-    results_current_run["model_ids"] = model_ids
-    results_current_run["model"] = exp_args.model
-    results_current_run["model_source"] = exp_args.model_source
-    results_current_run["model_parameters"] = exp_args.model_parameters
-    results_current_run["module_name"] = exp_args.module_name
+    results_current_run["model_ids"] = json.dumps(model_ids)
+    results_current_run["model"] = json.dumps(exp_args.model)
+    results_current_run["model_source"] = json.dumps(exp_args.model_source)
+    results_current_run["model_parameters"] = json.dumps(exp_args.model_parameters)
+    results_current_run["module_name"] = json.dumps(exp_args.module_name)
     # hyperparameters
     results_current_run["fewshot_k"] = exp_args.fewshot_k
     results_current_run["fewshot_lr"] = exp_args.fewshot_lr
@@ -129,7 +130,7 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
                 results_current_run[col] = results_current_run[col].apply(json.dumps)
             except TypeError as e:
                 print(col)
-                print(results_current_run.loc[0, col])
+                print(results_current_run[col])
                 raise e
 
     return results_current_run
@@ -317,7 +318,7 @@ def run(args):
         dataset_root = args.dataset_root
 
     if args.verbose:
-        print(f"\n Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n")
+        print(f"\nRunning '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n")
 
     base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
 
