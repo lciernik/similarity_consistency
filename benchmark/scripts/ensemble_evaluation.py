@@ -15,6 +15,7 @@ OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
+    model_keys = ' '.join(models.keys())
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=10, size="small")
@@ -28,7 +29,7 @@ if __name__ == "__main__":
                            --output_root {OUTPUT_ROOT} \
                            --task=linear_probe \
                            --mode=ensemble \
-                           --model_key {models} \
+                           --model_key {model_keys} \
                            --models_config_file {MODELS_CONFIG} \
                            --batch_size=64 \
                            --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \

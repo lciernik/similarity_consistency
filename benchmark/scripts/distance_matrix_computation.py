@@ -9,44 +9,95 @@ BASE_PROJECT_PATH = "/home/space/diverse_priors"
 
 DATASETS = "imagenet-subset-10k"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
-
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
-SIM_METHOD = 'cka'  # Distance matrix computation method
-private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_METHOD}"
+sim_method_config = [
+    {
+        'sim_method' : 'cka',
+        'sim_kernel' : 'linear',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0,
+    },
+    {
+        'sim_method' : 'cka',
+        'sim_kernel' : 'rbf',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0.2,
+    },
+    {
+        'sim_method' : 'cka',
+        'sim_kernel' : 'rbf',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0.4,
+    },
+    {
+        'sim_method' : 'cka',
+        'sim_kernel' : 'rbf',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0.6,
+    },
+    {
+        'sim_method' : 'cka',
+        'sim_kernel' : 'rbf',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0.8,
+    },
+    {
+        'sim_method' : 'rsa',
+        'sim_kernel' : 'linear',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0,
+    },
+    {
+        'sim_method' : 'rsa',
+        'sim_kernel' : 'linear',
+        'rsa_method' : 'correlation',
+        'corr_method': 'spearman',
+        'sigma': 0,
+    },
 
-# SIM_METHOD = 'rsa'  # Distance matrix computation method
-# CORR_METHOD = 'spearman'
-# private_out_root = f"/home/lciernik/projects/divers-priors/results_local/{SIM_METHOD}_correlation_{CORR_METHOD}"
-# --corr_method {CORR_METHOD}
+]
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
+    model_keys = ' '.join(models.keys())
+
     print(f"Run CKA distance matrix experiment with {n_models} models.")
 
     # Nr of jobs in the array is equal to the number of datasets.
     njobs = count_nr_datasets(DATASETS)
     print(f"Nr.jobs: {njobs}")
-
-    job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
-                        export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                        clip_benchmark eval --dataset {DATASETS} \
-                                            --dataset_root {DATASETS_ROOT} \
-                                            --feature_root {FEATURES_ROOT} \
-                                            --output {OUTPUT_ROOT} \
-                                            --task=model_similarity \
-                                            --model_key {models} \
-                                            --models_config_file {MODELS_CONFIG} \
-                                            --train_split train \
-                                            --sim_method {SIM_METHOD} 
-                    """
-    run_job(
-        job_name=f"CKA",
-        job_cmd=job_cmd,
-        partition='gpu-2d',
-        log_dir='./logs',
-        num_jobs_in_array=njobs,
-    )
+    
+    for exp_dict in sim_method_config:
+        job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
+                            export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
+                            clip_benchmark --dataset {DATASETS} \
+                                        --dataset_root {DATASETS_ROOT} \
+                                        --feature_root {FEATURES_ROOT} \
+                                        --output {OUTPUT_ROOT} \
+                                        --task=model_similarity \
+                                        --model_key {model_keys} \
+                                        --models_config_file {MODELS_CONFIG} \
+                                        --train_split train \
+                                        --sim_method {exp_dict['sim_method']} \
+                                        --sim_kernel {exp_dict['sim_kernel']} \
+                                        --rsa_method {exp_dict['rsa_method']} \
+                                        --corr_method {exp_dict['corr_method']} \
+                                        --sigma {exp_dict['sigma']} \
+                        """
+        run_job(
+            job_name=f"{exp_dict['sim_method'].capitalize()}",
+            job_cmd=job_cmd,
+            partition='gpu-2d',
+            log_dir='./logs',
+            num_jobs_in_array=njobs,
+        )

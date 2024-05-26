@@ -9,7 +9,8 @@ from slurm import run_job
 from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "../models_config.json"
-DATASETS = "./webdatasets_test.txt"
+# DATASETS = "./webdatasets_test.txt"
+DATASETS = "imagenet-subset-10k"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets"
 
 # Create new test experiment folder
@@ -36,18 +37,18 @@ if __name__ == "__main__":
     
 
     # Set previous run hyperparameters
-    random_model="dinov2-vit-large-p14 mae-vit-large-p16"
+    random_model="vgg16 vgg19 seresnet50 resnet50 resnet152"
 
     hyper_params = dict(
-            fewshot_lrs=['0.1'],
-            fewshot_ks=['-1'],
-            fewshot_epochs=['10'],
+            fewshot_lrs=['0.01'],
+            fewshot_ks=['5'],
+            fewshot_epochs=['50'],
             seeds=['0'],
         )
     
     num_jobs = len(list(product(*hyper_params.values())))
 
-    val_proportion = 0.2
+    val_proportion = 0
 
     print(f"Testing single model {random_model} with hyper_params: {hyper_params}")
 
