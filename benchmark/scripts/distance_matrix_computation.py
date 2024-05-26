@@ -70,34 +70,29 @@ if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
     model_keys = ' '.join(models.keys())
-
-    print(f"Run CKA distance matrix experiment with {n_models} models.")
-
-    # Nr of jobs in the array is equal to the number of datasets.
-    njobs = count_nr_datasets(DATASETS)
-    print(f"Nr.jobs: {njobs}")
     
     for exp_dict in sim_method_config:
+        print(f"Computing model similarity matrix with config:\n{json.dumps(exp_dict, indent=4)}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
-                            export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                            clip_benchmark --dataset {DATASETS} \
-                                        --dataset_root {DATASETS_ROOT} \
-                                        --feature_root {FEATURES_ROOT} \
-                                        --output {OUTPUT_ROOT} \
-                                        --task=model_similarity \
-                                        --model_key {model_keys} \
-                                        --models_config_file {MODELS_CONFIG} \
-                                        --train_split train \
-                                        --sim_method {exp_dict['sim_method']} \
-                                        --sim_kernel {exp_dict['sim_kernel']} \
-                                        --rsa_method {exp_dict['rsa_method']} \
-                                        --corr_method {exp_dict['corr_method']} \
-                                        --sigma {exp_dict['sigma']} \
+                      export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
+                      clip_benchmark --dataset {DATASETS} \
+                                     --dataset_root {DATASETS_ROOT} \
+                                     --feature_root {FEATURES_ROOT} \
+                                     --output {OUTPUT_ROOT} \
+                                     --task=model_similarity \
+                                     --model_key {model_keys} \
+                                     --models_config_file {MODELS_CONFIG} \
+                                     --train_split train \
+                                     --sim_method {exp_dict['sim_method']} \
+                                     --sim_kernel {exp_dict['sim_kernel']} \
+                                     --rsa_method {exp_dict['rsa_method']} \
+                                     --corr_method {exp_dict['corr_method']} \
+                                     --sigma {exp_dict['sigma']} \
                         """
         run_job(
             job_name=f"{exp_dict['sim_method'].capitalize()}",
             job_cmd=job_cmd,
             partition='gpu-2d',
-            log_dir='./logs',
-            num_jobs_in_array=njobs,
+            log_dir=f'{OUTPUT_ROOT}/logs',
+            num_jobs_in_array=1,
         )

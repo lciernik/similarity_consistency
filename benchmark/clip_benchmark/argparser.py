@@ -79,7 +79,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--sim_method', type=str, default="cka",
        choices=['cka', 'rsa'], help="Method to use for model similarity task.")
     aa('--sim_kernel', type=str, default="linear",
-       choices=['linear'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
+       choices=['linear', 'rbf'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
     aa('--rsa_method', type=str, default="correlation",
        choices=['cosine', 'correlation'],
        help="Method used during RSA. Ignored if sim_method is cka.")
