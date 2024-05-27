@@ -22,7 +22,8 @@ from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
                                         prepare_ds_name,
-                                        world_info_from_env)
+                                        world_info_from_env,
+                                        set_all_random_seeds)
 
 
 def prepare_device(distributed: bool) -> str:
@@ -78,7 +79,6 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
 
 
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
-    
     results_current_run = pd.DataFrame(index=range(1))
 
     # experiment config
@@ -246,8 +246,6 @@ def main_eval(base):
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
     # seed random number generator (important for reproducibility of results)
-    random.seed(rnd_seed)
-    np.random.seed(rnd_seed)
 
     for model_info, dataset in runs:
 
@@ -293,7 +291,8 @@ def run(args):
     # device
     args.device = prepare_device(args.distributed)
     # set seed.
-    torch.manual_seed(args.seed)
+    set_all_random_seeds(args.seed)
+
     # fix task
     task = args.task
     mode = args.mode

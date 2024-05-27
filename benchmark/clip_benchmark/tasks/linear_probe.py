@@ -42,6 +42,7 @@ class LinearProbe:
         return _lr_adjuster
 
     def train(self, dataloader, filename=None):
+        # We reset the seed to ensure that the model is initialized with the same weights every time
         torch.manual_seed(self.seed)
 
         if filename is not None and os.path.exists(filename):

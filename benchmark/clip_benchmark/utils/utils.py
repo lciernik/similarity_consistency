@@ -1,6 +1,7 @@
 import os
 from typing import List, Union, Dict, Optional
-
+import numpy as np
+import random
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
@@ -109,7 +110,6 @@ def get_train_val_splits(
     return dataset_info
 
 
-
 def world_info_from_env():
     # from openclip
     local_rank = 0
@@ -130,5 +130,14 @@ def world_info_from_env():
     return local_rank, global_rank, world_size
 
 
-def all_paths_exist(list_of_paths: List[str])->bool:
+def all_paths_exist(list_of_paths: List[str]) -> bool:
     return all([os.path.exists(p) for p in list_of_paths])
+
+
+def set_all_random_seeds(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    if torch.cuda.device_count() > 1:
+        torch.cuda.manual_seed_all(seed)
