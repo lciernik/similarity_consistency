@@ -5,7 +5,7 @@ OUTPUT_ROOT = "/home/space/diverse_priors/clustering"
 
 METHOD_KEYS = [
     'cka_kernel_rbf_unbiased_sigma_0.2',
-    'cka_kernel_rbf_unbiased_sigma_0.4'
+    'cka_kernel_rbf_unbiased_sigma_0.4',
     'cka_kernel_rbf_unbiased_sigma_0.6',
     'cka_kernel_rbf_unbiased_sigma_0.8',
     'cka_kernel_linear_unbiased',
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     for num_clusters in NUM_CLUSTERS:
         for method_key in METHOD_KEYS:
             job_cmd = f"""
-            python clip_benchmark/cluster_models.py  \
+            python ../clip_benchmark/cluster_models.py \
                 --num_clusters {num_clusters} \
                 --method_key {method_key} \
                 --dataset imagenet-subset-10k \
@@ -32,6 +32,6 @@ if __name__ == "__main__":
                 job_name=f"clustering",
                 job_cmd=job_cmd,
                 partition='cpu-9m',
-                log_dir='./logs',
+                log_dir=f'{OUTPUT_ROOT}/logs',
                 num_jobs_in_array=1
             )

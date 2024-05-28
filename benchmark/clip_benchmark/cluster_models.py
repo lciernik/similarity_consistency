@@ -43,7 +43,7 @@ def main(args):
     labels = clustering.fit_predict(sim_mat.values, y=None)
     labels = pd.DataFrame(labels, index=sim_mat.index, columns=['cluster'])
 
-    output_path = os.path.join(args.output_root, args.dataset, args.method_key)
+    output_path = os.path.join(args.output_root, args.dataset, args.method_key, f"num_clusters_{args.num_clusters}")
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     labels.to_csv(os.path.join(output_path, 'cluster_labels.csv'))
@@ -56,10 +56,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_clusters', type=int, help="Number of clusters to create.")
     parser.add_argument('--method_key', type=str,
-                        choices=['cka_kernel_linear_unbiased', 'cka_kernel_rbf_unbiased_sigma_0.6',
-                                 'rsa_method_correlation_corr_method_pearson', 'cka_kernel_rbf_unbiased_sigma_0.2',
-                                 'cka_kernel_rbf_unbiased_sigma_0.8', 'rsa_method_correlation_corr_method_spearman',
-                                 'cka_kernel_rbf_unbiased_sigma_0.4'],
+                        choices=[
+                            'cka_kernel_rbf_unbiased_sigma_0.2',
+                            'cka_kernel_rbf_unbiased_sigma_0.4',
+                            'cka_kernel_rbf_unbiased_sigma_0.6',
+                            'cka_kernel_rbf_unbiased_sigma_0.8',
+                            'cka_kernel_linear_unbiased',
+                            'rsa_method_correlation_corr_method_pearson',
+                            'rsa_method_correlation_corr_method_spearman',
+                        ],
                         default='rsa_correlation_spearman')
 
     parser.add_argument('--dataset', type=str, default='imagenet-subset-10k',
@@ -73,4 +78,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(**vars(args))
+    main(args)
