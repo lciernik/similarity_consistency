@@ -69,7 +69,6 @@ dataset_collection = {
         "imagenet_sketch",
         "imagenet-a",
         "imagenet-r",
-        "objectnet",
     ],
     "sugar_crepe": [
         "sugar_crepe/add_att",
@@ -81,6 +80,9 @@ dataset_collection = {
         "sugar_crepe/swap_obj",
     ]
 }
+
+probe_dataset_map = {ds: "imagenet1k" for ds in dataset_collection["imagenet_robustness"]}
+
 # use by imagenet robustness data
 all_imagenet_wordnet_ids = ['n01440764', 'n01443537', 'n01484850', 'n01491361', 'n01494475', 'n01496331', 'n01498041',
                             'n01514668', 'n01514859', 'n01518878', 'n01530575', 'n01531178', 'n01532829', 'n01534433',
