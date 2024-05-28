@@ -61,7 +61,7 @@ class CKAModelSimilarity(BaseModelSimilarity):
         return sim_matrix, self.model_ids
 
     def get_name(self) -> str:
-        method_name = f"cka_kernel_{self.kernel}{'_unbiased' if self.unbiased else 'biased'}"
+        method_name = f"cka_kernel_{self.kernel}{'_unbiased' if self.unbiased else '_biased'}"
         if self.kernel == 'rbf':
             method_name += f"_sigma_{self.sigma}"
         return method_name

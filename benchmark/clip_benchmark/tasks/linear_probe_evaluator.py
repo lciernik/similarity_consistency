@@ -18,7 +18,8 @@ from clip_benchmark.tasks.weight_decay_tuner import WeightDecayTuner
 
 class BaseEvaluator:
     def __init__(self, batch_size: int, num_workers: int, lr: float, epochs: int, seed: int, device: str,
-                 fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str], normalize: bool = True, 
+                 fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
+                 normalize: bool = True,
                  amp: bool = True, verbose: bool = False, val_proportion: float = 0) -> None:
         super().__init__()
 
@@ -193,15 +194,11 @@ class CombinedModelEvaluator(BaseEvaluator):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
                          normalize, amp, verbose, val_proportion)
 
-        # TODO: maybe this is bad to do it here, as the storing paths contain all the models
         available_features = [self.check_feature_existence(feature_dir, verbose) for feature_dir in feature_dirs]
-        if not any(available_features):
-            raise ValueError("Features of all models are missing. Please generate features first.")
         if not all(available_features):
-            self.feature_dirs = [feature_dir for feature_dir, available in zip(feature_dirs, available_features) if
-                                 available]
-            if self.verbose:
-                print(f"Using only available features: {self.feature_dirs}")
+            not_available_features = [feature_dir for feature_dir, available in zip(feature_dirs, available_features) if
+                                      not available]
+            raise ValueError(f"Features are missing in {not_available_features}, please run single evaluator first!")
         else:
             self.feature_dirs = feature_dirs
 

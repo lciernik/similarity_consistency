@@ -225,10 +225,13 @@ def main_eval(base):
 
     if base.mode != "single_model":
         # TODO: implement different ways how to select the model combinations
-        # Now assumption that passed models are combined together (all permutations)
+        # Check not too many models
         n_models = len(models)
+        if n_models > 10:
+            raise ValueError(f"Too many models ({n_models}) to combine (max. 10 models). "
+                             f"Please select a smaller number of models to combine.")
         model_combinations = []
-        for i in range(2, min(n_models + 1, 11)):
+        for i in range(2, n_models + 1):
             # TODO this is only for fast testing till we find better combinations
             model_combinations += list(islice(combinations(models, i), 10))
 
