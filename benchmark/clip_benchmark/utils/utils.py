@@ -5,6 +5,7 @@ import random
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
+from clip_benchmark.data.constants import probe_dataset_map
 
 
 def as_list(l):
@@ -67,6 +68,12 @@ def get_list_of_datasets(base):
             # if not, assume it is simply the name of the dataset
             datasets.append(name)
     return datasets
+
+
+def map_to_probe_dataset(dataset: str) -> str:
+    if dataset in probe_dataset_map:
+        return probe_dataset_map[dataset]
+    return dataset
 
 
 def prepare_ds_name(dataset: str) -> str:

@@ -21,6 +21,7 @@ from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, C
 from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
+                                        map_to_probe_dataset,
                                         prepare_ds_name,
                                         world_info_from_env,
                                         set_all_random_seeds)
@@ -218,12 +219,10 @@ def main_eval(base):
 
     # Get list of data to evaluate on
     datasets = get_list_of_datasets(base)
-    probe_datasets = get_list_of_datasets(base, from_key="probe_dataset")
 
     if base.verbose:
         print(f"\nModels: {models}")
         print(f"Datasets: {datasets}\n")
-        print(f"Probe datasets: {probe_datasets}\n")
 
     if base.mode != "single_model":
         # TODO: implement different ways how to select the model combinations
@@ -236,10 +235,10 @@ def main_eval(base):
         for i in range(2, n_models + 1):
             model_combinations += list(combinations(models, i))
 
-        runs = product(model_combinations, zip(datasets, probe_datasets))
+        runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
     else:
-        runs = product(models, zip(datasets, probe_datasets))
+        runs = product(models, datasets)
         arg_fn = prepare_args
 
     if base.distributed:
@@ -251,12 +250,11 @@ def main_eval(base):
 
     # seed random number generator (important for reproducibility of results)
 
-    for model_info, (dataset, probe_dataset) in runs:
+    for model_info, dataset in runs:
 
         args = copy(base)
         args = arg_fn(args, model_info)
         args.dataset = dataset
-        args.probe_dataset = probe_dataset
 
         args.train_split = base.train_split
         args.val_proportion = base.val_proportion  # This should be set for WD tuning!
@@ -303,7 +301,7 @@ def run(args):
     mode = args.mode
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
-    probe_dataset_name = prepare_ds_name(args.probe_dataset) if args.probe_dataset else dataset_name
+    probe_dataset_name = map_to_probe_dataset(dataset_name)
 
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
