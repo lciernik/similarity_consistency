@@ -10,7 +10,7 @@ from torch.utils.data import default_collate
 from torchvision.datasets import ImageNet
 
 from clip_benchmark.data.constants import all_imagenet_wordnet_ids, dataset_collection
-from clip_benchmark.data.datasets import breeds, cifar_coarse
+from clip_benchmark.data.datasets import breeds, cifar_coarse, imagenet_variants
 
 
 def build_dataset(dataset_name, root="root", transform=None, split="test", download=True, wds_cache_dir=None):
@@ -130,6 +130,16 @@ def get_dataset_collate_fn(dataset_name):
         return image_captions_collate_fn
     else:
         return default_collate
+
+
+def get_dataset_class_filter(dataset_name, split):
+    class_filter = None
+    if any([n in dataset_name for n in ("imagenet-r", "imagenet-a")]):
+        classes = imagenet_variants.get_class_ids(dataset_name.replace("wds/", ""))
+        class_filter = torch.zeros([1000], dtype=bool)
+        for i in classes:
+            class_filter[i] = 1
+    return class_filter
 
 
 def has_gdown():

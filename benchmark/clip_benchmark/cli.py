@@ -15,6 +15,7 @@ import torch
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
 from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
+from clip_benchmark.data.builder import get_dataset_class_filter
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
                                                          EnsembleModelEvaluator)
@@ -340,6 +341,7 @@ def run(args):
         evaluator.ensure_feature_availability()
 
     elif task == 'linear_probe':
+        logit_filter = get_dataset_class_filter(args.dataset)
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
@@ -347,6 +349,7 @@ def run(args):
                 model=model,
                 train_dataloader=train_dataloader,
                 eval_dataloader=eval_dataloader,
+                logit_filter=logit_filter,
                 **base_kwargs
             )
 
@@ -354,6 +357,7 @@ def run(args):
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
             evaluator = CombinedModelEvaluator(
                 feature_combiner_cls=feature_combiner_cls,
+                logit_filter=logit_filter,
                 **base_kwargs
             )
 
@@ -361,6 +365,7 @@ def run(args):
             evaluator = EnsembleModelEvaluator(
                 model_ids=model_ids,
                 single_prediction_dirs=single_prediction_dirs,
+                logit_filter=logit_filter,
                 **base_kwargs
             )
 

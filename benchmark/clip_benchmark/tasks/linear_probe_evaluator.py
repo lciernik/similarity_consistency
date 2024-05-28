@@ -18,9 +18,9 @@ from clip_benchmark.tasks.weight_decay_tuner import WeightDecayTuner
 
 class BaseEvaluator:
     def __init__(self, batch_size: int, num_workers: int, lr: float, epochs: int, seed: int, device: str,
-                 fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
-                 normalize: bool = True,
-                 amp: bool = True, verbose: bool = False, val_proportion: float = 0) -> None:
+                 fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str], normalize: bool = True,
+                 amp: bool = True, verbose: bool = False, val_proportion: float = 0,
+                 logit_filter: Optional[torch.Tensor]=None) -> None:
         super().__init__()
 
         self.batch_size = batch_size
@@ -42,6 +42,7 @@ class BaseEvaluator:
         self.predictions_dir = predictions_dir
         self.verbose = verbose
         self.val_proportion = val_proportion
+        self.logit_filter = logit_filter
 
         self.wd_tuner = WeightDecayTuner(self.lr, self.epochs, self.autocast, self.device, self.verbose, self.seed)
 
@@ -125,7 +126,9 @@ class BaseEvaluator:
                                    epochs=self.epochs,
                                    autocast=self.autocast,
                                    device=self.device,
-                                   seed=self.seed)
+                                   seed=self.seed,
+                                   logit_filter=self.logit_filter
+                                   )
         linear_probe.train(train_loader, filename=filename)
 
         train_logits, train_targets = linear_probe.infer(train_loader)
@@ -147,9 +150,9 @@ class BaseEvaluator:
 class SingleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, model=None, train_dataloader=None, eval_dataloader=None, normalize=True,
-                 amp=True, verbose=False, val_proportion=0):
+                 amp=True, verbose=False, val_proportion=0, logit_filter=None):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion)
+                         normalize, amp, verbose, val_proportion, logit_filter)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -189,10 +192,11 @@ class SingleModelEvaluator(BaseEvaluator):
 
 class CombinedModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
-                 predictions_dir, feature_combiner_cls, normalize=True, amp=True, verbose=False, val_proportion=0):
+                 predictions_dir, feature_combiner_cls, normalize=True, amp=True, verbose=False, val_proportion=0,
+                 logit_filter=None):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion)
+                         normalize, amp, verbose, val_proportion, logit_filter)
 
         available_features = [self.check_feature_existence(feature_dir, verbose) for feature_dir in feature_dirs]
         if not all(available_features):
@@ -224,10 +228,10 @@ class CombinedModelEvaluator(BaseEvaluator):
 class EnsembleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_ids,
                  feature_dirs, model_dirs, predictions_dir, single_prediction_dirs,
-                 normalize=True, amp=True, verbose=False, val_proportion=0):
+                 normalize=True, amp=True, verbose=False, val_proportion=0, logit_filter=None):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion)
+                         normalize, amp, verbose, val_proportion, logit_filter)
 
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs
