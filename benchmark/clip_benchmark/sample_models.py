@@ -3,6 +3,7 @@ from typing import Dict, List
 import json
 from enum import Enum
 from functools import partial
+import pandas as pd
 
 from analysis.utils import retrieve_performance
 from analysis.samplers import TopKSampler, RandomSampler, ClusterSampler, OneClusterSampler
@@ -47,13 +48,18 @@ def main(num_models: int,
 
     cluster_assignment = None
     if cluster_assignment_path is not None:
-        with open(cluster_assignment_path, 'r') as f:
-            cluster_assignment = json.load(f)
+        cluster_assignment = {}
+        cluster_assignment_table = pd.read_csv(cluster_assignment_path)
+        for cluster_idx in cluster_assignment_table.cluster.unique():
+            subset = cluster_assignment_table[cluster_assignment_table.cluster == cluster_idx]
+            # model names are in first column, we should give this column a name
+            cluster_assignment[cluster_idx] = subset.iloc[:, 0].values.tolist()
 
     os.makedirs(output_root, exist_ok=True)
 
     for sampling_strategy in sampling_strategies:
-        sampler = build_sampler(sampling_strategy=SamplingStrategy(sampling_strategy),
+        sampling_strategy = SamplingStrategy(sampling_strategy)
+        sampler = build_sampler(sampling_strategy=sampling_strategy,
                                 num_models=num_models,
                                 models=models,
                                 selection_dataset=selection_dataset,
@@ -65,7 +71,12 @@ def main(num_models: int,
             model_set = sampler.sample()
             model_sets.append(model_set)
 
-        output_file = os.path.join(output_root, f'{sampling_strategy}.json')
+        if sampling_strategy in [SamplingStrategy.CLUSTER, SamplingStrategy.ONE_CLUSTER]:
+            cluster_slug = cluster_assignment_path.split('/')[-3]
+            output_file = os.path.join(output_root, f'{sampling_strategy.value}_{cluster_slug}.json')
+        else:
+            output_file = os.path.join(output_root, f'{sampling_strategy.value}.json')
+
         with open(output_file, 'w') as f:
             json.dump(model_sets, f)
 
