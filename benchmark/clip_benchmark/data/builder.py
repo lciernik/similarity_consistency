@@ -574,6 +574,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         ds = ImageFolder(root=root, transform=transform)
         ds.classes = default_classnames["fer2013"]
 
+    # TODO: adapt for different number of samples per class, i.e., imagenet-subset-XXk
     elif dataset_name == "imagenet-subset-10k":
         root = os.path.join(root, 'imagenet_torch')
         if split == 'test':
