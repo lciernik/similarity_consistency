@@ -136,9 +136,7 @@ def get_dataset_class_filter(dataset_name, split):
     class_filter = None
     if any([n in dataset_name for n in ("imagenet-r", "imagenet-a")]):
         classes = imagenet_variants.get_class_ids(dataset_name.replace("wds/", ""))
-        class_filter = torch.zeros([1000], dtype=bool)
-        for i in classes:
-            class_filter[i] = 1
+        class_filter = torch.eye(1000, dtype=bool)[[classes]]
     return class_filter
 
 

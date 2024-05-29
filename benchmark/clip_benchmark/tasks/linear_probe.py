@@ -15,6 +15,7 @@ class LinearProbe:
         self.device = device
         self.seed = seed
         self.model = None
+        self.logit_filter = logit_filter
 
     @staticmethod
     def assign_learning_rate(param_group, new_lr):
@@ -119,6 +120,7 @@ class LinearProbe:
                 with self.autocast():
                     logits = self.model(x)
                     if self.logit_filter is not None:
+                        print("logit_filter:", self.logit_filter.shape, "logits:", logits.shape)
                         logits = logits.T[self.logit_filter].T
 
                 pred.append(logits.cpu())
