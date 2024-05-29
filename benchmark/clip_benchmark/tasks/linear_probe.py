@@ -121,7 +121,7 @@ class LinearProbe:
                     logits = self.model(x)
                     if self.logit_filter is not None:
                         print("logit_filter:", self.logit_filter.shape, "logits:", logits.shape)
-                        logits = logits.T[self.logit_filter].T
+                        logits = logits @ self.logit_filter.T
 
                 pred.append(logits.cpu())
                 true.append(y.cpu())

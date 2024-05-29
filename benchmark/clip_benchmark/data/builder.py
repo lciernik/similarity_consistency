@@ -31,9 +31,12 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         For specific splits, please look at the corresponding dataset.
     """
 
-    if any([imgnt_variant in dataset_name for imgnt_variant in
+    if split == "train" and any([imgnt_variant in dataset_name for imgnt_variant in
          ["imagenet-a", "imagenet-o", "imagenet-r", "imagenet_sketch", "imagenetv2"]]):
-        assert split != "train", "ImageNet variant test sets cannot be used for training."
+        # Setting imagenet as training set for imagenet variants (should not be used)
+        root = os.sep.join(root.split(os.sep)[:-1] + ["wds_imagenet1k"])
+        print(f"Using imagenet1k as train dataset for {dataset_name}, dataset root set to {root}")
+        dataset_name = "wds/imagenet1k"
 
     if dataset_name == "imagenet-subset-10k":
         root = os.path.join(root, 'imagenet_torch')
@@ -79,15 +82,6 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
                                selector_fn=lambda x: int(x["cls"]) in classes,
                                label_map=lambda y: superclass_mapping[y]
                                )
-        """elif any([("wds/" + variant) == dataset_name for variant in
-              ["imagenet-a", "imagenet-o", "imagenet-r", "imagenet_sketch"]]):
-        classes, class_names = imagenet_variants.get_class_ids_and_labels(dataset_name.replace("wds/", ""))
-        if split == "train":
-            root = "/".join(root.split("/")[:-1] + ["wds_imagenet1k"])
-        ds = build_wds_dataset(transform=transform, split=split, data_dir=root, cache_dir=wds_cache_dir,
-                               class_names=class_names
-                               )
-        """ # TODO: remove this - it should not be neccessary to do anything special about wds imgnt test sets here
     elif dataset_name.startswith("wds/"):
         ds = build_wds_dataset(transform=transform, split=split, data_dir=root, cache_dir=wds_cache_dir)
     elif dataset_name == "dummy":
@@ -132,7 +126,7 @@ def get_dataset_collate_fn(dataset_name):
         return default_collate
 
 
-def get_dataset_class_filter(dataset_name, split):
+def get_dataset_class_filter(dataset_name):
     class_filter = None
     if any([n in dataset_name for n in ("imagenet-r", "imagenet-a")]):
         classes = imagenet_variants.get_class_ids(dataset_name.replace("wds/", ""))
