@@ -61,3 +61,12 @@ class PCAConcatFeatureCombiner(BaseFeatureCombiner):
         self.features = torch.Tensor(pca_features[:, :self.n_components])
         if normalize:
             self.features = F.normalize(self.features, dim=-1)
+
+
+def get_feature_combiner_cls(combiner_name):
+    if combiner_name == "concat":
+        return ConcatFeatureCombiner
+    elif combiner_name == "concat_pca":
+        return PCAConcatFeatureCombiner
+    else:
+        raise ValueError(f"Unknown feature combiner name: {combiner_name}")
