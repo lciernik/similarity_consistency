@@ -232,8 +232,7 @@ def main_eval(base):
                              f"Please select a smaller number of models to combine.")
         model_combinations = []
         for i in range(2, n_models + 1):
-            # TODO this is only for fast testing till we find better combinations
-            model_combinations += list(islice(combinations(models, i), 10))
+            model_combinations += list(combinations(models, i))
 
         runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
