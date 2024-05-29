@@ -29,9 +29,9 @@ def prepare_for_combined_usage(models):
 def get_hyperparams(num_seeds=10, size="extended"):
     if size == "small":
         hyper_params = dict(
-            fewshot_lrs=['0.1', '0.01'],
-            fewshot_ks=['5'],
-            fewshot_epochs=['50'],
+            fewshot_lrs=['0.1', '0.01', '0.001'],
+            fewshot_ks=['-1'],
+            fewshot_epochs=['20'],
             seeds=[str(num) for num in range(num_seeds)],
         )
     else:

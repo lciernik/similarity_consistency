@@ -1,9 +1,10 @@
 import os
 from typing import List, Union, Dict, Optional
-
+import numpy as np
+import random
 import torch
 
-from benchmark.clip_benchmark.data import dataset_collection, get_dataset_collection_from_file
+from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
 
 
 def as_list(l):
@@ -54,6 +55,7 @@ def check_models(feature_root, model_ids, split):
 
 def get_list_of_datasets(base):
     datasets = []
+    dataset_collection = get_dataset_collection()
     for name in as_list(base.dataset):
         if os.path.isfile(name):
             # If path, read file, each line is a dataset name
@@ -68,10 +70,10 @@ def get_list_of_datasets(base):
 
 
 def prepare_ds_name(dataset: str) -> str:
-    if dataset.startswith("wds/"):
-        return dataset.replace("wds/", "", 1)
-    else:
-        return dataset
+    # if dataset.startswith("wds/"):
+    #     dataset = dataset.replace("wds/", "", 1)
+    dataset = dataset.replace("/", "_")
+    return dataset
 
 
 def single_option_to_multiple_datasets(cur_option: List[str], datasets: List[str], name: str) -> List[str]:
@@ -108,14 +110,34 @@ def get_train_val_splits(
     return dataset_info
 
 
-def get_model_id(model: str, model_parameters: Union[dict, None]) -> str:
-    if not model_parameters:
-        return model
-    model_slug = model
-    model_suffix = model_parameters.get("variant", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    model_suffix = model_parameters.get("dataset", "")
-    if model_suffix:
-        model_slug = f"{model_slug}_{model_suffix}"
-    return model_slug
+def world_info_from_env():
+    # from openclip
+    local_rank = 0
+    for v in ('LOCAL_RANK', 'MPI_LOCALRANKID', 'SLURM_LOCALID', 'OMPI_COMM_WORLD_LOCAL_RANK'):
+        if v in os.environ:
+            local_rank = int(os.environ[v])
+            break
+    global_rank = 0
+    for v in ('RANK', 'PMI_RANK', 'SLURM_PROCID', 'OMPI_COMM_WORLD_RANK'):
+        if v in os.environ:
+            global_rank = int(os.environ[v])
+            break
+    world_size = 1
+    for v in ('WORLD_SIZE', 'PMI_SIZE', 'SLURM_NTASKS', 'OMPI_COMM_WORLD_SIZE'):
+        if v in os.environ:
+            world_size = int(os.environ[v])
+            break
+    return local_rank, global_rank, world_size
+
+
+def all_paths_exist(list_of_paths: List[str]) -> bool:
+    return all([os.path.exists(p) for p in list_of_paths])
+
+
+def set_all_random_seeds(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    if torch.cuda.device_count() > 1:
+        torch.cuda.manual_seed_all(seed)

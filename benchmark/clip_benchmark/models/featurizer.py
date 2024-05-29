@@ -1,6 +1,7 @@
+import os
+
 import torch
 import torch.nn.functional as F
-import os
 from tqdm import tqdm
 
 
@@ -20,9 +21,9 @@ class Featurizer(torch.nn.Module):
         """
         Extract features from the dataset using the featurizer model and store them in the feature_dir
         """
-        # now we have to cache the features
-        devices = [x for x in range(torch.cuda.device_count())]
-        self.model = torch.nn.DataParallel(self.model, device_ids=devices)
+        # now we have to cache the features TODO check
+        # devices = [x for x in range(torch.cuda.device_count())]
+        # self.model = torch.nn.DataParallel(self.model, device_ids=devices)
 
         splits = ["_train", "_test"]
         for save_str, loader in zip(splits, [train_dataloader, eval_dataloader]):

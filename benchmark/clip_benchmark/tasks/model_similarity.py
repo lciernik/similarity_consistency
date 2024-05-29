@@ -16,7 +16,7 @@ class BaseModelSimilarity:
         self.device = device
         self.model_ids = []
 
-    def load_model_ids(self, model_ids: List[str]):
+    def load_model_ids(self, model_ids: List[str]) -> None:
         assert os.path.exists(self.feature_root), "Feature root path non-existent"
         self.model_ids = check_models(self.feature_root, model_ids, self.split)
         self.model_ids_with_idx = [(i, model_id) for i, model_id in enumerate(self.model_ids)]
@@ -61,7 +61,7 @@ class CKAModelSimilarity(BaseModelSimilarity):
         return sim_matrix, self.model_ids
 
     def get_name(self) -> str:
-        method_name = f"cka_kernel_{self.kernel}{'_unbiased' if self.unbiased else 'biased'}"
+        method_name = f"cka_kernel_{self.kernel}{'_unbiased' if self.unbiased else '_biased'}"
         if self.kernel == 'rbf':
             method_name += f"_sigma_{self.sigma}"
         return method_name

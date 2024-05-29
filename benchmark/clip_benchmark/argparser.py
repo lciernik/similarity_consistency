@@ -1,5 +1,9 @@
 import argparse
+import json
+import os
 from typing import Tuple, List
+
+from clip_benchmark.utils.utils import as_list
 
 
 def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
@@ -21,9 +25,9 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--split', type=str, default="test", help="Dataset split to use")
     aa('--test_split', dest="split", action='store', type=str, default="test",
        help="Dataset split to use")
-    aa('--train_split', type=str, nargs='+', default="train",
+    aa('--train_split', type=str, default="train",
        help="Dataset(s) train split names")
-    aa('--val_proportion', default=None, type=float, nargs="+",
+    aa('--val_proportion', default=0, type=float,
        help="what is the share of the train dataset will be used for validation part, "
             "if it doesn't predefined.")
     aa('--wds_cache_dir', default=None, type=str,
@@ -35,34 +39,25 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     # FEATURES
     aa('--feature_root', default="features", type=str,
        help="feature root folder where the features are stored.")
-    # TODO: change alignment to argument such that it can be model specific, b/c some model do not have alignment.
-    aa('--feature_alignment', nargs='?', const='gLocal',
-       type=lambda x: None if x == '' else x)
     aa('--normalize', dest='normalize', action="store_true", default=True,
        help="enable features normalization")
     aa('--no-normalize', dest='normalize', action='store_false',
        help="disable features normalization")
 
     # MODEL(S)
-    aa('--model', type=str, nargs="+", default=["dinov2-vit-large-p14"],
-       help="Thingsvision model string")
-    aa('--model_source', type=str, nargs="+", default=["ssl"],
-       help="For each model, indicate the source of the model. "
-            "See thingsvision for more details.")
-    aa('--model_parameters', nargs="+", type=str,
-       help='A serialized JSON dictionary of key-value pairs.')
-    aa('--module_name', type=str, nargs="+", default=["norm"], help="Module name")
+    aa('--model_key', type=str, nargs="+", default=["dinov2-vit-large-p14"],
+       help="Models to use from the models config file.")
+    aa('--models_config_file', default=None, type=str,
+       help="Path to the models config file.")
 
     # TASKS
     aa('--task', type=str, default="linear_probe",
-       choices=["linear_probe", "model_similarity"],
+       choices=["feature_extraction", "linear_probe", "model_similarity"],
        help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
             "dataset.")
     aa('--mode', type=str, default="single_model",
        choices=["single_model", "combined_models", "ensemble"],
        help="Mode to use for linear probe task.")
-    aa('--eval_combined', action="store_true",
-       help="Whether the features of the different models should be used in combined fashion.")
     aa('--feature_combiner', type=str, default="concat",
        choices=['concat', 'concat_pca'], help="Feature combiner to use")
 
@@ -84,7 +79,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--sim_method', type=str, default="cka",
        choices=['cka', 'rsa'], help="Method to use for model similarity task.")
     aa('--sim_kernel', type=str, default="linear",
-       choices=['linear'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
+       choices=['linear', 'rbf'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
     aa('--rsa_method', type=str, default="correlation",
        choices=['cosine', 'correlation'],
        help="Method used during RSA. Ignored if sim_method is cka.")
@@ -114,17 +109,55 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     return parser, args
 
 
-def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str]) -> argparse.Namespace:
+def prepare_args(args: argparse.Namespace, model_info: Tuple[str, str, dict, str, str, str]) -> argparse.Namespace:
     args.model = model_info[0]  # model
     args.model_source = model_info[1]  # model_source
     args.model_parameters = model_info[2]  # model_parameters
     args.module_name = model_info[3]  # module_name
+    args.feature_alignment = model_info[4]  # feature_alignment
+    args.model_key = model_info[5]  # model_key
     return args
 
 
-def prepare_combined_args(args: argparse.Namespace, model_comb: List[Tuple[str, str, dict, str]]) -> argparse.Namespace:
+def prepare_combined_args(args: argparse.Namespace,
+                          model_comb: List[Tuple[str, str, dict, str, str, str]]) -> argparse.Namespace:
     args.model = [tup[0] for tup in model_comb]
     args.model_source = [tup[1] for tup in model_comb]
     args.model_parameters = [tup[2] for tup in model_comb]
     args.module_name = [tup[3] for tup in model_comb]
+    args.feature_alignment = [tup[4] for tup in model_comb]
+    args.model_key = [tup[5] for tup in model_comb]
     return args
+
+
+def load_model_configs_args(base: argparse.Namespace) -> argparse.Namespace:
+    """Loads the model_configs file and transcribes its parameters into base."""
+    if base.models_config_file is None:
+        raise FileNotFoundError("Model config file not provided.")
+
+    if not os.path.exists(base.models_config_file):
+        raise FileNotFoundError(f"Model config file {base.models_config_file} does not exist.")
+
+    with open(base.models_config_file, "r") as f:
+        model_configs = json.load(f)
+
+    model = []
+    model_source = []
+    model_parameters = []
+    module_name = []
+    feature_alignment = []
+
+    for model_key in as_list(base.model_key):
+        model.append(model_configs[model_key]["model_name"])
+        model_source.append(model_configs[model_key]["source"])
+        model_parameters.append(model_configs[model_key]["model_parameters"])
+        module_name.append(model_configs[model_key]["module_name"])
+        feature_alignment.append(model_configs[model_key]["alignment"])
+
+    setattr(base, "model", model)
+    setattr(base, "model_source", model_source)
+    setattr(base, "model_parameters", model_parameters)
+    setattr(base, "module_name", module_name)
+    setattr(base, "feature_alignment", feature_alignment)
+
+    return base

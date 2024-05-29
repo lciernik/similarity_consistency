@@ -2,7 +2,9 @@ from typing import Union, Dict, Optional
 
 import torch
 import zipfile
+import zlib
 from thingsvision import get_extractor
+
 
 
 class ThingsvisionModel:
@@ -36,7 +38,7 @@ class ThingsvisionModel:
                         alignment_type=self._alignment_type,
                     )
                     is_aligned = True
-                except (zipfile.BadZipFile, FileNotFoundError, EOFError) as e:
+                except (zipfile.BadZipFile, FileNotFoundError, EOFError, zlib.error) as e:
                     print(f"Error: {e}", flush=True)
 
         return features
@@ -50,7 +52,6 @@ def load_thingsvision_model(
     module_name: str,
     feature_alignment: Optional[str] = None,
 ):
-    # TODO add feature alignment only if the model has it as an option
     extractor = get_extractor(
         model_name=model_name,
         source=source,
