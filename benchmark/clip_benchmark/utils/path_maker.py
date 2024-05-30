@@ -8,7 +8,7 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 class PathMaker:
     def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None):
         self.dataset_name = dataset_name
-        self.train_dataset_name = probe_dataset_name if probe_dataset_name else dataset_name
+        self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
         self.mode = args.mode
 
