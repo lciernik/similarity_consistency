@@ -67,7 +67,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         else:
             print("successfully build imagenet-subset-10k dataset")
     elif dataset_name == "cifar100-coarse":
-        root = "/".join(root.split("/")[:-1] + ["wds_vtab-cifar100"])
+        root = os.path.join(os.path.join(root, "wds"), "wds_vtab-cifar100")
         superclass_mapping, superclass_names = cifar_coarse.get_cifar100_coarse_map()
         ds = build_wds_dataset(transform=transform, split=split, data_dir=root,
                                cache_dir=wds_cache_dir,
@@ -75,7 +75,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
                                )
         ds.classes = superclass_names
     elif dataset_name in breeds.get_breeds_task_names():
-        root = "/".join(root.split("/")[:-1] + ["wds_imagenet1k"])
+        root = os.path.join(os.path.join(root, "wds"), "wds_imagenet1k")
         train_classes, test_classes, superclass_mapping = breeds.get_breeds_task(dataset_name)
         classes = train_classes if split == "train" else test_classes
         ds = build_wds_dataset(transform=transform, split=split, data_dir=root, cache_dir=wds_cache_dir,
@@ -126,11 +126,11 @@ def get_dataset_collate_fn(dataset_name):
         return default_collate
 
 
-def get_dataset_class_filter(dataset_name):
+def get_dataset_class_filter(dataset_name, device):
     class_filter = None
     if any([n in dataset_name for n in ("imagenet-r", "imagenet-a")]):
         classes = imagenet_variants.get_class_ids(dataset_name.replace("wds/", ""))
-        class_filter = torch.eye(1000, dtype=bool)[[classes]]
+        class_filter = torch.eye(1000, device=device)[[classes]]
     return class_filter
 
 

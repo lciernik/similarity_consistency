@@ -81,7 +81,7 @@ dataset_collection = {
     ]
 }
 
-probe_dataset_map = {ds: "imagenet1k" for ds in dataset_collection["imagenet_robustness"]}
+probe_dataset_map = {("wds_"+ds): "wds_imagenet1k" for ds in dataset_collection["imagenet_robustness"]}
 
 # use by imagenet robustness data
 all_imagenet_wordnet_ids = ['n01440764', 'n01443537', 'n01484850', 'n01491361', 'n01494475', 'n01496331', 'n01498041',

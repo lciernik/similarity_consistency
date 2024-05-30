@@ -120,7 +120,6 @@ class LinearProbe:
                 with self.autocast():
                     logits = self.model(x)
                     if self.logit_filter is not None:
-                        print("logit_filter:", self.logit_filter.shape, "logits:", logits.shape)
                         logits = logits @ self.logit_filter.T
 
                 pred.append(logits.cpu())

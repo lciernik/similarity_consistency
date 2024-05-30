@@ -302,7 +302,7 @@ def run(args):
     mode = args.mode
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
-    probe_dataset_name = map_to_probe_dataset(dataset_name)
+    probe_dataset_name = map_to_probe_dataset(dataset_name, verbose=args.verbose)
 
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
@@ -341,7 +341,7 @@ def run(args):
         evaluator.ensure_feature_availability()
 
     elif task == 'linear_probe':
-        logit_filter = get_dataset_class_filter(args.dataset)
+        logit_filter = get_dataset_class_filter(args.dataset, args.device)
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)

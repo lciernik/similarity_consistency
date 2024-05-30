@@ -166,8 +166,8 @@ class SingleModelEvaluator(BaseEvaluator):
         self.train_dataloader = train_dataloader
         self.eval_dataloader = eval_dataloader
 
-    def ensure_feature_availability(self, ceck_train:bool = True):
-        if not self.check_feature_existence(self.feature_dir, ceck_train=ceck_train, verbose=self.verbose):
+    def ensure_feature_availability(self, check_train:bool = True):
+        if not self.check_feature_existence(self.feature_dir, check_train=check_train, verbose=self.verbose):
             # We need to generate features if these do not exist
             featurizer = Featurizer(model=self.model, normalize=self.normalize).to(self.device)
             featurizer.feature_extraction(train_dataloader=self.train_dataloader,
@@ -181,8 +181,13 @@ class SingleModelEvaluator(BaseEvaluator):
 
     def evaluate(self):
         probe_exists = os.path.exists(self.linear_probe_fn)
+        if self.verbose:
+            if probe_exists:
+                print("Found probe at ", self.linear_probe_fn)
+            else:
+                print("Could not find probe at ", self.linear_probe_fn)
 
-        self.ensure_feature_availability(ceck_train=not probe_exists)
+        self.ensure_feature_availability(check_train=not probe_exists)
 
         loaders = get_feature_dl(feature_dir=self.feature_dir,
                                  batch_size=self.batch_size,

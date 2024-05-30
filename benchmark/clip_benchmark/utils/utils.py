@@ -70,8 +70,10 @@ def get_list_of_datasets(base):
     return datasets
 
 
-def map_to_probe_dataset(dataset: str) -> str:
+def map_to_probe_dataset(dataset: str, verbose: bool = False) -> str:
     if dataset in probe_dataset_map:
+        if verbose:
+            print(f"Dataset mapping for loading probes found. Mapping {dataset} to {probe_dataset_map[dataset]}")
         return probe_dataset_map[dataset]
     return dataset
 
