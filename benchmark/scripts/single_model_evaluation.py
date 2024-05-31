@@ -3,7 +3,14 @@ import json
 from slurm import run_job
 from helper import load_models, get_hyperparams
 
-MODELS_CONFIG = "./models_config.json"
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--models_config', type=str, default='./models_config.json')
+args = parser.parse_args()
+
+MODELS_CONFIG = args.models_config
+# MODELS_CONFIG = "./models_config.json"
 # DATASETS = "./webdatasets.txt"
 DATASETS = "wds_imagenet1k"  # "imagenet-subset-10k"
 
@@ -18,13 +25,14 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=10, size='small')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
 
-    val_proportion = 0.2
+    # With val_proportion 0 we do not optimize weight decay!
+    val_proportion = 0
 
     # Evaluate
-    for i, (key, _ ) in enumerate(models.items()):
-        if i==0:
+    for i, (key, _) in enumerate(models.items()):
+        if i == 0:
             continue
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
@@ -50,7 +58,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-5h',
-            log_dir=f'./logs',
+            partition='gpu-2d',
+            log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )
