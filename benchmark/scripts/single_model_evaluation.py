@@ -5,7 +5,7 @@ from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "./models_config.json"
 # DATASETS = "./webdatasets.txt"
-DATASETS = "imagenet-subset-10k"
+DATASETS = "wds_imagenet1k"  # "imagenet-subset-10k"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
