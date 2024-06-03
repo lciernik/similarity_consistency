@@ -3,9 +3,17 @@ import os
 from helper import load_models
 from slurm import run_job
 
-MODELS_CONFIG = "./models_config.json"
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--models_config', type=str, default='./models_config.json')
+args = parser.parse_args()
+
+MODELS_CONFIG = args.models_config
+
+# MODELS_CONFIG = "./models_config.json"
 # DATASETS = "./webdatasets.txt" all datasets that we have
-DATASETS = "imagenet-subset-10k"
+DATASETS = "wds/imagenet1k"  # "imagenet-subset-10k"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
