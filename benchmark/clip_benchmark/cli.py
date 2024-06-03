@@ -341,7 +341,7 @@ def run(args):
         evaluator.ensure_feature_availability()
 
     elif task == 'linear_probe':
-        logit_filter = get_dataset_class_filter(args.dataset, args.device)
+        base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
@@ -349,7 +349,6 @@ def run(args):
                 model=model,
                 train_dataloader=train_dataloader,
                 eval_dataloader=eval_dataloader,
-                logit_filter=logit_filter,
                 **base_kwargs
             )
 
@@ -357,7 +356,6 @@ def run(args):
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
             evaluator = CombinedModelEvaluator(
                 feature_combiner_cls=feature_combiner_cls,
-                logit_filter=logit_filter,
                 **base_kwargs
             )
 
@@ -365,7 +363,6 @@ def run(args):
             evaluator = EnsembleModelEvaluator(
                 model_ids=model_ids,
                 single_prediction_dirs=single_prediction_dirs,
-                logit_filter=logit_filter,
                 **base_kwargs
             )
 

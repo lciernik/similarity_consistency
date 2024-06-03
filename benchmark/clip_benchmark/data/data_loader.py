@@ -9,7 +9,6 @@ def get_feature_dl(feature_dir: str, batch_size: int, num_workers: int, fewshot_
     """
     Load the features from the feature_dir and return the dataloaders for training, validation, and testing
     """
-    features, targets = load_features_targets(feature_dir, split='train')
     features_test, targets_test = load_features_targets(feature_dir, split='test')
     feature_test_dset = FeatureDataset(features_test, targets_test)
     feature_test_loader = DataLoader(
@@ -19,6 +18,7 @@ def get_feature_dl(feature_dir: str, batch_size: int, num_workers: int, fewshot_
     )
 
     if load_train:
+        features, targets = load_features_targets(feature_dir, split='train')
         if fewshot_k < 0:  # if fewshot_k is -1, use the whole dataset
             train_features = features
             train_labels = targets

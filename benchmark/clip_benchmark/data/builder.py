@@ -13,7 +13,7 @@ from clip_benchmark.data.constants import all_imagenet_wordnet_ids, dataset_coll
 from clip_benchmark.data.datasets import breeds, cifar_coarse, imagenet_variants
 
 
-def build_dataset(dataset_name, root="root", transform=None, split="test", download=True, wds_cache_dir=None):
+def build_dataset(dataset_name, root="root", transform=None, split="test", download=True, wds_cache_dir=None, verbose=False):
     """
     Main function to use in order to build a dataset instance,
 
@@ -32,29 +32,34 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
     """
 
     if split == "train" and any([imgnt_variant in dataset_name for imgnt_variant in
-         ["imagenet-a", "imagenet-o", "imagenet-r", "imagenet_sketch", "imagenetv2"]]):
+         dataset_collection["imagenet_robustness"]]):
         # Setting imagenet as training set for imagenet variants (should not be used)
         root = os.sep.join(root.split(os.sep)[:-1] + ["wds_imagenet1k"])
-        print(f"Using imagenet1k as train dataset for {dataset_name}, dataset root set to {root}")
+        if verbose:
+            print(f"Loading wds/imagenet1k instead of {dataset_name}, dataset root is set to {root}")
         dataset_name = "wds/imagenet1k"
 
     if dataset_name == "imagenet-subset-10k":
         root = os.path.join(root, 'imagenet_torch')
 
-        if not os.path.exists(root) and download:
-            os.makedirs(root, exist_ok=True)
-            call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_devkit_t12.tar.gz --output-document={r}/ILSVRC2012_devkit_t12.tar.gz",
-                    shell=True)
-            call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar --output-document={r}/ILSVRC2012_img_train.tar",
-                    shell=True)
-            call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --output-document={r}/ILSVRC2012_img_val.tar",
-                    shell=True)
+        if not os.path.exists(root):
+            if download:
+                os.makedirs(root, exist_ok=True)
+                call(
+                        f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_devkit_t12.tar.gz --output-document={r}/ILSVRC2012_devkit_t12.tar.gz",
+                        shell=True)
+                call(
+                        f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar --output-document={r}/ILSVRC2012_img_train.tar",
+                        shell=True)
+                call(
+                        f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --output-document={r}/ILSVRC2012_img_val.tar",
+                        shell=True)
+            else:
+                raise FileNotFoundError(f"ImageNet dataset not found at {root} and 'download' option is set to False.")
 
         if split == 'test':
-            print('There is no test split, using val split.')
+            if verbose:
+                print('There is no test split, using val split.')
             split = 'val'
         ds_in = ImageNet(root=root, split=split, transform=transform)
         with open(os.path.join(root, f'imagenet-10k-{split}.json'), 'r') as f:
@@ -128,9 +133,11 @@ def get_dataset_collate_fn(dataset_name):
 
 def get_dataset_class_filter(dataset_name, device):
     class_filter = None
-    if any([n in dataset_name for n in ("imagenet-r", "imagenet-a")]):
-        classes = imagenet_variants.get_class_ids(dataset_name.replace("wds/", ""))
-        class_filter = torch.eye(1000, device=device)[[classes]]
+    dataset_name = dataset_name.replace("wds/", "")
+    if any([n in dataset_name for n in dataset_collection["imagenet_robustness"]]):
+        classes = imagenet_variants.get_class_ids(dataset_name)
+        if len (classes) != 1000:
+            class_filter = torch.eye(1000, device=device)[[classes]]
     return class_filter
 
 

@@ -57,6 +57,7 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         split=args.split,  # by default this is the test split
         download=True,
         wds_cache_dir=args.wds_cache_dir,
+        verbose=args.verbose
     )
     collate_fn = get_dataset_collate_fn(args.dataset)
     if args.verbose:
@@ -91,6 +92,7 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         transform=transform,
         split=args.train_split,
         download=True,
+        verbose=args.verbose
     )
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size,
