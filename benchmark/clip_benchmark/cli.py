@@ -5,17 +5,16 @@ import random
 import sqlite3
 import sys
 from copy import copy
-from itertools import product, combinations, islice
+from itertools import product, combinations
 from typing import List, Tuple, Dict, Any
 
-import numpy as np
 import pandas as pd
 import torch
 
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
-from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.data.builder import get_dataset_class_filter
+from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
                                                          EnsembleModelEvaluator)

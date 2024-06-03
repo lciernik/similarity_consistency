@@ -59,7 +59,8 @@ def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, fe
             train_labels = targets[idxs]
 
         feature_combiner_train = feature_combiner_cls()
-        feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train, normalize)
+        feature_train_dset = CombinedFeaturesDataset(list_train_features, train_labels, feature_combiner_train,
+                                                     normalize)
         feature_train_loader = DataLoader(feature_train_dset, batch_size=batch_size,
                                           shuffle=True, num_workers=num_workers, pin_memory=True, )
     else:

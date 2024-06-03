@@ -1,6 +1,6 @@
+import numpy as np
 import torch
 from torch.utils.data import Subset
-import numpy as np
 
 from clip_benchmark.data import build_dataset, get_dataset_collate_fn
 from clip_benchmark.models import load_model
@@ -101,7 +101,6 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
     )
 
     return model, train_dataloader, eval_dataloader
-
 
 
 class SubsetWithTargets(Subset):

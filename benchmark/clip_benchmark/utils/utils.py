@@ -1,7 +1,8 @@
 import os
-from typing import List, Union, Dict, Optional
-import numpy as np
 import random
+from typing import List, Union, Dict, Optional
+
+import numpy as np
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection

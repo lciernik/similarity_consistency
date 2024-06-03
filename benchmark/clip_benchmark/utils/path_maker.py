@@ -68,7 +68,8 @@ class PathMaker:
 
     def _get_model_dirs(self) -> List[str]:
         if self.task == "linear_probe" and self.mode == "combined_models":
-            model_dirs = [os.path.join(self.model_root, self.train_dataset_name, self.model_slug, self.hyperparams_slug)]
+            model_dirs = [
+                os.path.join(self.model_root, self.train_dataset_name, self.model_slug, self.hyperparams_slug)]
         else:
             model_dirs = [os.path.join(self.model_root, self.train_dataset_name, model_id, self.hyperparams_slug)
                           for model_id in self.model_ids]
