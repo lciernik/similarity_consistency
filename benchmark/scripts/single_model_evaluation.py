@@ -32,8 +32,6 @@ if __name__ == "__main__":
 
     # Evaluate
     for i, (key, _) in enumerate(models.items()):
-        if i == 0:
-            continue
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
         clip_benchmark --dataset {DATASETS} \
