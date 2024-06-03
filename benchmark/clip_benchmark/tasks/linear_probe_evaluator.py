@@ -189,17 +189,14 @@ class SingleModelEvaluator(BaseEvaluator):
 
         self.ensure_feature_availability(check_train=not probe_exists)
 
-        loaders = get_feature_dl(feature_dir=self.feature_dir,
+        feature_train_loader, feature_test_loader = get_feature_dl(feature_dir=self.feature_dir,
                                  batch_size=self.batch_size,
                                  num_workers=self.num_workers,
                                  fewshot_k=self.fewshot_k,
                                  load_train=not probe_exists)
         if probe_exists:
             best_wd = None
-            feature_train_loader = None
-            feature_test_loader = loaders
         else:
-            feature_train_loader, feature_test_loader = loaders
             best_wd = self.optimize_weight_decay(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
@@ -234,7 +231,7 @@ class CombinedModelEvaluator(BaseEvaluator):
 
         self.require_feature_existence(check_train=not probe_exists)
 
-        loaders = get_combined_feature_dl(feature_dirs=self.feature_dirs,
+        feature_train_loader, feature_test_loader = get_combined_feature_dl(feature_dirs=self.feature_dirs,
                                         batch_size=self.batch_size,
                                         num_workers=self.num_workers,
                                         fewshot_k=self.fewshot_k,
@@ -246,10 +243,7 @@ class CombinedModelEvaluator(BaseEvaluator):
             if self.verbose:
                 print(f"Linear probe model already exists in {self.linear_probe_fn}. Skipping wd tuning.")
             best_wd = None
-            feature_train_loader = None
-            feature_test_loader = loaders
         else:
-            feature_train_loader, feature_test_loader = loaders
             best_wd = self.optimize_weight_decay(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,

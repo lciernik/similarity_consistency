@@ -35,9 +35,10 @@ def get_feature_dl(feature_dir: str, batch_size: int, num_workers: int, fewshot_
                                           pin_memory=True,
                                           )
 
-        return feature_train_loader, feature_test_loader
     else:
-        return feature_test_loader
+        feature_train_loader = None
+
+    return feature_train_loader, feature_test_loader
 
 
 def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, feature_combiner_cls,
@@ -76,6 +77,4 @@ def get_combined_feature_dl(feature_dirs, batch_size, num_workers, fewshot_k, fe
         pin_memory=True,
     )
 
-    if load_train:
-        return feature_train_loader, feature_test_loader
-    return feature_test_loader
+    return feature_train_loader, feature_test_loader
