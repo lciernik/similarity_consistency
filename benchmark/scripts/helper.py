@@ -38,7 +38,7 @@ def get_hyperparams(num_seeds=10, size="extended"):
         hyper_params = dict(
             fewshot_lrs=['0.01', '0.001'],
             fewshot_ks=['-1'],
-            fewshot_epochs=['5'],
+            fewshot_epochs=['20'],
             seeds=[str(num) for num in range(num_seeds)],
         )
     else:

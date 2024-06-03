@@ -43,7 +43,7 @@ if __name__ == "__main__":
                        --mode=single_model \
                        --model_key {key} \
                        --models_config_file {MODELS_CONFIG} \
-                       --batch_size=64 \
+                       --batch_size=1024 \
                        --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                        --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                        --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-2d',
+            partition='gpu-5h',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )
