@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import warnings
 from subprocess import call
@@ -573,15 +574,14 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         root = os.path.join(root, "train" if train else "test")
         ds = ImageFolder(root=root, transform=transform)
         ds.classes = default_classnames["fer2013"]
-
-    # TODO: adapt for different number of samples per class, i.e., imagenet-subset-XXk
-    elif dataset_name == "imagenet-subset-10k":
+    elif re.match(r"^imagenet-subset-\d+k$", dataset_name):
         root = os.path.join(root, 'imagenet_torch')
         if split == 'test':
             print('There is no test split, using val split.')
             split = 'val'
         ds_in = ImageNet(root=root, split=split, transform=transform)
-        with open(os.path.join(root, f'imagenet-10k-{split}.json'), 'r') as f:
+        idx_fn = os.path.join(root, f'{dataset_name.replace("-subset", "")}-{split}.json')
+        with open(idx_fn, 'r') as f:
             indices_map = json.load(f)
         indices = np.array(list(map(list, indices_map.values()))).flatten()
         ds = Subset(ds_in, indices=indices)
