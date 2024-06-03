@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 class LinearProbe:
-    def __init__(self, weight_decay, lr, epochs, autocast, device, seed):
+    def __init__(self, weight_decay, lr, epochs, autocast, device, seed, logit_filter=None):
         self.weight_decay = weight_decay
         self.lr = lr
         self.epochs = epochs
@@ -15,6 +15,7 @@ class LinearProbe:
         self.device = device
         self.seed = seed
         self.model = None
+        self.logit_filter = logit_filter
 
     @staticmethod
     def assign_learning_rate(param_group, new_lr):
@@ -118,6 +119,8 @@ class LinearProbe:
 
                 with self.autocast():
                     logits = self.model(x)
+                    if self.logit_filter is not None:
+                        logits = logits @ self.logit_filter.T
 
                 pred.append(logits.cpu())
                 true.append(y.cpu())

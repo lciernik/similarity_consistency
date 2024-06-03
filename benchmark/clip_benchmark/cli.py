@@ -5,15 +5,15 @@ import random
 import sqlite3
 import sys
 from copy import copy
-from itertools import product, combinations, islice
+from itertools import product, combinations
 from typing import List, Tuple, Dict, Any
 
-import numpy as np
 import pandas as pd
 import torch
 
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
+from clip_benchmark.data.builder import get_dataset_class_filter
 from clip_benchmark.data.data_utils import get_extraction_model_n_dataloader
 from clip_benchmark.tasks import compute_sim_matrix
 from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
@@ -21,6 +21,7 @@ from clip_benchmark.tasks.linear_probe_evaluator import (SingleModelEvaluator, C
 from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import (as_list,
                                         get_list_of_datasets,
+                                        map_to_probe_dataset,
                                         prepare_ds_name,
                                         world_info_from_env,
                                         set_all_random_seeds)
@@ -300,8 +301,9 @@ def run(args):
     mode = args.mode
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
+    probe_dataset_name = map_to_probe_dataset(dataset_name, verbose=args.verbose)
 
-    path_maker = PathMaker(args, dataset_name)
+    path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
     dirs = path_maker.make_paths()
     feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
@@ -338,6 +340,7 @@ def run(args):
         evaluator.ensure_feature_availability()
 
     elif task == 'linear_probe':
+        base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)
 
         if mode == "single_model":
             model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)

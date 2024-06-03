@@ -1,6 +1,6 @@
+import numpy as np
 import torch
 from torch.utils.data import Subset
-import numpy as np
 
 from clip_benchmark.data import build_dataset, get_dataset_collate_fn
 from clip_benchmark.models import load_model
@@ -56,9 +56,8 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         transform=transform,
         split=args.split,  # by default this is the test split
         download=True,
-        task=task,
-        custom_classname_file=args.custom_classname_file,
         wds_cache_dir=args.wds_cache_dir,
+        verbose=args.verbose
     )
     collate_fn = get_dataset_collate_fn(args.dataset)
     if args.verbose:
@@ -93,6 +92,7 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         transform=transform,
         split=args.train_split,
         download=True,
+        verbose=args.verbose
     )
     train_dataloader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size,
@@ -101,7 +101,6 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
     )
 
     return model, train_dataloader, eval_dataloader
-
 
 
 class SubsetWithTargets(Subset):

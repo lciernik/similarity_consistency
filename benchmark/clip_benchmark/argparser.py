@@ -32,9 +32,6 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
             "if it doesn't predefined.")
     aa('--wds_cache_dir', default=None, type=str,
        help="optional cache directory for webdataset only")
-    aa('--custom_classname_file', default=None, type=str,
-       help="use custom json file with classnames for each dataset, where keys are dataset "
-            "names and values are list of classnames.")
 
     # FEATURES
     aa('--feature_root', default="features", type=str,

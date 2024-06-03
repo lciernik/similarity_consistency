@@ -1,10 +1,12 @@
 import os
-from typing import List, Union, Dict, Optional
-import numpy as np
 import random
+from typing import List, Union, Dict, Optional
+
+import numpy as np
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
+from clip_benchmark.data.constants import probe_dataset_map
 
 
 def as_list(l):
@@ -67,6 +69,14 @@ def get_list_of_datasets(base):
             # if not, assume it is simply the name of the dataset
             datasets.append(name)
     return datasets
+
+
+def map_to_probe_dataset(dataset: str, verbose: bool = False) -> str:
+    if dataset in probe_dataset_map:
+        if verbose:
+            print(f"Dataset mapping for loading probes found. Mapping {dataset} to {probe_dataset_map[dataset]}")
+        return probe_dataset_map[dataset]
+    return dataset
 
 
 def prepare_ds_name(dataset: str) -> str:
