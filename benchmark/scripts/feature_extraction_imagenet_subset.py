@@ -24,8 +24,7 @@ def main(args):
     out_path_root = format_path(args.output_root_dir, args.num_samples_class, args.split)
 
     # Get path to the subset indices file: replace {num_samples_class} and {split} in the path
-    idxs_split = "val" if args.split == 'test' else args.split
-    idxs_fn = format_path(args.subset_idxs, args.num_samples_class, idxs_split)
+    idxs_fn = format_path(args.subset_idxs, args.num_samples_class, args.split)
     # Load the indices map
     with open(idxs_fn, 'r') as f:
         indices_map = json.load(f)

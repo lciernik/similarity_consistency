@@ -4,15 +4,17 @@ import os
 import random
 
 import numpy as np
-from torchvision.datasets import ImageNet
+import torch
 from tqdm import tqdm
 
 
 def main(args):
     random.seed(args.seed)
 
-    dataset = ImageNet(root=args.imagenet_root, split=args.split)
-    targets = np.array(dataset.targets)
+    targets_fn = os.path.join(args.imagenet_targets_root, f'targets_{args.split}.pt')
+    if not os.path.exists(targets_fn):
+        raise FileNotFoundError(f'Targets file not found at {targets_fn}.')
+    targets = np.array(torch.load(targets_fn))
 
     unique_classes = np.unique(targets)
 
@@ -31,9 +33,13 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--imagenet-root', default='/home/space/diverse_priors/datasets/imagenet_torch')
+    # Note we use as default the path to the extracted features and targets of ImageNet1k with any model.
+    # The targets are for all models the same, so we can use any model's targets.
+    parser.add_argument('--imagenet_targets_root',
+                        default='/home/space/diverse_priors/features/wds_imagenet1k/dinov2-vit-large-p14',
+                        help='Root directory of the extracted features and targets for ImageNet1k.')
     parser.add_argument('--samples-per-class', default=10, type=int)
-    parser.add_argument('--split', default='train', choices=['train', 'val'])
+    parser.add_argument('--split', default='train', choices=['train', 'test'])
     parser.add_argument('--seed', default=42, type=int, help='Random seed for reproducibility.')
     args = parser.parse_args()
 

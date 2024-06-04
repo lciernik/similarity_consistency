@@ -343,28 +343,16 @@ def run(args):
         base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)
 
         if mode == "single_model":
-            model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
-            evaluator = SingleModelEvaluator(
-                model=model,
-                train_dataloader=train_dataloader,
-                eval_dataloader=eval_dataloader,
-                **base_kwargs
-            )
+            evaluator = SingleModelEvaluator(**base_kwargs)
 
         elif mode == "combined_models":
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
-            evaluator = CombinedModelEvaluator(
-                feature_combiner_cls=feature_combiner_cls,
-                **base_kwargs
-            )
-
+            evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
+                                               **base_kwargs)
         elif mode == "ensemble":
-            evaluator = EnsembleModelEvaluator(
-                model_ids=model_ids,
-                single_prediction_dirs=single_prediction_dirs,
-                **base_kwargs
-            )
-
+            evaluator = EnsembleModelEvaluator(model_ids=model_ids,
+                                               single_prediction_dirs=single_prediction_dirs,
+                                               **base_kwargs)
         else:
             raise ValueError(
                 "Unsupported mode: {}. mode should be `single_model`, `combined_models`, or `ensemble`".format(
