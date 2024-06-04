@@ -31,7 +31,11 @@ def main(args):
         sampled_indices = random.sample(indices, args.samples_per_class)
         cls_sample_idx_map[cls.item()] = sampled_indices
 
-    out_fn = os.path.join(args.output_root_dir, f'imagenet-{args.samples_per_class}k-{args.split}.json')
+    out_root = format_path(args.output_root_dir, args.samples_per_class, args.split)
+    if not os.path.exists(out_root):
+        os.makedirs(out_root)
+        print(f'Created directory {out_root}')
+    out_fn = os.path.join(out_root, f'imagenet-{args.samples_per_class}k-{args.split}.json')
     with open(out_fn, 'w') as f:
         json.dump(cls_sample_idx_map, f)
 

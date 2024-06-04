@@ -63,7 +63,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples_class', default=10, type=int,
                         help='Number of samples per class in the subset.')
     parser.add_argument('--subset_idxs',
-                        default='/home/space/diverse_priors/datasets/imagenet_torch/imagenet-{num_samples_class}k-{split}.json',
+                        default='/home/space/diverse_priors/datasets/imagenet-subset-{num_samples_class}k/imagenet-{num_samples_class}k-{split}.json',
                         help='Path to the subset indices file.')
     parser.add_argument('--output_root_dir',
                         default='/home/space/diverse_priors/features/imagenet-subset-{num_samples_class}k',
