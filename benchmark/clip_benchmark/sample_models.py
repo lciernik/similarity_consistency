@@ -18,9 +18,11 @@ class SamplingStrategy(Enum):
 
 
 def build_sampler(sampling_strategy: SamplingStrategy, num_models: int,
-                  models: Dict, selection_dataset: str, cluster_assignment: Dict[int, List[str]]):
+                  models: Dict, selection_dataset: str, cluster_assignment: Dict[int, List[str]],
+                  results_root: str):
     # Returns the performance for a given model
-    model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset)
+    model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset,
+                               results_root=results_root)
 
     if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM, SamplingStrategy.CLUSTER_BEST,
                              SamplingStrategy.ONE_CLUSTER]:
@@ -54,7 +56,8 @@ def main(num_models: int,
          model_config_path: str,
          selection_dataset: str,
          num_samples: int,
-         cluster_assignment_path: str):
+         cluster_assignment_path: str,
+         results_root: str):
     # Retrieve model definitions
     with open(model_config_path, 'r') as f:
         models = json.load(f)
@@ -76,7 +79,8 @@ def main(num_models: int,
                                 num_models=num_models,
                                 models=models,
                                 selection_dataset=selection_dataset,
-                                cluster_assignment=cluster_assignment)
+                                cluster_assignment=cluster_assignment,
+                                results_root=results_root)
 
         model_sets = []
         n_sets = min(num_samples, sampler.max_available_samples())
@@ -109,6 +113,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--cluster_assignment_path', type=str)
     parser.add_argument('--output_root', type=str)
+    parser.add_argument('--results_root', type=str,
+                        default='/home/space/diverse_priors/results/linear_probe/single_model')
     args = parser.parse_args()
-
     main(**vars(args))
