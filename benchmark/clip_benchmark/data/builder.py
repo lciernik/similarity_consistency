@@ -1,14 +1,10 @@
-import json
 import os
 import re
 from subprocess import call
 
-import numpy as np
 import torch
 import webdataset as wds
-from torch.utils.data import Subset
 from torch.utils.data import default_collate
-from torchvision.datasets import ImageNet
 
 from clip_benchmark.data.constants import dataset_collection
 from clip_benchmark.data.datasets import breeds, cifar_coarse, imagenet_variants
@@ -42,38 +38,12 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
         dataset_name = "wds/imagenet1k"
 
     if re.match(r"^imagenet-subset-\d+k$", dataset_name):
-        root = os.path.join(root, 'imagenet_torch')
-
-        if not os.path.exists(root):
-            if download:
-                os.makedirs(root, exist_ok=True)
-                call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_devkit_t12.tar.gz --output-document={r}/ILSVRC2012_devkit_t12.tar.gz",
-                    shell=True)
-                call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_train.tar --output-document={r}/ILSVRC2012_img_train.tar",
-                    shell=True)
-                call(
-                    f"wget https://image-net.org/data/ILSVRC/2012/ILSVRC2012_img_val.tar --output-document={r}/ILSVRC2012_img_val.tar",
-                    shell=True)
-            else:
-                raise FileNotFoundError(f"ImageNet dataset not found at {root} and 'download' option is set to False.")
-
-        if split == 'test':
-            if verbose:
-                print('There is no test split, using val split.')
-            split = 'val'
-        ds_in = ImageNet(root=root, split=split, transform=transform)
-        idx_fn = os.path.join(root, f'{dataset_name.replace("-subset", "")}-{split}.json')
-        with open(idx_fn, 'r') as f:
-            indices_map = json.load(f)
-        indices = np.array(list(map(list, indices_map.values()))).flatten()
-        ds = Subset(ds_in, indices=indices)
-        ds.classes = ds_in.classes
-        if ds is None:
-            print("imagenet-subset-10k dataset build did not work")
-        else:
-            print("successfully build imagenet-subset-10k dataset")
+        raise ValueError(
+            "The imagenet-subset-*k datasets can't be used for feature extraction in the pipeline. "
+            "First, run 'scripts/generate_imagenet_subset_indices.py' to create the indices. "
+            "Then, run 'scripts/gfeature_extraction_imagenet_subset.py' to extract the features. "
+            "Make sure you have the pre-extracted 'wds/imagenet1k' dataset features for the desired model(s)."
+        )
     elif dataset_name == "cifar100-coarse":
         root = os.path.join(os.path.join(root, "wds"), "wds_vtab-cifar100")
         superclass_mapping, superclass_names = cifar_coarse.get_cifar100_coarse_map()

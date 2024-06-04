@@ -4,15 +4,22 @@ import os
 import random
 
 import numpy as np
-from torchvision.datasets import ImageNet
+import torch
 from tqdm import tqdm
+
+from helper import format_path
 
 
 def main(args):
     random.seed(args.seed)
 
-    dataset = ImageNet(root=args.imagenet_root, split=args.split)
-    targets = np.array(dataset.targets)
+    targets_fn = os.path.join(args.imagenet_targets_root, f'targets_{args.split}.pt')
+    if not os.path.exists(targets_fn):
+        raise FileNotFoundError(f'Targets file not found at {targets_fn}. Please provide the path to the result of the'
+                                f' extraction process of any model on ImageNet1k (dataset `wds/imagenet1k`). The '
+                                f'targets of the extraction process are the same for all models, so you can use any '
+                                f'model\'s ')
+    targets = np.array(torch.load(targets_fn))
 
     unique_classes = np.unique(targets)
 
@@ -22,7 +29,11 @@ def main(args):
         sampled_indices = random.sample(indices, args.samples_per_class)
         cls_sample_idx_map[cls.item()] = sampled_indices
 
-    out_fn = os.path.join(args.imagenet_root, f'imagenet-{args.samples_per_class}k-{args.split}.json')
+    out_root = format_path(args.output_root_dir, args.samples_per_class, args.split)
+    if not os.path.exists(out_root):
+        os.makedirs(out_root)
+        print(f'Created directory {out_root}')
+    out_fn = os.path.join(out_root, f'imagenet-{args.samples_per_class}k-{args.split}.json')
     with open(out_fn, 'w') as f:
         json.dump(cls_sample_idx_map, f)
 
@@ -31,10 +42,17 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--imagenet-root', default='/home/space/diverse_priors/datasets/imagenet_torch')
+    # Note we use as default the path to the extracted features and targets of ImageNet1k with any model.
+    # The targets are for all models the same, so we can use any model's targets.
+    parser.add_argument('--imagenet_targets_root',
+                        default='/home/space/diverse_priors/features/wds_imagenet1k/dinov2-vit-large-p14',
+                        help='Root directory of the extracted features and targets for ImageNet1k.')
     parser.add_argument('--samples-per-class', default=10, type=int)
-    parser.add_argument('--split', default='train', choices=['train', 'val'])
+    parser.add_argument('--split', default='train', choices=['train', 'test'])
     parser.add_argument('--seed', default=42, type=int, help='Random seed for reproducibility.')
+    parser.add_argument('--output_root_dir',
+                        default='/home/space/diverse_priors/datasets/imagenet-subset-{num_samples_class}k',
+                        help='Root directory for the output features and targets.')
     args = parser.parse_args()
 
     main(args)
