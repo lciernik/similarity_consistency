@@ -22,6 +22,10 @@ def build_sampler(sampling_strategy: SamplingStrategy, num_models: int,
     # Returns the performance for a given model
     model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset)
 
+    if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM, SamplingStrategy.CLUSTER_BEST,
+                             SamplingStrategy.ONE_CLUSTER]:
+        raise ValueError('cluster_assignment is needed for the sampling strategy')
+
     default_args = dict(k=num_models, models=models)
     if sampling_strategy == SamplingStrategy.RANDOM:
         sampler = RandomSampler(**default_args)
