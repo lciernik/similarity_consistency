@@ -8,6 +8,13 @@ import torch
 from tqdm import tqdm
 
 
+def format_path(path, num_samples_class, split):
+    return path.format(
+        num_samples_class=num_samples_class,
+        split=split
+    )
+
+
 def main(args):
     random.seed(args.seed)
 
@@ -24,7 +31,7 @@ def main(args):
         sampled_indices = random.sample(indices, args.samples_per_class)
         cls_sample_idx_map[cls.item()] = sampled_indices
 
-    out_fn = os.path.join(args.imagenet_root, f'imagenet-{args.samples_per_class}k-{args.split}.json')
+    out_fn = os.path.join(args.output_root_dir, f'imagenet-{args.samples_per_class}k-{args.split}.json')
     with open(out_fn, 'w') as f:
         json.dump(cls_sample_idx_map, f)
 
@@ -41,6 +48,9 @@ if __name__ == "__main__":
     parser.add_argument('--samples-per-class', default=10, type=int)
     parser.add_argument('--split', default='train', choices=['train', 'test'])
     parser.add_argument('--seed', default=42, type=int, help='Random seed for reproducibility.')
+    parser.add_argument('--output_root_dir',
+                        default='/home/space/diverse_priors/datasets/imagenet-subset-{num_samples_class}k',
+                        help='Root directory for the output features and targets.')
     args = parser.parse_args()
 
     main(args)
