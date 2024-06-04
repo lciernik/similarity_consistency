@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 
 def main(args):
+    random.seed(args.seed)
+
     dataset = ImageNet(root=args.imagenet_root, split=args.split)
     targets = np.array(dataset.targets)
 
@@ -32,6 +34,7 @@ if __name__ == "__main__":
     parser.add_argument('--imagenet-root', default='/home/space/diverse_priors/datasets/imagenet_torch')
     parser.add_argument('--samples-per-class', default=10, type=int)
     parser.add_argument('--split', default='train', choices=['train', 'val'])
+    parser.add_argument('--seed', default=42, type=int, help='Random seed for reproducibility.')
     args = parser.parse_args()
 
     main(args)
