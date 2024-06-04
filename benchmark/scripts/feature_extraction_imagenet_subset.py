@@ -27,7 +27,8 @@ def main(args):
     idxs_split = "val" if args.split == 'test' else args.split
     idxs_fn = format_path(args.subset_idxs, args.num_samples_class, idxs_split)
     # Load the indices map
-    indices_map = json.load(idxs_fn)
+    with open(idxs_fn, 'r') as f:
+        indices_map = json.load(f)
     indices = np.array(list(map(list, indices_map.values()))).flatten()
 
     model_keys = [args.model_key] if not isinstance(args.model_key, list) else args.model_key
@@ -41,7 +42,7 @@ def main(args):
             continue
 
         features_subset = features[indices, :]
-        targets_subset = targets[indices, :]
+        targets_subset = targets[indices]
 
         feature_dir = os.path.join(out_path_root, model_id)
         if not os.path.exists(feature_dir):
