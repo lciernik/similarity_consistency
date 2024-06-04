@@ -7,12 +7,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 
-
-def format_path(path, num_samples_class, split):
-    return path.format(
-        num_samples_class=num_samples_class,
-        split=split
-    )
+from helper import format_path
 
 
 def main(args):

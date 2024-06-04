@@ -50,3 +50,10 @@ def get_hyperparams(num_seeds=10, size="extended"):
         )
     num_jobs = len(list(product(*hyper_params.values())))
     return hyper_params, num_jobs
+
+
+def format_path(path, num_samples_class, split):
+    return path.format(
+        num_samples_class=num_samples_class,
+        split=split
+    )

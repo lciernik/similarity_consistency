@@ -10,13 +10,9 @@ import numpy as np
 import torch
 
 from clip_benchmark.utils.utils import load_features_targets
+from helper import load_models, format_path
 
-
-def format_path(path, num_samples_class, split):
-    return path.format(
-        num_samples_class=num_samples_class,
-        split=split
-    )
+MODELS_CONFIG = "./models_config.json"
 
 
 def main(args):
@@ -54,10 +50,12 @@ def main(args):
 
 
 if __name__ == "__main__":
+    models, n_models = load_models(MODELS_CONFIG)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--features_root', default='/home/space/diverse_priors/features/wds_imagenet1k',
                         help='Root directory of the extracted features and targets for ImageNet1k.')
-    parser.add_argument('--model_key', nargs='+', default=['dinov2-vit-large-p14'],
+    parser.add_argument('--model_key', nargs='+', default=list(models.keys()),
                         help='Model key(s) for which the features are extracted.')
     parser.add_argument('--split', default='train', choices=['train', 'test'])
     parser.add_argument('--num_samples_class', default=10, type=int,
