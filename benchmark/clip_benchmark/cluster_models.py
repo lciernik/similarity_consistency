@@ -1,4 +1,6 @@
 import os
+from typing import Union
+import argparse
 
 import numpy as np
 import pandas as pd
@@ -6,7 +8,7 @@ import torch
 from sklearn.cluster import SpectralClustering
 
 
-def check_paths(args):
+def check_paths(args: argparse.Namespace):
     sim_mat_path = os.path.join(args.sim_mat_root, args.dataset, args.method_key, 'similarity_matrix.pt')
     model_ids_path = os.path.join(args.sim_mat_root, args.dataset, args.method_key, 'model_ids.txt')
     if not os.path.exists(sim_mat_path):
@@ -16,21 +18,21 @@ def check_paths(args):
     return sim_mat_path, model_ids_path
 
 
-def load_similarity_matrix(sim_mat_path, model_ids_path):
+def load_similarity_matrix(sim_mat_path: Union[str, os.PathLike], model_ids_path: Union[str, os.PathLike]):
     sim_mat = torch.load(sim_mat_path)
     with open(model_ids_path, 'r') as f:
         model_ids = f.read().splitlines()
     return pd.DataFrame(sim_mat, index=model_ids, columns=model_ids)
 
 
-def process_similarity_matrix(sim_mat):
+def process_similarity_matrix(sim_mat: pd.DataFrame):
     sim_mat = sim_mat.abs()
     if not np.all(np.diag(sim_mat.values) == 1):
         np.fill_diagonal(sim_mat.values, 1)
     return sim_mat
 
 
-def main(args):
+def main(args: argparse.Namespace):
     sim_mat_path, model_ids_path = check_paths(args)
     sim_mat = load_similarity_matrix(sim_mat_path, model_ids_path)
     sim_mat = process_similarity_matrix(sim_mat)
@@ -49,10 +51,7 @@ def main(args):
     labels.to_csv(os.path.join(output_path, 'cluster_labels.csv'))
 
 
-
 if __name__ == '__main__':
-    import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_clusters', type=int, help="Number of clusters to create.")
     parser.add_argument('--method_key', type=str,
@@ -77,5 +76,4 @@ if __name__ == '__main__':
     parser.add_argument('--output_root', type=str, default="/home/space/diverse_priors/clustering")
 
     args = parser.parse_args()
-
     main(args)
