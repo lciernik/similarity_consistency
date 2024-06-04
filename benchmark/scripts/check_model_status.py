@@ -50,7 +50,7 @@ if __name__ == "__main__":
             args.output_root = OUTPUT_ROOT
             args.model_key = key
             args.feature_combiner = None
-            args.batch_size = 64
+            args.batch_size = 1024
             args.verbose = False
             args.fewshot_k = int(fewshot_k)
             args.fewshot_lr = fewshot_lr
