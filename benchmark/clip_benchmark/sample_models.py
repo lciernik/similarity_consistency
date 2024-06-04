@@ -12,7 +12,8 @@ from analysis.samplers import TopKSampler, RandomSampler, ClusterSampler, OneClu
 class SamplingStrategy(Enum):
     TOP_K = 'top-k'
     RANDOM = 'random'
-    CLUSTER = 'cluster'
+    CLUSTER_BEST = 'cluster_best'
+    CLUSTER_RANDOM = 'cluster_random'
     ONE_CLUSTER = 'one_cluster'
 
 
@@ -26,10 +27,18 @@ def build_sampler(sampling_strategy: SamplingStrategy, num_models: int,
         sampler = RandomSampler(**default_args)
     elif sampling_strategy == SamplingStrategy.TOP_K:
         sampler = TopKSampler(model_scoring_fn=model_scoring_fn, **default_args)
-    elif sampling_strategy == SamplingStrategy.CLUSTER:
-        sampler = ClusterSampler(cluster_assignment=cluster_assignment, **default_args)
+    elif sampling_strategy == SamplingStrategy.CLUSTER_BEST:
+        sampler = ClusterSampler(cluster_assignment=cluster_assignment,
+                                 selection_strategy='best',
+                                 model_scoring_fn=model_scoring_fn,
+                                 **default_args)
+    elif sampling_strategy == SamplingStrategy.CLUSTER_RANDOM:
+        sampler = ClusterSampler(cluster_assignment=cluster_assignment,
+                                 selection_strategy='random',
+                                 **default_args)
     elif sampling_strategy == SamplingStrategy.ONE_CLUSTER:
-        sampler = OneClusterSampler(cluster_assignment=cluster_assignment, **default_args)
+        sampler = OneClusterSampler(cluster_assignment=cluster_assignment,
+                                    **default_args)
     else:
         raise ValueError(f"Unknown sampling strategy. Possible values are {list(SamplingStrategy)}")
     return sampler
@@ -71,7 +80,11 @@ def main(num_models: int,
             model_set = sampler.sample()
             model_sets.append(model_set)
 
-        if sampling_strategy in [SamplingStrategy.CLUSTER, SamplingStrategy.ONE_CLUSTER]:
+        if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM,
+                                 SamplingStrategy.CLUSTER_BEST,
+                                 SamplingStrategy.ONE_CLUSTER]:
+            # cluster_assignment_path has the following structure
+            # /home/space/diverse_priors/clustering/imagenet-subset-10k/{method}/num_clusters_{num_models}/cluster_labels.csv
             cluster_slug = cluster_assignment_path.split('/')[-3]
             output_file = os.path.join(output_root, f'{sampling_strategy.value}_{cluster_slug}.json')
         else:
@@ -90,8 +103,8 @@ if __name__ == '__main__':
     parser.add_argument('--model_config_path', default='scripts/models_config.json')
     parser.add_argument('--selection_dataset', default='imagenet-1k')
     parser.add_argument('--num_samples', type=int, default=10)
-    parser.add_argument('--cluster_assignment_path')
-    parser.add_argument('--output_root')
+    parser.add_argument('--cluster_assignment_path', type=str)
+    parser.add_argument('--output_root', type=str)
     args = parser.parse_args()
 
     main(**vars(args))

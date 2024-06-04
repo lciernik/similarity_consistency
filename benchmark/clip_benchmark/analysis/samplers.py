@@ -49,20 +49,39 @@ class RandomSampler(Sampler):
 
 class ClusterSampler(Sampler):
 
-    def __init__(self, cluster_assignment: Dict[int, List[str]], *args, **kwargs):
+    def __init__(self, cluster_assignment: Dict[int, List[str]],
+                 selection_strategy: str = 'random', model_scoring_fn: Callable = None
+                 , *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.cluster_assignment = cluster_assignment
+        self.selection_strategy = selection_strategy
+        if self.selection_strategy not in ['random', 'best']:
+            raise ValueError('selection strategy should be either random or best')
+
+        if self.selection_strategy == 'best' and model_scoring_fn is None:
+            raise ValueError('model_scoring_fn needs to be specified')
+
+        self.model_scoring_fn = model_scoring_fn
 
     def sample(self):
         available_clusters = list(self.cluster_assignment.keys())
-        assert len(available_clusters) >= self.k
+        if len(available_clusters) < self.k:
+            raise ValueError('num_cluster should be larger than k')
 
         selected_clusters = random.sample(available_clusters, k=self.k)
 
         model_set = []
         for cluster in selected_clusters:
-            model_set.append(random.choice(self.cluster_assignment[cluster]))
-
+            if self.selection_strategy == 'random':
+                selected_model = random.choice(self.cluster_assignment[cluster])
+            elif self.selection_strategy == 'best':
+                ranked_models = sorted(self.cluster_assignment[cluster],
+                                       key=lambda model_id: self.model_scoring_fn(model_id),
+                                       reverse=True)
+                selected_model = ranked_models[0]
+            else:
+                raise ValueError("unknown model selection strategy")
+            model_set.append(selected_model)
         return model_set
 
 

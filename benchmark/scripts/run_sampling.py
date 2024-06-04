@@ -41,7 +41,7 @@ if __name__ == "__main__":
             job_cmd = f"""python clip_benchmark/sample_models.py  \
                         --num_samples {num_samples} \
                         --num_models {num_models} \
-                        --sampling_strategies cluster one_cluster \
+                        --sampling_strategies cluster_random cluster_best one_cluster \
                         --cluster_assignment_path {assignment_path} \
                         --model_config_path {MODELS_CONFIG} \
                         --output_root {OUTPUT_ROOT}/models_{num_models}-samples_{num_samples}"""
