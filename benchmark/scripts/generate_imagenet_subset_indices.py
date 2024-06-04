@@ -15,7 +15,10 @@ def main(args):
 
     targets_fn = os.path.join(args.imagenet_targets_root, f'targets_{args.split}.pt')
     if not os.path.exists(targets_fn):
-        raise FileNotFoundError(f'Targets file not found at {targets_fn}.')
+        raise FileNotFoundError(f'Targets file not found at {targets_fn}. Please provide the path to the result of the'
+                                f' extraction process of any model on ImageNet1k (dataset `wds/imagenet1k`). The '
+                                f'targets of the extraction process are the same for all models, so you can use any '
+                                f'model\'s ')
     targets = np.array(torch.load(targets_fn))
 
     unique_classes = np.unique(targets)
