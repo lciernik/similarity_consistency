@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from subprocess import call
 
 import numpy as np
@@ -40,7 +41,7 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
             print(f"Loading wds/imagenet1k instead of {dataset_name}, dataset root is set to {root}")
         dataset_name = "wds/imagenet1k"
 
-    if dataset_name == "imagenet-subset-10k":
+    if re.match(r"^imagenet-subset-\d+k$", dataset_name):
         root = os.path.join(root, 'imagenet_torch')
 
         if not os.path.exists(root):
@@ -63,7 +64,8 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
                 print('There is no test split, using val split.')
             split = 'val'
         ds_in = ImageNet(root=root, split=split, transform=transform)
-        with open(os.path.join(root, f'imagenet-10k-{split}.json'), 'r') as f:
+        idx_fn = os.path.join(root, f'{dataset_name.replace("-subset", "")}-{split}.json')
+        with open(idx_fn, 'r') as f:
             indices_map = json.load(f)
         indices = np.array(list(map(list, indices_map.values()))).flatten()
         ds = Subset(ds_in, indices=indices)
