@@ -167,12 +167,12 @@ class SingleModelEvaluator(BaseEvaluator):
         self.train_dataloader = train_dataloader
         self.eval_dataloader = eval_dataloader
 
-    def _model_and_loaders_existence(self):
+    def _check_model_and_loaders_existence(self):
         return self.model is not None and self.train_dataloader is not None and self.eval_dataloader is not None
 
     def ensure_feature_availability(self, check_train: bool = True):
         feat_available = self.check_feature_existence(self.feature_dir, check_train=check_train, verbose=self.verbose)
-        model_available = self._model_and_loaders_existence()
+        model_available = self._check_model_and_loaders_existence()
         if not feat_available and model_available:
             # We need to generate features if these do not exist
             featurizer = Featurizer(model=self.model, normalize=self.normalize).to(self.device)
