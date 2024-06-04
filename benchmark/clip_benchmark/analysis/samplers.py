@@ -1,6 +1,7 @@
 from typing import Dict, Callable, List
 import numpy as np
 import random
+import warnings
 
 
 class Sampler:
@@ -95,5 +96,7 @@ class OneClusterSampler(Sampler):
         available_clusters = list(self.cluster_assignment.keys())
         selected_cluster = random.choice(available_clusters)
         model_options = self.cluster_assignment[selected_cluster]
+        if self.k > len(model_options):
+            warnings.warn('num of selected models is larger than cluster size, limiting to cluster size..')
         model_set = random.sample(model_options, k=min(self.k, len(model_options)))
         return model_set
