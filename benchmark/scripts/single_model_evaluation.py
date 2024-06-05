@@ -56,7 +56,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-5h',
+            partition='gpu-2h',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )

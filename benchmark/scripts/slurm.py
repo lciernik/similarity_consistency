@@ -40,12 +40,14 @@ def run_job(
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
-        "exclude": "head[026-033],head073", # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
+        "exclude": "head[026-033],head073",
+        # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
         "error": f"{log_dir}/run_%A/%a.err",
-        "array": f"0-{num_jobs_in_array-1}" if num_jobs_in_array > 1 else "0"
+        "array": f"0-{num_jobs_in_array - 1}" if num_jobs_in_array > 1 else "0",
+        "mem": "32G",
     }
 
     if slurm_args is not None:

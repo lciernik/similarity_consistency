@@ -224,7 +224,7 @@ def main_eval(base):
         print(f"\nModels: {models}")
         print(f"Datasets: {datasets}\n")
 
-    if base.mode != "single_model":
+    if base.mode in ["combined_models", "ensemble"]:
         # TODO: implement different ways how to select the model combinations
         # Check not too many models
         n_models = len(models)
