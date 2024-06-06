@@ -44,9 +44,10 @@ class BaseModelSimilarity:
 
     def compute_similarity_matrix(self) -> np.ndarray:
         sim_matrix= self._prepare_sim_matrix() 
+        max_workers = self.max_workers 
         for idx1, model1 in tqdm(self.model_ids_with_idx, desc=f"Computing {self.name} matrix"):
             features_1 = self._load_feature(model_id=model1)
-            with ThreadPoolExecutor(max_workers=4) as executor:
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 futures = {}
                 for idx2, model2 in self.model_ids_with_idx:
                     if idx1 < idx2:
