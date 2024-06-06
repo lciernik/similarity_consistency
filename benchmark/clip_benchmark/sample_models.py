@@ -1,5 +1,6 @@
 import json
 import os.path
+import warnings
 from enum import Enum
 from functools import partial
 from typing import Dict, List, Union
@@ -96,7 +97,10 @@ def main(
                                 seed=rnd_seed)
 
         model_sets = []
+        available_samples = sampler.max_available_samples()
         n_sets = min(num_samples, sampler.max_available_samples())
+        if available_samples < num_samples:
+            warnings.warn(f'only {available_samples} available for sampling')
         for _ in range(n_sets):
             model_set = sampler.sample()
             model_sets.append(model_set)
@@ -105,8 +109,6 @@ def main(
                                  SamplingStrategy.CLUSTER_BEST,
                                  SamplingStrategy.ONE_CLUSTER]:
             # cluster_assignment_path has the following structure
-            # /home/space/diverse_priors/clustering/imagenet-subset-10k/{method}/num_clusters_{num_models}/cluster_labels.csv
-            # cluster_slug = cluster_assignment_path.split('/')[-3]
             output_file = os.path.join(output_root, f'{sampling_strategy.value}_{cluster_slug}.json')
         else:
             output_file = os.path.join(output_root, f'{sampling_strategy.value}.json')
