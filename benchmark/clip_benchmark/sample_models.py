@@ -47,6 +47,7 @@ def build_sampler(
                                  **default_args)
     elif sampling_strategy == SamplingStrategy.CLUSTER_RANDOM:
         sampler = ClusterSampler(cluster_assignment=cluster_assignment,
+                                 model_scoring_fn=model_scoring_fn,
                                  selection_strategy='random',
                                  **default_args)
     elif sampling_strategy == SamplingStrategy.ONE_CLUSTER:
