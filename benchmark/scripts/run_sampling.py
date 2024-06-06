@@ -6,6 +6,7 @@ MODELS_CONFIG = "./scripts/models_config.json"
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 CLUSTERING_ROOT = os.path.join(BASE_PROJECT_PATH, 'clustering')
+SELECTION_DATASET = 'wds_imagenet1k'
 
 METHOD_KEYS = [
     'cka_kernel_rbf_unbiased_sigma_0.2',
@@ -32,14 +33,15 @@ if __name__ == "__main__":
             --num_samples {num_samples} \
             --sampling_strategies top-k random \
             --model_config_path {MODELS_CONFIG} \
-            --selection_dataset wds_imagenet1k \
+            --selection_dataset {SELECTION_DATASET} \
             --output_root {OUTPUT_ROOT}/models_{num_models}-samples_{num_samples}"""
 
         run_job(
             job_name=f"sampling",
             job_cmd=job_cmd,
-            partition='cpu-9m',
+            partition='cpu-2h',
             log_dir='./logs',
+            num_cpus=1,
             num_jobs_in_array=1
         )
 
@@ -59,7 +61,7 @@ if __name__ == "__main__":
                     job_cmd = f"""python clip_benchmark/sample_models.py  \
                                             --num_models {num_models} \
                                             --num_samples {num_samples} \
-                                            --selection_dataset wds_imagenet1k \
+                                            --selection_dataset {SELECTION_DATASET} \
                                             --sampling_strategies cluster_best cluster_random one_cluster \
                                             --cluster_assignment_path {assignment_path} \
                                             --cluster_slug {cluster_slug} \
