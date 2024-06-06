@@ -68,7 +68,8 @@ if __name__ == "__main__":
 
                     run_job(job_name=f"sampling",
                             job_cmd=job_cmd,
-                            partition='cpu-9m',
+                            partition='cpu-2h',
                             log_dir='./logs',
-                            num_jobs_in_array=1
+                            num_jobs_in_array=1,
+                            num_cpus=1
                             )

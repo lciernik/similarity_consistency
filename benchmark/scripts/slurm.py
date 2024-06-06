@@ -4,7 +4,7 @@ from slurmpy import Slurm
 def run_job(
         job_name,
         job_cmd,
-        num_cpus=16,
+        num_cpus=4,
         partition='gpu-2d',
         apptainer=False,
         slurm_args=None,
