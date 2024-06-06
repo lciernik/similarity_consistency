@@ -33,7 +33,7 @@ def build_sampler(
                                results_root=probe_results_root)
 
     if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM, SamplingStrategy.CLUSTER_BEST,
-                             SamplingStrategy.ONE_CLUSTER]:
+                             SamplingStrategy.ONE_CLUSTER] and cluster_assignment is None:
         raise ValueError('cluster_assignment is needed for the sampling strategy')
 
     default_args = dict(k=num_models, models=models, seed=seed)
