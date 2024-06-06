@@ -1,6 +1,6 @@
+import argparse
 import os
 from typing import Union
-import argparse
 
 import numpy as np
 import pandas as pd
@@ -43,9 +43,16 @@ def main(args: argparse.Namespace):
                                     random_state=args.seed)
 
     labels = clustering.fit_predict(sim_mat.values, y=None)
-    labels = pd.DataFrame(labels, index=sim_mat.index, columns=['cluster'])
+    labels = pd.DataFrame({'model_id': sim_mat.index.to_numpy(), 'cluster': labels}, index=sim_mat.index)
 
-    output_path = os.path.join(args.output_root, args.dataset, args.method_key, f"num_clusters_{args.num_clusters}")
+    output_path = os.path.join(
+        args.output_root,
+        args.dataset,
+        args.method_key,
+        f"num_clusters_{args.num_clusters}",
+        args.assign_labels
+    )
+
     if not os.path.exists(output_path):
         os.makedirs(output_path)
     labels.to_csv(os.path.join(output_path, 'cluster_labels.csv'))
