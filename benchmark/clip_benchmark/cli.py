@@ -187,7 +187,8 @@ def main_model_sim(base):
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma, )
+                                                            sigma=base.sigma, 
+                                                            max_workers=base.max_workers)
     # Save the similarity matrix
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
     if not os.path.exists(out_path):
@@ -224,7 +225,7 @@ def main_eval(base):
         print(f"\nModels: {models}")
         print(f"Datasets: {datasets}\n")
 
-    if base.mode != "single_model":
+    if base.mode in ["combined_models", "ensemble"]:
         # TODO: implement different ways how to select the model combinations
         # Check not too many models
         n_models = len(models)
