@@ -7,12 +7,13 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'])
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
 # MODELS_CONFIG = "./models_config.json"
 # DATASETS = "./webdatasets.txt"
-DATASETS = "wds/imagenet1k"  # "imagenet-subset-10k"
+DATASETS = " ".join(args.datasets)
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
