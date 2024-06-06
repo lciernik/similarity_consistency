@@ -101,7 +101,7 @@ if __name__ == "__main__":
                                      --sigma {exp_dict['sigma']} 
                                      --max_workers {max_workers} \
                         """
-        partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-5h'
+        partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150 
         run_job(
             job_name=f"{exp_dict['sim_method'].capitalize()}",
