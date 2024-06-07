@@ -32,8 +32,8 @@ def main(args):
         try:
             features, targets = load_features_targets(args.features_root, model_id, args.split)
         except FileNotFoundError as e:
-            print(f'Features of ImageNet1k not found for model {model_id}. Skipping...')
-            print(f'>> Error: {e}')
+            print(f'\nFeatures or targets of wds_imagenet1k not found for model {model_id} and idxes at:\n{idxs_fn}. Skipping...')
+            print(f'>> Error: {e}\n')
             continue
 
         features_subset = features[indices, :]
@@ -46,7 +46,7 @@ def main(args):
 
         torch.save(features_subset, os.path.join(feature_dir, f'features_{args.split}.pt'))
         torch.save(targets_subset, os.path.join(feature_dir, f'targets_{args.split}.pt'))
-        print(f'Saved features and targets for model {model_id} to {feature_dir}')
+        print(f'Saved {args.split} features and targets  for model {model_id} to {feature_dir}')
 
 
 if __name__ == "__main__":
