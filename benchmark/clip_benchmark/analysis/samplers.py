@@ -3,6 +3,7 @@ import warnings
 from typing import Dict, Callable, List
 
 import numpy as np
+from itertools import chain
 
 
 class Sampler:
@@ -59,6 +60,25 @@ class BaseClusterSampler(Sampler):
         super().__init__(*args, **kwargs)
         self.cluster_assignment = cluster_assignment
         self.model_scoring_fn = model_scoring_fn
+        self._check_model_ids_n_clusters_assignment()
+        
+    def _check_model_ids_n_clusters_assignment(self):
+        model_ids = list(self.models.keys())
+        set_model_ids = set(model_ids)
+        set_model_dict_ids = set(chain.from_iterable(self.cluster_assignment.values()))
+        ids_intersection = set_model_ids.intersection(set_model_dict_ids)
+        
+        new_model_ids = sorted(list(ids_intersection))
+        if len(model_ids)-len(new_model_ids)>0:
+            print(f"Removing models ({set_model_ids.difference(ids_intersection)}) not present in the clustering assignments")
+        self.models = { k:v for k, v in self.models.items() if k in new_model_ids}
+
+        if len(set_model_dict_ids) - len(ids_intersection)>0:
+            print(f"Removing models ids from cluster assignment ({set_model_dict_ids.difference(ids_intersection)}) "
+                   "that are not in the available models.")
+        self.cluster_assignment = { k: sorted([m for m in val if m in ids_intersection]) for k, val in self.cluster_assignment.items()}
+        self.cluster_assignment = { k:v for k, v in self.cluster_assignment.items() if v}
+
 
     def _get_mean_cluster_score(self, cluster_id: int):
         if self.model_scoring_fn is None:
@@ -116,6 +136,10 @@ class ClusterSampler(BaseClusterSampler):
 
 
 class OneClusterSampler(BaseClusterSampler):
+    def __init__(self, cluster_index: int, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.cluster_index = cluster_index
+
 
     def get_selected_cluster(self) -> int:
         if len(self.cluster_assignment) == 0:
@@ -130,9 +154,9 @@ class OneClusterSampler(BaseClusterSampler):
         return selected_clusters[0]
 
     def sample(self) -> List[str]:
-        selected_cluster = self.get_selected_cluster()
-        model_options = self.cluster_assignment[selected_cluster]
+        # selected_cluster = self.get_selected_cluster() 
+        model_options = self.cluster_assignment[self.cluster_index]
         if self.k > len(model_options):
-            warnings.warn('num of selected models is larger than cluster size, limiting to cluster size..')
+            warnings.warn('Number of selected models is larger than cluster size, limiting to cluster size..')
         model_set = random.sample(model_options, k=min(self.k, len(model_options)))
         return model_set

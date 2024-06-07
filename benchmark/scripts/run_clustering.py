@@ -17,6 +17,8 @@ NUM_CLUSTERS = range(3, 8)
 
 LBL_ASSIGN_METHODS = ['kmeans', 'discretize', 'cluster_qr']
 
+DATASET="imagenet-subset-10k-bak"
+
 if __name__ == "__main__":
     for num_clusters in NUM_CLUSTERS:
         for method_key in METHOD_KEYS:
@@ -25,7 +27,7 @@ if __name__ == "__main__":
                 python ../clip_benchmark/cluster_models.py \
                     --num_clusters {num_clusters} \
                     --method_key {method_key} \
-                    --dataset imagenet-subset-10k \
+                    --dataset {DATASET} \
                     --assign_labels {lbl_assign_method} \
                     --seed 0 \
                     --sim_mat_root {SIM_MAT_ROOT} \

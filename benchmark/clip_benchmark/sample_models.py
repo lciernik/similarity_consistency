@@ -25,13 +25,14 @@ def build_sampler(
         models: Dict,
         selection_dataset: str,
         cluster_assignment: Dict[int, List[str]],
+        cluster_index: int, 
         probe_results_root: str,
         seed: int = 0
 ) -> Union[TopKSampler, RandomSampler, ClusterSampler, OneClusterSampler]:
     # Returns the performance for a given model
     model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset,
                                results_root=probe_results_root)
-
+                               
     if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM, SamplingStrategy.CLUSTER_BEST,
                              SamplingStrategy.ONE_CLUSTER] and cluster_assignment is None:
         raise ValueError('cluster_assignment is needed for the sampling strategy')
@@ -52,7 +53,8 @@ def build_sampler(
                                  selection_strategy='random',
                                  **default_args)
     elif sampling_strategy == SamplingStrategy.ONE_CLUSTER:
-        sampler = OneClusterSampler(cluster_assignment=cluster_assignment,
+        sampler = OneClusterSampler(cluster_index=cluster_index,
+                                    cluster_assignment=cluster_assignment,
                                     model_scoring_fn=model_scoring_fn,
                                     **default_args)
     else:
@@ -64,17 +66,20 @@ def main(
         num_models: int,
         sampling_strategies: List[SamplingStrategy],
         output_root: str,
+        model_key: List[str],
         model_config_path: str,
         selection_dataset: str,
         num_samples: int,
         cluster_assignment_path: str,
+        cluster_index: int,
         cluster_slug: str,
         probe_results_root: str,
-        rnd_seed: int = 0
+        rnd_seed: int = 0,
 ) -> None:
     # Retrieve model definitions
     with open(model_config_path, 'r') as f:
         models = json.load(f)
+    models = {k:v for k,v in models.items() if k in model_key}
 
     cluster_assignment = None
     if cluster_assignment_path is not None:
@@ -93,6 +98,7 @@ def main(
                                 models=models,
                                 selection_dataset=selection_dataset,
                                 cluster_assignment=cluster_assignment,
+                                cluster_index=cluster_index,
                                 probe_results_root=probe_results_root,
                                 seed=rnd_seed)
 
@@ -103,13 +109,13 @@ def main(
             warnings.warn(f'only {available_samples} available for sampling')
         for _ in range(n_sets):
             model_set = sampler.sample()
-            model_sets.append(model_set)
+            model_sets.append(sorted(model_set))
 
         if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM,
                                  SamplingStrategy.CLUSTER_BEST,
                                  SamplingStrategy.ONE_CLUSTER]:
             # cluster_assignment_path has the following structure
-            output_file = os.path.join(output_root, f'{sampling_strategy.value}_{cluster_slug}.json')
+            output_file = os.path.join(output_root, f'{sampling_strategy.value}-{cluster_slug}.json')
         else:
             output_file = os.path.join(output_root, f'{sampling_strategy.value}.json')
 
@@ -123,12 +129,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_models', type=int)
     parser.add_argument('--sampling_strategies', nargs='+', choices=[s.value for s in SamplingStrategy])
+    parser.add_argument('--model_key', type=str, nargs="+", default=["dinov2-vit-large-p14"],
+                        help="Models to use from the models config file.")
     parser.add_argument('--model_config_path', default='scripts/models_config.json')
     parser.add_argument('--probe_results_root', type=str,
                         default='/home/space/diverse_priors/results/linear_probe/single_model')
     parser.add_argument('--selection_dataset', default='wds_imagenet1k')
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--cluster_assignment_path', type=str)
+    parser.add_argument('--cluster_index', type=int, default=0,
+    help=f'Cluster to select models from. Only considered when sampling_strategy is {SamplingStrategy.ONE_CLUSTER}')
     parser.add_argument('--cluster_slug', type=str)
     parser.add_argument('--output_root', type=str)
     parser.add_argument('--rnd_seed', type=int, default=0)
