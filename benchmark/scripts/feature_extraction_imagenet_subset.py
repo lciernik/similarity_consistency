@@ -8,6 +8,7 @@ import os
 
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from clip_benchmark.utils.utils import load_features_targets
 from helper import load_models, format_path
@@ -18,6 +19,7 @@ MODELS_CONFIG = "./models_config.json"
 def main(args):
     # Create output directory: replace {num_samples_class} and {split} in the path
     out_path_root = format_path(args.output_root_dir, args.num_samples_class, args.split)
+    print(f"Formatted {out_path_root=}")
 
     # Get path to the subset indices file: replace {num_samples_class} and {split} in the path
     idxs_fn = format_path(args.subset_idxs, args.num_samples_class, args.split)
@@ -25,10 +27,12 @@ def main(args):
     with open(idxs_fn, 'r') as f:
         indices_map = json.load(f)
     indices = np.array(list(map(list, indices_map.values()))).flatten()
+    print(f"Loaded indices from {idxs_fn=}")
 
     model_keys = [args.model_key] if not isinstance(args.model_key, list) else args.model_key
 
-    for model_id in model_keys:
+    print(f"For each model in model_keys (n={len(model_keys)}) extract the features ...")
+    for model_id in tqdm(model_keys, desc=f"Extracting subset of features with {args.num_samples_class} per class."):
         try:
             features, targets = load_features_targets(args.features_root, model_id, args.split)
         except FileNotFoundError as e:
@@ -47,6 +51,7 @@ def main(args):
         torch.save(features_subset, os.path.join(feature_dir, f'features_{args.split}.pt'))
         torch.save(targets_subset, os.path.join(feature_dir, f'targets_{args.split}.pt'))
         print(f'Saved {args.split} features and targets  for model {model_id} to {feature_dir}')
+        print()
 
 
 if __name__ == "__main__":

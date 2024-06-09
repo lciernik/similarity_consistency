@@ -75,18 +75,18 @@ class CKAModelSimilarity(BaseModelSimilarity):
         self.unbiased = unbiased
         self.sigma = sigma
 
-    def _load_feature(self, model_id:str) -> np.ndarray:
-        features = load_features(self.feature_root, model_id, self.split)
-        return features
+    # def _load_feature(self, model_id:str) -> np.ndarray:
+    #     features = load_features(self.feature_root, model_id, self.split)
+    #     return features
 
-    def _compute_similarity(self, feat1: np.ndarray, feat2: np.ndarray) -> float:
-        m = feat1.shape[0]
-        cka = get_cka(backend=self.backend, m=m, kernel=self.kernel, unbiased=self.unbiased, device=self.device,
-                        sigma=self.sigma)
-        rho = cka.compare(X=feat1, Y=feat2)
-        return rho
+    # def _compute_similarity(self, feat1: np.ndarray, feat2: np.ndarray) -> float:
+    #     m = feat1.shape[0]
+    #     cka = get_cka(backend=self.backend, m=m, kernel=self.kernel, unbiased=self.unbiased, device=self.device,
+    #                     sigma=self.sigma)
+    #     rho = cka.compare(X=feat1, Y=feat2)
+    #     return rho
 
-    def compute_similarity_matrix_old(self) -> np.ndarray:
+    def compute_similarity_matrix(self) -> np.ndarray:
         sim_matrix = self._prepare_sim_matrix()
         for idx1, model1 in tqdm(self.model_ids_with_idx, desc=f"Computing CKA matrix"):
             features_i = load_features(self.feature_root, model1, self.split)
