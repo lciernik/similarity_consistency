@@ -5,10 +5,9 @@ import random
 import sqlite3
 import sys
 from copy import copy
-from itertools import product, combinations, islice
+from itertools import product, combinations
 from typing import List, Tuple, Dict, Any
 
-import numpy as np
 import pandas as pd
 import torch
 

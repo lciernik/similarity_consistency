@@ -25,14 +25,14 @@ def build_sampler(
         models: Dict,
         selection_dataset: str,
         cluster_assignment: Dict[int, List[str]],
-        cluster_index: int, 
+        cluster_index: int,
         probe_results_root: str,
         seed: int = 0
 ) -> Union[TopKSampler, RandomSampler, ClusterSampler, OneClusterSampler]:
     # Returns the performance for a given model
     model_scoring_fn = partial(retrieve_performance, dataset_id=selection_dataset,
                                results_root=probe_results_root)
-                               
+
     if sampling_strategy in [SamplingStrategy.CLUSTER_RANDOM, SamplingStrategy.CLUSTER_BEST,
                              SamplingStrategy.ONE_CLUSTER] and cluster_assignment is None:
         raise ValueError('cluster_assignment is needed for the sampling strategy')
@@ -79,7 +79,7 @@ def main(
     # Retrieve model definitions
     with open(model_config_path, 'r') as f:
         models = json.load(f)
-    models = {k:v for k,v in models.items() if k in model_key}
+    models = {k: v for k, v in models.items() if k in model_key}
 
     cluster_assignment = None
     if cluster_assignment_path is not None:
@@ -138,7 +138,8 @@ if __name__ == '__main__':
     parser.add_argument('--num_samples', type=int, default=10)
     parser.add_argument('--cluster_assignment_path', type=str)
     parser.add_argument('--cluster_index', type=int, default=0,
-    help=f'Cluster to select models from. Only considered when sampling_strategy is {SamplingStrategy.ONE_CLUSTER}')
+                        help=f'Cluster to select models from. Only considered when sampling_strategy is '
+                             f'{SamplingStrategy.ONE_CLUSTER}')
     parser.add_argument('--cluster_slug', type=str)
     parser.add_argument('--output_root', type=str)
     parser.add_argument('--rnd_seed', type=int, default=0)

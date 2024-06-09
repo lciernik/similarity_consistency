@@ -19,6 +19,9 @@ def retrieve_performance(model_id: str, dataset_id: str, metric_column: str = 't
         print(f"{os.path.exists(path)=}")
         raise e
     if df.dataset.nunique() > 1:
-        raise ValueError(f"Database at {path} contains results of multiple datasets. Maybe something went wrong before ...")
+        raise ValueError(
+            f"Database at {path} contains results of multiple datasets. "
+            f"Maybe something went wrong before ..."
+        )
     performance = df.groupby(HYPER_PARAM_COLS)[metric_column].mean().max()
     return performance

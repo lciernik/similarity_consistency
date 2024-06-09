@@ -1,9 +1,10 @@
 import os
-
-from slurm import run_job
-from helper import load_models
 from typing import List
+
 import pandas as pd
+
+from helper import load_models
+from slurm import run_job
 
 MODELS_CONFIG = "./models_config.json"
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
@@ -29,17 +30,18 @@ NUM_MODELS = range(3, 8)
 LBL_ASSIGN_METHODS = ['cluster_qr']
 
 
-def run_curr_job(job_cmd:str)->None:
+def run_curr_job(job_cmd: str) -> None:
     run_job(
-            job_name=f"sampling",
-            job_cmd=job_cmd,
-            partition='cpu-2h',
-            log_dir=f'{OUTPUT_ROOT}/logs',
-            num_cpus=1,
-            num_jobs_in_array=1,
-        )
+        job_name=f"sampling",
+        job_cmd=job_cmd,
+        partition='cpu-2h',
+        log_dir=f'{OUTPUT_ROOT}/logs',
+        num_cpus=1,
+        num_jobs_in_array=1,
+    )
 
-def get_base_cmd(num_models:int, num_samples:int, model_keys:List[str]) -> str:
+
+def get_base_cmd(num_models: int, num_samples: int, model_keys: List[str]) -> str:
     return f"""python ../clip_benchmark/sample_models.py \
             --num_models {num_models} \
             --num_samples {num_samples} \
@@ -52,13 +54,12 @@ def get_base_cmd(num_models:int, num_samples:int, model_keys:List[str]) -> str:
 if __name__ == "__main__":
     # For samplers with randomness, we want to get multiple model sets to get a better estimate of the performance.
     num_samples = 10
-    
+
     models, n_models = load_models(MODELS_CONFIG)
     models.pop('vgg16_gLocal')
     models.pop('SegmentAnything_vit_b')
     models.pop('Kakaobrain_Align')
     model_keys = ' '.join(models.keys())
-
 
     # Iterate over different number of models we want to use in the combined setting
     for num_models in NUM_MODELS:
@@ -72,9 +73,9 @@ if __name__ == "__main__":
         for method in METHOD_KEYS:
             # Iterate over the different number of clusters
             for num_clusters in NUM_CLUSTERS:
-                
+
                 # NOTE: this is not nicely done, maybe in future we want k!=num_clusters 
-                if num_clusters!=num_models:
+                if num_clusters != num_models:
                     continue
 
                 for lbl_assign_method in LBL_ASSIGN_METHODS:
@@ -102,7 +103,5 @@ if __name__ == "__main__":
                         --cluster_assignment_path {assignment_path} \
                         --cluster_index {cluster_idx} \
                         --cluster_slug {curr_cluster_slug}"""
-                        
+
                         run_curr_job(job_cmd)
-
-
