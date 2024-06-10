@@ -6,8 +6,9 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str):
+    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None):
         self.dataset_name = dataset_name
+        self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
         self.mode = args.mode
 
@@ -67,9 +68,10 @@ class PathMaker:
 
     def _get_model_dirs(self) -> List[str]:
         if self.task == "linear_probe" and self.mode == "combined_models":
-            model_dirs = [os.path.join(self.model_root, self.dataset_name, self.model_slug, self.hyperparams_slug)]
+            model_dirs = [
+                os.path.join(self.model_root, self.train_dataset_name, self.model_slug, self.hyperparams_slug)]
         else:
-            model_dirs = [os.path.join(self.model_root, self.dataset_name, model_id, self.hyperparams_slug)
+            model_dirs = [os.path.join(self.model_root, self.train_dataset_name, model_id, self.hyperparams_slug)
                           for model_id in self.model_ids]
         return model_dirs
 

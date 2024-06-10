@@ -3,9 +3,17 @@ import json
 from slurm import run_job
 from helper import load_models, get_hyperparams
 
-MODELS_CONFIG = "./models_config.json"
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--models_config', type=str, default='./models_config.json')
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'])
+args = parser.parse_args()
+
+MODELS_CONFIG = args.models_config
+# MODELS_CONFIG = "./models_config.json"
 # DATASETS = "./webdatasets.txt"
-DATASETS = "imagenet-subset-10k"
+DATASETS = " ".join(args.datasets)
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -18,14 +26,13 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=10, size='small')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
 
-    val_proportion = 0.2
+    # With val_proportion 0 we do not optimize weight decay!
+    val_proportion = 0
 
     # Evaluate
-    for i, (key, _ ) in enumerate(models.items()):
-        if i==0:
-            continue
+    for i, (key, _) in enumerate(models.items()):
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
         clip_benchmark --dataset {DATASETS} \
@@ -37,7 +44,7 @@ if __name__ == "__main__":
                        --mode=single_model \
                        --model_key {key} \
                        --models_config_file {MODELS_CONFIG} \
-                       --batch_size=64 \
+                       --batch_size=1024 \
                        --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                        --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                        --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
@@ -48,9 +55,9 @@ if __name__ == "__main__":
         """
 
         run_job(
-            job_name=f"feat_extr_{key}",
+            job_name=f"probe_{key}",
             job_cmd=job_cmd,
-            partition='gpu-5h',
-            log_dir=f'./logs',
+            partition='gpu-2h',
+            log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )
