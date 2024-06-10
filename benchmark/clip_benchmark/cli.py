@@ -76,7 +76,9 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
         feature_alignments), "The number of feature_alignment should be the same as the number of models"
     assert len(models) == len(model_keys), "The number of model_key should be the same as the number of models"
 
-    return list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
+    models_w_config = list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
+    models_w_config = sorted(models_w_config, key=lambda x: x[-1])
+    return models_w_config
 
 
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
