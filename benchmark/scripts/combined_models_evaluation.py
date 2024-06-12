@@ -22,6 +22,7 @@ DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
+SAMPLING_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
@@ -31,10 +32,11 @@ if __name__ == "__main__":
     # We find all files in each sampling folder and load the jsons
     model_keys = []
     for sampling_folder in args.sampling_folder:
-        for file in os.listdir(sampling_folder):
+        cur_folder = os.path.join(SAMPLING_ROOT, sampling_folder)
+        for file in os.listdir(cur_folder):
             if file.endswith(".json"):
                 # Open the JSON, which should contain a list of lists
-                with open(os.path.join(sampling_folder, file), 'r') as f:
+                with open(os.path.join(cur_folder, file), 'r') as f:
                     model_keys.extend(json.load(f))
 
     # Sort each list within model_keys alphabetically
@@ -60,6 +62,7 @@ if __name__ == "__main__":
                                --feature_root {FEATURES_ROOT} \
                                --model_root {MODELS_ROOT} \
                                --output_root {OUTPUT_ROOT} \
+                                --models_config_file {MODELS_CONFIG} \
                                --task=linear_probe \
                                --mode=combined_models
                                --feature_combiner {args.combination} \
@@ -80,7 +83,7 @@ if __name__ == "__main__":
             job_cmd=job_cmd,
             # Note: this code runs much longer compared to the feature extraction code! It iterates over all possible
             # model combinations.
-            partition='gpu-2d',
+            partition='cpu-2h' if args.combination == 'ensemble' else 'gpu-5h',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )
