@@ -54,6 +54,7 @@ if __name__ == "__main__":
 
     # Run evaluation for each model set
     for model_set in model_keys[:2]:  # TODO only two runs for testing!
+        print(f"Submitting Job with model_key{' '.join(model_set)}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                 export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
                 clip_benchmark --dataset {DATASETS} \
