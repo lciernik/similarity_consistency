@@ -224,17 +224,9 @@ def main_eval(base):
         print(f"\nModels: {models}")
         print(f"Datasets: {datasets}\n")
 
-    if base.mode in ["combined_models", "ensemble"]:
-        # TODO: implement different ways how to select the model combinations
-        # Check not too many models
-        n_models = len(models)
-        if n_models > 10:
-            raise ValueError(f"Too many models ({n_models}) to combine (max. 10 models). "
-                             f"Please select a smaller number of models to combine.")
-        model_combinations = []
-        for i in range(2, n_models + 1):
-            model_combinations += list(combinations(models, i))
-
+    if base.mode == "combined_models":
+        # We combine all provided models and assume selection is done beforehand.
+        model_combinations = [models, ]
         runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
     else:
@@ -346,16 +338,18 @@ def run(args):
             evaluator = SingleModelEvaluator(**base_kwargs)
 
         elif mode == "combined_models":
-            feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
-            evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
-                                               **base_kwargs)
-        elif mode == "ensemble":
-            evaluator = EnsembleModelEvaluator(model_ids=model_ids,
-                                               single_prediction_dirs=single_prediction_dirs,
-                                               **base_kwargs)
+
+            if args.feature_combiner == "ensemble":
+                evaluator = EnsembleModelEvaluator(model_ids=model_ids,
+                                                   single_prediction_dirs=single_prediction_dirs,
+                                                   **base_kwargs)
+            else:
+                feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
+                evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
+                                                   **base_kwargs)
         else:
             raise ValueError(
-                "Unsupported mode: {}. mode should be `single_model`, `combined_models`, or `ensemble`".format(
+                "Unsupported mode: {}. mode should be `single_model`, `combined_models`".format(
                     mode))
 
         metrics = evaluator.evaluate()

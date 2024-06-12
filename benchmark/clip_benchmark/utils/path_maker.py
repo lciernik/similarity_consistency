@@ -105,7 +105,7 @@ class PathMaker:
         model_dirs = self._get_model_dirs()
         results_dir, predictions_dir = self._get_results_and_predictions_dirs()
 
-        if self.task == "linear_probe" and self.mode == "ensemble":
+        if self.task == "linear_probe" and self.mode == "combined_models" and self.feature_combiner == "ensemble":
             single_prediction_dirs = self._get_single_prediction_dirs()
         else:
             single_prediction_dirs = None
