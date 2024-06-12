@@ -52,6 +52,8 @@ if __name__ == "__main__":
 
     val_proportion = 0
 
+    print("We evaluate the following hyperparameter", hyper_params)
+
     # Run evaluation for each model set
     for model_set in model_keys[:2]:  # TODO only two runs for testing!
         print(f"Submitting Job with model_key{' '.join(model_set)}")
@@ -64,7 +66,7 @@ if __name__ == "__main__":
                                --output_root {OUTPUT_ROOT} \
                                 --models_config_file {MODELS_CONFIG} \
                                --task=linear_probe \
-                               --mode=combined_models
+                               --mode=combined_models \
                                --feature_combiner {args.combination} \
                                --model_key {' '.join(model_set)} \
                                --models_config_file {MODELS_CONFIG} \
@@ -81,8 +83,6 @@ if __name__ == "__main__":
         run_job(
             job_name=f"combined_eval",
             job_cmd=job_cmd,
-            # Note: this code runs much longer compared to the feature extraction code! It iterates over all possible
-            # model combinations.
             partition='cpu-2h' if args.combination == 'ensemble' else 'gpu-5h',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
