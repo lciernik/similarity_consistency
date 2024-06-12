@@ -41,12 +41,11 @@ if __name__ == "__main__":
 
     # Sort each list within model_keys alphabetically
     model_keys = [sorted(model_key) for model_key in model_keys]
+    print(f"Found {len(model_keys)} model sets in the sampling folders.")
 
     # Filter out duplicates
     model_keys = list(set([tuple(model_key) for model_key in model_keys]))
-
-    print("Running evaluation for the following model sets:")
-    print("\n".join([str(model_key) for model_key in model_keys]))
+    print(f"Filtered out duplicates, {len(model_keys)} model sets remaining.")
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
@@ -68,14 +67,14 @@ if __name__ == "__main__":
                                --feature_combiner {args.combination} \
                                --model_key {' '.join(model_set)} \
                                --models_config_file {MODELS_CONFIG} \
-                               --batch_size=64 \
+                               --batch_size=1024 \
                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                                --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
                                --train_split train \
                                --test_split test \
                                --val_proportion {val_proportion} \
-                               --seed {' '.join(hyper_params['seeds'])} \
+                               --seed {' '.join(hyper_params['seeds'])}
                 """
 
         run_job(
