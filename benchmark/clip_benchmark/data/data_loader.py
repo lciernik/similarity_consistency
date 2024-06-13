@@ -13,7 +13,7 @@ def get_feature_dl(feature_dir: str, batch_size: int, num_workers: int, fewshot_
     feature_test_dset = FeatureDataset(features_test, targets_test)
     feature_test_loader = DataLoader(
         feature_test_dset, batch_size=batch_size,
-        shuffle=False, num_workers=num_workers,
+        shuffle=False, num_workers=0,
         pin_memory=True,
     )
 
