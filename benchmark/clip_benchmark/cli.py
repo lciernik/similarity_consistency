@@ -7,7 +7,7 @@ import sys
 from copy import copy
 from itertools import product, combinations
 from typing import List, Tuple, Dict, Any
-
+import traceback
 import pandas as pd
 import torch
 
@@ -155,10 +155,18 @@ def main():
     parser, base = get_parser_args()
     base = load_model_configs_args(base)
 
-    if base.task == "model_similarity":
-        main_model_sim(base)
-    else:
-        main_eval(base)
+    try:
+        if base.task == "model_similarity":
+            main_model_sim(base)
+        else:
+            main_eval(base)
+    except Exception as e:
+        print(f"An error occurred during the run.  {e}")
+        traceback.print_exc()
+
+        # Append the args.model_key to the failed_models.txt file
+        with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
+            f.write(f"{base.model_key}\n")
 
 
 def main_model_sim(base):

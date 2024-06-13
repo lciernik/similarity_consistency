@@ -48,14 +48,14 @@ if __name__ == "__main__":
     print(f"Filtered out duplicates, {len(model_keys)} model sets remaining.")
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
     val_proportion = 0
 
     print("We evaluate the following hyperparameter", hyper_params)
 
     # Run evaluation for each model set
-    for model_set in model_keys[:2]:  # TODO only two runs for testing!
+    for model_set in model_keys:
         print(f"Submitting Job with model_key{' '.join(model_set)}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                 export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
