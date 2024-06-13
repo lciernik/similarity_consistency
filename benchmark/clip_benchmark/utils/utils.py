@@ -32,6 +32,10 @@ def load_features_targets(feature_root, model_id=None, split='train'):
     if isinstance(feature_root, list):
         features = [load_features(f, model_id, split) for f in feature_root]
         targets = load_targets(feature_root[0], model_id, split)
+        # For sanity check we do load all other targets and hope that they match:
+        for f in feature_root[1:]:
+            assert torch.equal(load_targets(f, model_id, split),
+                               targets), f"Targets of {f} and {feature_root[0]} do not match"
     else:
         features = load_features(feature_root, model_id, split)
         targets = load_targets(feature_root, model_id, split)
