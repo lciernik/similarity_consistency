@@ -37,6 +37,7 @@ if __name__ == "__main__":
                        --batch_size=64 \
                        --train_split train \
                        --test_split test
+                       --num_workers=0
         """
 
         run_job(
