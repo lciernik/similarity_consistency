@@ -104,8 +104,8 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
 
     args = parser.parse_args()
 
-    if args.num_workers > 0:
-      raise ValueError(f"At the moment we only allow for num_workers=0.")
+    if args.num_workers > 0 and args.task == "feature_extraction":
+        raise ValueError(f"At the moment we only allow for num_workers=0.")
     return parser, args
 
 
