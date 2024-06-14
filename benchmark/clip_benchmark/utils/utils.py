@@ -31,7 +31,7 @@ def load_targets(feature_root, model_id=None, split='train'):
 def check_equal_targets(list_targets: List[torch.Tensor]):
     if len(list_targets) > 1:
         first_targets  = list_targets[0]
-        for curr_target in list_targets:
+        for curr_target in list_targets[1:]:
             if not (first_targets == curr_target).all():
                 return False
     return True
