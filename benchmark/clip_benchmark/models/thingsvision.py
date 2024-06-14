@@ -38,7 +38,7 @@ class ThingsvisionModel:
                         alignment_type=self._alignment_type,
                     )
                     is_aligned = True
-                except (zipfile.BadZipFile, FileNotFoundError, EOFError, zlib.error) as e:
+                except (zipfile.BadZipFile, FileNotFoundError, EOFError, zlib.error, ValueError) as e:
                     print(f"Error: {e}", flush=True)
 
         return features
