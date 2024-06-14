@@ -28,10 +28,22 @@ def load_targets(feature_root, model_id=None, split='train'):
     return targets
 
 
+def check_equal_targets(list_targets: List[torch.Tensor]):
+    if len(list_targets) > 1:
+        first_targets  = list_targets[0]
+        for curr_target in list_targets:
+            if not (first_targets == curr_target).all():
+                return False
+    return True
+
+
 def load_features_targets(feature_root, model_id=None, split='train'):
     if isinstance(feature_root, list):
         features = [load_features(f, model_id, split) for f in feature_root]
-        targets = load_targets(feature_root[0], model_id, split)
+        targets = [load_targets(f, model_id, split) for f in feature_root]
+        if not check_equal_targets(targets):
+            raise ValueError("Not all targets are equal.")
+        targets = targets[0]
     else:
         features = load_features(feature_root, model_id, split)
         targets = load_targets(feature_root, model_id, split)
