@@ -46,12 +46,12 @@ def retrieve_db_results(db_path:str, verbose:bool) -> pd.DataFrame:
     return df
 
 
-def get_processed_hyperparams(size: str) -> Dict[str, List]:
+def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     hyper_params, _ = get_hyperparams(num_seeds=1, size=size)
     hyper_params["fewshot_lr"] = hyper_params.pop("fewshot_lrs")
     hyper_params["fewshot_k"] = hyper_params.pop("fewshot_ks")
     del hyper_params["seeds"]
-    hyper_params["batch_size"] = [args.batch_size]
+    hyper_params["batch_size"] = [batch_size]
 
     for k,v in hyper_params.items():
         try:
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     args.feature_combiner = None
     args.seed = 0
     args.task = "linear_probe"
-    hyper_params = get_processed_hyperparams(args.hyperparams)
+    hyper_params = get_processed_hyperparams(args.hyperparams, args.batch_size)
     # We only need hyperparams in args to instantiate the PathMaker. We pick "real" hyperparams to avoid creating new folders.
     args.fewshot_k = hyper_params["fewshot_k"][0]
     args.fewshot_lr = hyper_params["fewshot_lr"][0]
