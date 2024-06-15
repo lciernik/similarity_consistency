@@ -1,5 +1,6 @@
 from slurm import run_job
 
+
 if __name__ == "__main__":
 
     model_key = "Kakaobrain_Align"
@@ -16,5 +17,6 @@ if __name__ == "__main__":
                 job_cmd=job_cmd,
                 partition='cpu-2h',
                 log_dir='./logs',
-                num_jobs_in_array=1
+                num_jobs_in_array=1,
+                mem=64
             )

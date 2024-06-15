@@ -189,7 +189,8 @@ def main_model_sim(base):
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma, )
+                                                            sigma=base.sigma, 
+                                                            max_workers=base.max_workers)
     # Save the similarity matrix
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
     if not os.path.exists(out_path):

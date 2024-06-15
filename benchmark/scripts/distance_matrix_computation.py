@@ -7,7 +7,8 @@ MODELS_CONFIG = "./models_config.json"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 
-DATASETS = "imagenet-subset-10k"
+# DATASETS = ["imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-40k", "imagenet-subset-80k", "imagenet-subset-160k"]
+DATASETS = ["imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k"]
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
@@ -69,13 +70,24 @@ sim_method_config = [
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
+    models.pop('vgg16_gLocal')
+    models.pop('Kakaobrain_Align')
+    models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
+    print(model_keys)
+
+    num_jobs = len(DATASETS)
+
+    datasets = ' '.join(DATASETS)
     
     for exp_dict in sim_method_config:
         print(f"Computing model similarity matrix with config:\n{json.dumps(exp_dict, indent=4)}")
+
+        max_workers = 8
+
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                       export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                      clip_benchmark --dataset {DATASETS} \
+                      clip_benchmark --dataset {datasets} \
                                      --dataset_root {DATASETS_ROOT} \
                                      --feature_root {FEATURES_ROOT} \
                                      --output {OUTPUT_ROOT} \
@@ -88,11 +100,18 @@ if __name__ == "__main__":
                                      --rsa_method {exp_dict['rsa_method']} \
                                      --corr_method {exp_dict['corr_method']} \
                                      --sigma {exp_dict['sigma']} \
+                                     --max_workers {max_workers}
                         """
+        partition = 'gpu-2d' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
+        # mem = 32 if exp_dict['sim_method'] == 'cka' else 150
+        # partition = 'cpu-2d'
+        mem = 150
+
         run_job(
             job_name=f"{exp_dict['sim_method'].capitalize()}",
             job_cmd=job_cmd,
-            partition='gpu-2d',
+            partition=partition,
             log_dir=f'{OUTPUT_ROOT}/logs',
-            num_jobs_in_array=1,
+            num_jobs_in_array=num_jobs,
+            mem=mem
         )
