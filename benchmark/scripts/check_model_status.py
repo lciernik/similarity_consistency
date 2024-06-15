@@ -8,12 +8,12 @@ from clip_benchmark.utils.path_maker import PathMaker
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, default='wds/imagenet1k')
+parser.add_argument('--dataset', type=str, default='wds/imagenet1k')
 parser.add_argument('--generate_json', type=str, default='', choices=['', 'features', 'probe', 'predictions'])
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-DATASETS = args.datasets
+DATASETS = args.dataset
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
