@@ -12,9 +12,7 @@ DATASETS = ["imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k"]
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
-# OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
-OUTPUT_ROOT = os.path.join('/home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/test_results', 'model_similarities')
-
+OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
 sim_method_config = [
     {
@@ -52,20 +50,20 @@ sim_method_config = [
         'corr_method': 'pearson',
         'sigma': 0.8,
     },
-    # {
-    #     'sim_method' : 'rsa',
-    #     'sim_kernel' : 'linear',
-    #     'rsa_method' : 'correlation',
-    #     'corr_method': 'pearson',
-    #     'sigma': 0,
-    # },
-    # {
-    #     'sim_method' : 'rsa',
-    #     'sim_kernel' : 'linear',
-    #     'rsa_method' : 'correlation',
-    #     'corr_method': 'spearman',
-    #     'sigma': 0,
-    # },
+    {
+        'sim_method' : 'rsa',
+        'sim_kernel' : 'linear',
+        'rsa_method' : 'correlation',
+        'corr_method': 'pearson',
+        'sigma': 0,
+    },
+    {
+        'sim_method' : 'rsa',
+        'sim_kernel' : 'linear',
+        'rsa_method' : 'correlation',
+        'corr_method': 'spearman',
+        'sigma': 0,
+    },
 
 ]
 
@@ -74,6 +72,7 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
     models.pop('vgg16_gLocal')
     models.pop('Kakaobrain_Align')
+    models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
     print(model_keys)
 
