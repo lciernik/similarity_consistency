@@ -167,13 +167,16 @@ class SingleModelEvaluator(BaseEvaluator):
         self.train_dataloader = train_dataloader
         self.eval_dataloader = eval_dataloader
 
-    def _check_model_and_loaders_existence(self):
-        return self.model is not None and self.train_dataloader is not None and self.eval_dataloader is not None
+    def _check_model_and_loaders_existence(self) -> bool:
+        # Check if model and dataloaders are provided.
+        # If a model is provided at least one dataloader should be provided.
+        return (self.model is not None) and ((self.train_dataloader is not None) or (self.eval_dataloader is not None))
 
     def ensure_feature_availability(self, check_train: bool = True):
-        feat_available = self.check_feature_existence(self.feature_dir, check_train=check_train, verbose=self.verbose)
         model_available = self._check_model_and_loaders_existence()
-        if not feat_available and model_available:
+        check_train = check_train and self.train_dataloader is not None
+        feat_available = self.check_feature_existence(self.feature_dir, check_train=check_train, verbose=self.verbose)
+        if (not feat_available) and model_available:
             # We need to generate features if these do not exist
             featurizer = Featurizer(model=self.model, normalize=self.normalize).to(self.device)
             featurizer.feature_extraction(train_dataloader=self.train_dataloader,
@@ -181,7 +184,7 @@ class SingleModelEvaluator(BaseEvaluator):
                                           feature_dir=self.feature_dir,
                                           device=self.device,
                                           autocast=self.autocast)
-        elif not feat_available and not model_available:
+        elif (not feat_available) and (not model_available):
             raise ValueError(f"Features are missing (in {self.feature_dir})\nand no model and dataloaders are provided."
                              f"Please run feature extraction first.")
         else:
