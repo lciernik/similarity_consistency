@@ -24,8 +24,11 @@ if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
 
+    model_keys = list(models.keys())
+
     # Extract features for all models and datasets.
-    for key, _ in models.items():
+    for key in model_keys:
+        print(f"Running feature extraction for {key}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
         clip_benchmark --dataset {DATASETS} \
@@ -42,7 +45,8 @@ if __name__ == "__main__":
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-2d',
+            partition='gpu-2h',
             log_dir=f'{FEATURES_ROOT}/logs',
-            num_jobs_in_array=1
+            num_jobs_in_array=1,
+            mem=64
         )
