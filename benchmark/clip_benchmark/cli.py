@@ -166,7 +166,7 @@ def main():
 
         # Append the args.model_key to the failed_models.txt file
         with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
-            f.write(f"{base.model_key}\n")
+            f.write(f"{base.model_key} LOGID {int(os.environ['SLURM_JOB_ID'])} \n")
 
 
 def main_model_sim(base):
