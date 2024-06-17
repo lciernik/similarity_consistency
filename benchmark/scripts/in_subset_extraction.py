@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     # model_keys = "Kakaobrain_Align"
 
-    nr_samples = [10, 20, 30, 40, 50, 80, 160]
+    nr_samples = [1, 5, 10, 20, 30, 40]
 
     for num_samples_class in nr_samples:
         for split in ['train', 'test']:
@@ -39,5 +39,6 @@ if __name__ == "__main__":
                 job_cmd=job_cmd,
                 partition='cpu-2h',
                 log_dir='./logs',
-                num_jobs_in_array=1
+                num_jobs_in_array=1,
+                mem=64
             )

@@ -85,6 +85,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Kernel used during CKA. Ignored if sim_method is cka.")
     aa('--sigma', type=float, default=None, help="sigma for CKA rbf kernel.")
     aa('--biased_cka', action="store_false", dest="unbiased", help="use biased CKA")
+    aa('--max_workers', type=int, default=4, help="Number of threads allowed during matrix computation.")
 
     # STORAGE
     aa('--output_root', default="results", type=str,
