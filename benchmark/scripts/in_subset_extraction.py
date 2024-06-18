@@ -26,10 +26,10 @@ if __name__ == "__main__":
         for split in ['train', 'test']:
             job_cmd = f"""
             python feature_extraction_imagenet_subset.py \
-                    --features_root={FEATURES_ROOT} \
-                    --model_key={model_keys} \
-                    --split={split} \
-                    --num_samples_class={num_samples_class} \
+                    --features_root {FEATURES_ROOT} \
+                    --model_key {model_keys} \
+                    --split {split} \
+                    --num_samples_class {num_samples_class} \
                     --subset_idxs {SUBSET_IDXS} \
                     --output_root_dir {OUTPUT_ROOT}
             """
