@@ -10,6 +10,7 @@ from typing import List, Tuple, Dict, Any
 import traceback
 import pandas as pd
 import torch
+import time
 
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
@@ -146,9 +147,19 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
         raise ValueError("results_current_run had no entries")
 
     database_path = os.path.join(out_path, "results.db")
-    conn = sqlite3.connect(database_path)
-    results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
-    conn.close()
+    for i in range(5):
+        # When multiple jobs try to write in the database at the same time, it throws an Error
+        # Try to multiple connections to the database until it works
+        try:
+            conn = sqlite3.connect(database_path)
+            results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+            conn.close()
+            break
+        except sqlite3.OperationalError as e:
+            if 'disk I/O error' in str(e) or 'database is locked' in str(e):
+                time.sleep(random.randint(1, 40))
+            else:
+                raise e
 
 
 def main():
@@ -166,7 +177,13 @@ def main():
 
         # Append the args.model_key to the failed_models.txt file
         with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
-            f.write(f"{base.model_key} LOGID {int(os.environ['SLURM_JOB_ID'])} \n")
+
+            job_id = int(os.environ["SLURM_JOB_ID"])
+            # Get the SLURM array job ID if it's an array job
+            array_job_id = int(os.environ.get("SLURM_ARRAY_JOB_ID", job_id))
+            # Get the SLURM task ID if it's an array job
+            task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+            f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
 
 
 def main_model_sim(base):
