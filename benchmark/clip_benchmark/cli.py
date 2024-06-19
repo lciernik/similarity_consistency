@@ -155,8 +155,9 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
             results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
             conn.close()
             break
-        except sqlite3.OperationalError as e:
-            if 'disk I/O error' in str(e) or 'database is locked' in str(e):
+        except Exception as e:
+            if 'disk I/O error' in str(e) or 'database' in str(e):
+                print(f"Writing on try {i + 1} failed because {str(e)}. Trying again in 1-40 seconds.")
                 time.sleep(random.randint(1, 40))
             else:
                 raise e
@@ -184,6 +185,7 @@ def main():
             # Get the SLURM task ID if it's an array job
             task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
             f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
+            f.write(f"{str(e)}\n")
 
 
 def main_model_sim(base):
