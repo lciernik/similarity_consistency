@@ -161,7 +161,7 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
                     list_of_samples = json.load(f)
                 for i, model_sample in enumerate(list_of_samples):
                     one_sample_dict = sampling_dict.copy()
-                    one_sample_dict["models"] = sorted(model_sample) # TODO: check model_ids as competing column
+                    one_sample_dict["models"] = sorted(model_sample)
                     one_sample_dict["sample_id"] = i
                     info.append(one_sample_dict)
     return info
@@ -174,6 +174,7 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
     for model_id in models:
         args.model_key = model_id
         pm = PathMaker(args, dataset)
+        pm.make_paths()
 
         db_path = os.path.join(pm._get_results_and_predictions_dirs()[0], "results.db")
 
@@ -224,18 +225,28 @@ if __name__ == "__main__":
         for dataset in args.datasets:
             out_df = build_dataframe_for_dataset(dataset, models.keys(), hyper_params, args)
             del out_df["combiner"]
-            del out_df["model_ids"]
+            del out_df["model"]
             save_dataframe(out_df, dataset, args.mode, args.hyperparams, verbose=args.verbose)
 
     elif args.mode in ("ensemble", "combined_models"):
+        if args.mode == "ensemble":
+            args.mode = "combined_models"
+            args.feature_combiner = "ensemble" # TODO dicuss path structure (either ensemble is a mode or a combiner)
+
         sampling_info = load_sampling_info(SAMPLING_ROOT)
         out_dfs = []
         for dataset in args.datasets:
             for one_sample_info in sampling_info:
-                models = one_sample_info["models"]
+                models = [one_sample_info["models"]]
+
                 df = build_dataframe_for_dataset(dataset, models, hyper_params, args)
+
+                info_df = pd.DataFrame([one_sample_info] * len(df))
+                df = pd.concat([df, info_df], axis=1)
+
                 out_dfs.append(df)
             out_df = pd.concat(out_dfs, ignore_index=True)
+            del out_df["model"]
             save_dataframe(out_df, dataset, args.mode, args.hyperparams, verbose=args.verbose)
 
     if args.verbose:
