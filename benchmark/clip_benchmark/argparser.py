@@ -65,7 +65,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--fewshot_lr', default=[0.1], type=float, nargs='+',
        help="for linear probe, what is the learning rate.")
     aa('--batch_size', default=64, type=int)
-    aa('--no_amp', action="store_false", dest="amp", default=True,
+    aa('--amp', action="store_true", dest="amp", default=False,
        help="whether to use mixed precision")
     aa("--skip_load", action="store_true",
        help="for linear probes, when everything is cached, no need to load model.")
