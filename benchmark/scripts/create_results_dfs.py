@@ -12,7 +12,7 @@ from clip_benchmark.utils.path_maker import PathMaker
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
 parser.add_argument('--datasets', type=str, nargs="+",
-                    default=['wds_imagenet1k', "wds_imagenet-a","wds_imagenet-r","wds_imagenet_sketch","wds_imagenetv2"])
+                    default=["wds_imagenet-a","wds_imagenet-r","wds_imagenet_sketch","wds_imagenetv2", 'wds_imagenet1k'])
 parser.add_argument('--mode', type=str,
                     choices=["single_model", "ensemble", "combined_models"],
                     default='single_model')
@@ -229,10 +229,6 @@ if __name__ == "__main__":
             save_dataframe(out_df, dataset, args.mode, args.hyperparams, verbose=args.verbose)
 
     elif args.mode in ("ensemble", "combined_models"):
-        if args.mode == "ensemble":
-            args.mode = "combined_models"
-            args.feature_combiner = "ensemble" # TODO dicuss path structure (either ensemble is a mode or a combiner)
-
         sampling_info = load_sampling_info(SAMPLING_ROOT)
         out_dfs = []
         for dataset in args.datasets:
