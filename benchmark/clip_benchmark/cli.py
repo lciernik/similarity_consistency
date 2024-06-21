@@ -176,12 +176,6 @@ def main():
             f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
             f.write(f"{str(e)}\n")
 
-    # The Model suceeded
-    with open(os.path.join(base.output_root, 'succeeded_models.txt'), 'a') as f:
-        array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
-        task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
-        f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
-
 
 def main_model_sim(base):
     base.device = prepare_device(base.distributed)
