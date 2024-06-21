@@ -63,8 +63,9 @@ if __name__ == "__main__":
                 feature_dirs = pm._get_feature_dirs()
                 # check if features are there
                 for feature_dir in feature_dirs:
-                    if not os.path.exists(f"{feature_dir}/features_train.pt"):
-                        not_finished_features[key] = feature_dirs
+                    if not os.path.exists(f"{feature_dir}/features_train.pt") and not os.path.exists(
+                            f"{feature_dir}/features_test.pt"):
+                        not_finished_features[key] = feature_dir
                         # print(f"Features for Model {key} do not exist in {feature_dir}.")
             except FileNotFoundError:
                 print(f"Feature root folder for Model {key} does not exist.")
@@ -73,7 +74,7 @@ if __name__ == "__main__":
             for model_dir in model_dirs:
                 if not os.path.exists(f"{model_dir}/model.pkl"):
                     # print(f"Model for Model {key} does not exist in {model_dir}.")
-                    not_finished_probe[key] = model_dirs
+                    not_finished_probe[key] = model_dir
             _, pred = pm._get_results_and_predictions_dirs()
             # check if predictions are there
             if not os.path.exists(f"{pred}/predictions.pkl"):

@@ -7,9 +7,10 @@ import sys
 from copy import copy
 from itertools import product, combinations
 from typing import List, Tuple, Dict, Any
-
+import traceback
 import pandas as pd
 import torch
+import time
 
 from clip_benchmark.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
 from clip_benchmark.data import (get_feature_combiner_cls)
@@ -148,6 +149,7 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
         raise ValueError("results_current_run had no entries")
 
     database_path = os.path.join(out_path, "results.db")
+    time.sleep(int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5)
     conn = sqlite3.connect(database_path)
     results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
     conn.close()
@@ -157,10 +159,22 @@ def main():
     parser, base = get_parser_args()
     base = load_model_configs_args(base)
 
-    if base.task == "model_similarity":
-        main_model_sim(base)
-    else:
-        main_eval(base)
+    try:
+        if base.task == "model_similarity":
+            main_model_sim(base)
+        else:
+            main_eval(base)
+    except Exception as e:
+        print(f"An error occurred during the run with models {base.model_key}: \n  {e}")
+        traceback.print_exc()
+
+        # Append the args.model_key to the failed_models.txt file
+        with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
+
+            array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
+            task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
+            f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
+            f.write(f"{str(e)}\n")
 
 
 def main_model_sim(base):
@@ -189,7 +203,7 @@ def main_model_sim(base):
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma, 
+                                                            sigma=base.sigma,
                                                             max_workers=base.max_workers)
     # Save the similarity matrix
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
@@ -228,16 +242,8 @@ def main_eval(base):
         print(f"Datasets: {datasets}\n")
 
     if base.mode in ["combined_models", "ensemble"]:
-        # TODO: implement different ways how to select the model combinations
-        # Check not too many models
-        n_models = len(models)
-        if n_models > 10:
-            raise ValueError(f"Too many models ({n_models}) to combine (max. 10 models). "
-                             f"Please select a smaller number of models to combine.")
-        model_combinations = []
-        for i in range(2, n_models + 1):
-            model_combinations += list(combinations(models, i))
-
+        # We combine all provided models and assume selection is done beforehand.
+        model_combinations = [models, ]
         runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
     else:
@@ -353,6 +359,7 @@ def run(args):
             evaluator = SingleModelEvaluator(**base_kwargs)
 
         elif mode == "combined_models":
+
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
             evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
                                                **base_kwargs)

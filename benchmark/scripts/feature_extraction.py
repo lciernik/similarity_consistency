@@ -40,12 +40,13 @@ if __name__ == "__main__":
                        --batch_size=64 \
                        --train_split train \
                        --test_split test
+                       --num_workers=0
         """
 
         run_job(
             job_name=f"feat_extr_{key}",
             job_cmd=job_cmd,
-            partition='gpu-2h',
+            partition='gpu-2d',
             log_dir=f'{FEATURES_ROOT}/logs',
             num_jobs_in_array=1,
             mem=64
