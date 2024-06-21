@@ -66,8 +66,8 @@ if __name__ == "__main__":
                                --output_root {OUTPUT_ROOT} \
                                 --models_config_file {MODELS_CONFIG} \
                                --task=linear_probe \
-                               --mode=combined_models \
-                               --feature_combiner {args.combination} \
+                               --mode={'ensemble' if args.combination == 'ensemble' else 'combined_models'} \
+                               --feature_combiner {args.combination if args.combination != 'ensemble' else ''} \
                                --model_key {' '.join(model_set)} \
                                --models_config_file {MODELS_CONFIG} \
                                --batch_size=1024 \

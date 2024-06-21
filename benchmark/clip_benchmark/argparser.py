@@ -53,10 +53,10 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Task to evaluate on. With --task=auto, the task is automatically inferred from the "
             "dataset.")
     aa('--mode', type=str, default="single_model",
-       choices=["single_model", "combined_models"],
+       choices=["single_model", "combined_models", "ensemble"],
        help="Mode to use for linear probe task.")
     aa('--feature_combiner', type=str, default="concat",
-       choices=['concat', 'concat_pca', "ensemble"], help="Feature combiner to use")
+       choices=['concat', 'concat_pca'], help="Feature combiner to use")
 
     aa('--fewshot_k', default=[-1], type=int, nargs="+",
        help="for linear probe, how many shots. -1 = whole dataset.")

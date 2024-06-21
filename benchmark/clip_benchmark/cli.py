@@ -216,7 +216,7 @@ def main_model_sim(base):
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma, 
+                                                            sigma=base.sigma,
                                                             max_workers=base.max_workers)
     # Save the similarity matrix
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
@@ -254,7 +254,7 @@ def main_eval(base):
         print(f"\nModels: {models}")
         print(f"Datasets: {datasets}\n")
 
-    if base.mode == "combined_models":
+    if base.mode in ["combined_models", "ensemble"]:
         # We combine all provided models and assume selection is done beforehand.
         model_combinations = [models, ]
         runs = product(model_combinations, datasets)
@@ -373,17 +373,16 @@ def run(args):
 
         elif mode == "combined_models":
 
-            if args.feature_combiner == "ensemble":
-                evaluator = EnsembleModelEvaluator(model_ids=model_ids,
-                                                   single_prediction_dirs=single_prediction_dirs,
-                                                   **base_kwargs)
-            else:
-                feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
-                evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
-                                                   **base_kwargs)
+            feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
+            evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
+                                               **base_kwargs)
+        elif mode == "ensemble":
+            evaluator = EnsembleModelEvaluator(model_ids=model_ids,
+                                               single_prediction_dirs=single_prediction_dirs,
+                                               **base_kwargs)
         else:
             raise ValueError(
-                "Unsupported mode: {}. mode should be `single_model`, `combined_models`".format(
+                "Unsupported mode: {}. mode should be `single_model`, `combined_models`, or `ensemble`".format(
                     mode))
 
         metrics = evaluator.evaluate()
