@@ -149,20 +149,10 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
         raise ValueError("results_current_run had no entries")
 
     database_path = os.path.join(out_path, "results.db")
-    for i in range(5):
-        # When multiple jobs try to write in the database at the same time, it throws an Error
-        # Try to multiple connections to the database until it works
-        try:
-            conn = sqlite3.connect(database_path)
-            results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
-            conn.close()
-            break
-        except Exception as e:
-            if 'disk I/O error' in str(e) or 'database' in str(e):
-                print(f"Writing on try {i + 1} failed because {str(e)}. Trying again in 1-40 seconds.")
-                time.sleep(random.randint(1, 40))
-            else:
-                raise e
+    time.sleep(int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5)
+    conn = sqlite3.connect(database_path)
+    results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+    conn.close()
 
 
 def main():
@@ -175,19 +165,22 @@ def main():
         else:
             main_eval(base)
     except Exception as e:
-        print(f"An error occurred during the run.  {e}")
+        print(f"An error occurred during the run with models {base.model_key}: \n  {e}")
         traceback.print_exc()
 
         # Append the args.model_key to the failed_models.txt file
         with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
 
-            job_id = int(os.environ["SLURM_JOB_ID"])
-            # Get the SLURM array job ID if it's an array job
-            array_job_id = int(os.environ.get("SLURM_ARRAY_JOB_ID", job_id))
-            # Get the SLURM task ID if it's an array job
-            task_id = int(os.environ.get("SLURM_ARRAY_TASK_ID", 0))
+            array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
+            task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
             f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
             f.write(f"{str(e)}\n")
+
+    # The Model suceeded
+    with open(os.path.join(base.output_root, 'succeeded_models.txt'), 'a') as f:
+        array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
+        task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
+        f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
 
 
 def main_model_sim(base):

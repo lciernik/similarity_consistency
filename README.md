@@ -41,7 +41,18 @@ Base folder located at `/home/space/diverse_priors`. It hase the following struc
 ```bash 
 python feature_extraction.py --models_config ./models_config.json --datasets "wds/imagenet1k wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 python single_model_evaluation.py --models_config ./models_config.json --datasets "wds/imagenet1k wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
+```
+
+Ensemble:
+
+```bash 
 python combined_models_evaluation.py --models_config ./models_config.json  --sampling_folder  models_3-samples_10 models_4-samples_10 --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
+```
+
+Combined models:
+
+```bash
+python combined_models_evaluation.py --combination concat --models_config ./models_config.json  --sampling_folder  models_3-samples_10 models_4-samples_10 --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 ```
 
 ## Sampling

@@ -8,7 +8,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
 parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'])
 parser.add_argument('--sampling_folder', type=str, nargs='+')
-parser.add_argument('--combination', type=str, default='ensemble')
+parser.add_argument('--combination', type=str, default='ensemble',
+                    choices=['ensemble', 'concat', 'concat_pca'], help="Model combination to use")
 
 args = parser.parse_args()
 
