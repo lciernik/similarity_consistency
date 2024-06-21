@@ -94,7 +94,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Path to root folder where linear probe model checkpoints are stored.")
 
     # GENERAL
-    aa('--num_workers', default=4, type=int)
+    aa('--num_workers', default=0, type=int)
 
     aa("--distributed", action="store_true", help="evaluation in parallel")
     aa('--quiet', dest='verbose', action="store_false",
@@ -104,6 +104,9 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--seed', default=[0], type=int, nargs='+', help="random seed.")
 
     args = parser.parse_args()
+
+    if args.num_workers > 0 and args.task == "feature_extraction":
+        raise ValueError(f"At the moment we only allow for num_workers=0.")
     return parser, args
 
 

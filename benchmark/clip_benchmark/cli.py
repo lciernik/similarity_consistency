@@ -342,6 +342,10 @@ def run(args):
 
         evaluator.ensure_feature_availability()
 
+        if args.verbose:
+            print(f"\nFinished feature extraction for {model_ids} on {dataset_name} ...\n")
+
+
     elif task == 'linear_probe':
         base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)
 
