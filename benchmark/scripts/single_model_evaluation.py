@@ -57,7 +57,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"probe_{key}",
             job_cmd=job_cmd,
-            partition='gpu-2h',
+            partition='gpu-5h',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )
