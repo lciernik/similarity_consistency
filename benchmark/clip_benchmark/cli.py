@@ -307,7 +307,7 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": args.amp,
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": False,
                    "verbose": args.verbose, "val_proportion": args.val_proportion}
     return base_kwargs
 
