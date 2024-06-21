@@ -94,11 +94,14 @@ def get_extraction_model_n_dataloader(args, dataset_root, task):
         download=True,
         verbose=args.verbose
     )
-    train_dataloader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size,
-        shuffle=False, num_workers=args.num_workers,
-        collate_fn=collate_fn, pin_memory=True,
-    )
+    if train_dataset:
+        train_dataloader = torch.utils.data.DataLoader(
+            train_dataset, batch_size=args.batch_size,
+            shuffle=False, num_workers=args.num_workers,
+            collate_fn=collate_fn, pin_memory=True,
+        )
+    else:
+        train_dataloader = None
 
     return model, train_dataloader, eval_dataloader
 

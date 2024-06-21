@@ -1,6 +1,6 @@
 import os
 import random
-from typing import List, Union, Dict, Optional
+from typing import List, Union, Dict, Optional, Tuple
 
 import numpy as np
 import torch
@@ -16,26 +16,38 @@ def as_list(l):
 
 
 ## Load features and targets
-def load_features(feature_root, model_id=None, split='train'):
+def load_features(feature_root: str, model_id: Optional[str] = None, split: str = 'train') -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     features = torch.load(os.path.join(model_dir, f'features_{split}.pt'))
     return features
 
 
-def load_targets(feature_root, model_id=None, split='train'):
+def load_targets(feature_root: str, model_id: Optional[str] = None, split: str = 'train') -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     targets = torch.load(os.path.join(model_dir, f'targets_{split}.pt'))
     return targets
 
 
-def load_features_targets(feature_root, model_id=None, split='train'):
+def check_equal_targets(list_targets: List[torch.Tensor]) -> bool:
+    if len(list_targets) > 1:
+        first_targets = list_targets[0]
+        for curr_target in list_targets[1:]:
+            if not (first_targets == curr_target).all().item():
+                return False
+    return True
+
+
+def load_features_targets(
+        feature_root: str,
+        model_id: Optional[str] = None,
+        split: str = 'train'
+) -> Tuple[torch.Tensor, torch.Tensor]:
     if isinstance(feature_root, list):
         features = [load_features(f, model_id, split) for f in feature_root]
-        targets = load_targets(feature_root[0], model_id, split)
-        # For sanity check we do load all other targets and hope that they match:
-        for f in feature_root[1:]:
-            assert torch.equal(load_targets(f, model_id, split),
-                               targets), f"Targets of {f} and {feature_root[0]} do not match"
+        targets = [load_targets(f, model_id, split) for f in feature_root]
+        if not check_equal_targets(targets):
+            raise ValueError("Not all targets are equal.")
+        targets = targets[0]
     else:
         features = load_features(feature_root, model_id, split)
         targets = load_targets(feature_root, model_id, split)

@@ -77,7 +77,9 @@ def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, s
         feature_alignments), "The number of feature_alignment should be the same as the number of models"
     assert len(models) == len(model_keys), "The number of model_key should be the same as the number of models"
 
-    return list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
+    models_w_config = list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
+    models_w_config = sorted(models_w_config, key=lambda x: x[-1])
+    return models_w_config
 
 
 def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
@@ -214,7 +216,8 @@ def main_model_sim(base):
                                                             backend='torch',
                                                             unbiased=base.unbiased,
                                                             device=base.device,
-                                                            sigma=base.sigma, )
+                                                            sigma=base.sigma, 
+                                                            max_workers=base.max_workers)
     # Save the similarity matrix
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
     if not os.path.exists(out_path):
@@ -357,6 +360,10 @@ def run(args):
             print(f"\nExtracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...\n")
 
         evaluator.ensure_feature_availability()
+
+        if args.verbose:
+            print(f"\nFinished feature extraction for {model_ids} on {dataset_name} ...\n")
+
 
     elif task == 'linear_probe':
         base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)

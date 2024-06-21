@@ -27,6 +27,8 @@ class Featurizer(torch.nn.Module):
 
         splits = ["_train", "_test"]
         for save_str, loader in zip(splits, [train_dataloader, eval_dataloader]):
+            if loader is None:
+                continue
             features = []
             targets = []
             num_batches_tracked = 0

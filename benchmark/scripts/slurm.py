@@ -4,12 +4,13 @@ from slurmpy import Slurm
 def run_job(
         job_name,
         job_cmd,
-        num_cpus=16,
+        num_cpus=4,
         partition='gpu-2d',
         apptainer=False,
         slurm_args=None,
         log_dir='./logs',
         num_jobs_in_array=1,
+        mem=32
 ):
     if apptainer:
         raise NotImplementedError("No apptainer container available for now.")
@@ -36,18 +37,23 @@ def run_job(
         # """
     else:
         submit_cmd = job_cmd
+        
+    if not isinstance(mem, int):
+      raise TypeError("The variable mem needs to be a (positive) integer.")
 
+    if not isinstance(mem, int):
+        raise ValueError("Argument mem must be an int")
+        
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
-        "exclude": "head[026-033],head073",
-        # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
+        "exclude": "head[026-033],head034,head042,head073,head071", # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
         "error": f"{log_dir}/run_%A/%a.err",
         "array": f"0-{num_jobs_in_array - 1}" if num_jobs_in_array > 1 else "0",
-        "mem": "32G",
+        "mem": f"{mem}G",
     }
 
     if slurm_args is not None:

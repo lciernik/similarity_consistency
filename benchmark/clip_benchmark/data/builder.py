@@ -1,5 +1,6 @@
 import os
 import re
+import warnings
 from subprocess import call
 
 import torch
@@ -31,11 +32,13 @@ def build_dataset(dataset_name, root="root", transform=None, split="test", downl
 
     if split == "train" and any([imgnt_variant in dataset_name for imgnt_variant in
                                  dataset_collection["imagenet_robustness"]]):
-        # Setting imagenet as training set for imagenet variants (should not be used)
-        root = os.sep.join(root.split(os.sep)[:-1] + ["wds_imagenet1k"])
-        if verbose:
-            print(f"Loading wds/imagenet1k instead of {dataset_name}, dataset root is set to {root}")
-        dataset_name = "wds/imagenet1k"
+        # # Setting imagenet as training set for imagenet variants (should not be used) [TODO: remove this?]
+        # root = os.sep.join(root.split(os.sep)[:-1] + ["wds_imagenet1k"])
+        # if verbose:
+        #     print(f"Loading wds/imagenet1k instead of {dataset_name}, dataset root is set to {root}")
+        # dataset_name = "wds/imagenet1k"
+        warnings.warn("Imagenet robustness datasets do not have a training split. Returning None instead.")
+        return None
 
     if re.match(r"^imagenet-subset-\d+k$", dataset_name):
         raise ValueError(

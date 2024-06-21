@@ -707,8 +707,8 @@
             "token_extraction": "cls_token"
         },
         "module_name": "norm",
-        "objective": "Self-Supervised",
-        "dataset": "ImageNet1k",
+        "objective": "Supervised",
+        "dataset": "ImageNet21k + ImageNet1k",
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
@@ -722,7 +722,7 @@
             "token_extraction": "cls_token"
         },
         "module_name": "norm",
-        "objective": "Self-Supervised",
+        "objective": "Supervised",
         "dataset": "ImageNet21k",
         "architecture_class": "Transformer",
         "architecture": "ViT",
@@ -737,8 +737,8 @@
             "token_extraction": "cls_token"
         },
         "module_name": "norm",
-        "objective": "Self-Supervised",
-        "dataset": "ImageNet1k",
+        "objective": "Supervised",
+        "dataset": "ImageNet21k + ImageNet1k",
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
@@ -752,7 +752,7 @@
             "token_extraction": "cls_token"
         },
         "module_name": "norm",
-        "objective": "Self-Supervised",
+        "objective": "Supervised",
         "dataset": "ImageNet21k",
         "architecture_class": "Transformer",
         "architecture": "ViT",

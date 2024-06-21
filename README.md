@@ -43,3 +43,24 @@ python feature_extraction.py --models_config ./models_config.json --datasets "wd
 python single_model_evaluation.py --models_config ./models_config.json --datasets "wds/imagenet1k wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 python combined_models_evaluation.py --models_config ./models_config.json  --sampling_folder  models_3-samples_10 models_4-samples_10 --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 ```
+
+## Sampling
+
+We want to test different model selection strategies.
+Let's assume we want to sample `num_samples` model sets of size `k`.
+Then, we can do that with the following command.
+
+```bash
+python clip_benchmark/sample_models.py \
+  --num_models <k> \
+  --sampling strategies top-k random cluster one-cluster \
+  --num_samples <num_samples> \
+  --output_root /home/space/diverse_priors/sampling/models_<k>-samples_<num_samples>
+```
+
+This will write a json with the sampled model sets for each of the sampling strategies into
+`/home/space/diverse_priors/sampling/models_<k>-samples_<num_samples>`.
+
+To run sampling for multiple model set sizes, we can use `benchmark/scripts/run_sampling.py` \
+which will automatically trigger the necessary jobs.
+
