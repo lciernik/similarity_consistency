@@ -199,13 +199,13 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
                 print(f"Found {len(df)} entries for {dataset} and {model_id}.")
             out_df = pd.concat([out_df, df])
 
-        # Remove clutter
-        for c in ["train_split", "test_split", "module_name", "model_parameters"]:
-            if c in out_df.columns:
-                del out_df[c]
+    # Remove clutter
+    for c in ["train_split", "test_split", "module_name", "model_parameters"]:
+        if c in out_df.columns:
+            del out_df[c]
 
-        # Post process
-        out_df["model_ids"] = out_df["model_ids"].apply(lambda x: x.replace('"','').replace('\\',''))
+    # Post process
+    out_df["model_ids"] = out_df["model_ids"].apply(lambda x: json.loads(x))
     
     return out_df
 
