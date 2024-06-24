@@ -203,6 +203,10 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
         for c in ["train_split", "test_split", "module_name", "model_parameters"]:
             if c in out_df.columns:
                 del out_df[c]
+
+        # Post process
+        out_df["model_ids"] = out_df["model_ids"].apply(lambda x: x.replace('"','').replace('\\',''))
+    
     return out_df
 
 
