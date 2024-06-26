@@ -68,7 +68,7 @@ if __name__ == "__main__":
                                 --models_config_file {MODELS_CONFIG} \
                                --task=linear_probe \
                                --mode={'ensemble' if args.combination == 'ensemble' else 'combined_models'} \
-                               --feature_combiner {args.combination if args.combination != 'ensemble' else ''} \
+                               --feature_combiner {args.combination if args.combination != 'ensemble' else 'concat'} \
                                --model_key {' '.join(model_set)} \
                                --models_config_file {MODELS_CONFIG} \
                                --batch_size=1024 \
@@ -80,11 +80,13 @@ if __name__ == "__main__":
                                --val_proportion {val_proportion} \
                                --seed {' '.join(hyper_params['seeds'])}
                 """
+        mem = 32 if args.combination == 'ensemble' else 128
 
         run_job(
             job_name=f"combined_eval",
             job_cmd=job_cmd,
             partition='cpu-2h' if args.combination == 'ensemble' else 'gpu-5h',
             log_dir=f'{OUTPUT_ROOT}/logs',
-            num_jobs_in_array=num_jobs
+            num_jobs_in_array=num_jobs,
+            mem=mem
         )

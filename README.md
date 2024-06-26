@@ -46,13 +46,13 @@ python single_model_evaluation.py --models_config ./models_config.json --dataset
 Ensemble:
 
 ```bash 
-python combined_models_evaluation.py --models_config ./models_config.json  --sampling_folder  models_3-samples_10 models_4-samples_10 --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
+python combined_models_evaluation.py --models_config ./models_config.json  --sampling_folder  models_3-samples_10  --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 ```
 
 Combined models:
 
 ```bash
-python combined_models_evaluation.py --combination concat --models_config ./models_config.json  --sampling_folder  models_3-samples_10 models_4-samples_10 --datasets "wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
+python combined_models_evaluation.py --combination concat --models_config ./models_config.json  --sampling_folder  models_3-samples_10 --datasets "wds/imagenet1k wds/imagenetv2 wds/imagenet-a wds/imagenet-r wds/imagenet_sketch"
 ```
 
 ## Sampling

@@ -11,7 +11,7 @@ BASE_PROJECT_PATH = "/home/space/diverse_priors"
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 CLUSTERING_ROOT = os.path.join(BASE_PROJECT_PATH, 'clustering')
 SELECTION_DATASET = 'wds_imagenet1k'
-DATASET = "imagenet-subset-10k-bak"
+DATASET = "imagenet-subset-10k"
 
 METHOD_KEYS = [
     'cka_kernel_rbf_unbiased_sigma_0.2',
@@ -56,9 +56,7 @@ if __name__ == "__main__":
     num_samples = 10
 
     models, n_models = load_models(MODELS_CONFIG)
-    models.pop('vgg16_gLocal')
     models.pop('SegmentAnything_vit_b')
-    models.pop('Kakaobrain_Align')
     model_keys = ' '.join(models.keys())
 
     # Iterate over different number of models we want to use in the combined setting
@@ -80,7 +78,7 @@ if __name__ == "__main__":
 
                 for lbl_assign_method in LBL_ASSIGN_METHODS:
 
-                    # run 'cluster_best' and 'cluster_random'
+                    # run 'cluster_best'
                     assignment_path = os.path.join(CLUSTERING_ROOT,
                                                    DATASET,
                                                    method,
@@ -89,19 +87,35 @@ if __name__ == "__main__":
                                                    'cluster_labels.csv')
 
                     cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}"""
-                    job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best cluster_random \
+                    job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best \
                     --cluster_assignment_path {assignment_path} \
                     --cluster_slug {cluster_slug}"""
 
                     run_curr_job(job_cmd)
 
-                    # run 'one_cluster' for each cluster in cluster assignment
-                    cluster_assignment_table = pd.read_csv(assignment_path)
-                    for cluster_idx in cluster_assignment_table.cluster.unique():
-                        curr_cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}-cluster_{cluster_idx}"""
-                        job_cmd = base_job_cmd + f""" --sampling_strategies one_cluster \
-                        --cluster_assignment_path {assignment_path} \
-                        --cluster_index {cluster_idx} \
-                        --cluster_slug {curr_cluster_slug}"""
+                    # # run 'cluster_best' and 'cluster_random'
+                    # assignment_path = os.path.join(CLUSTERING_ROOT,
+                    #                                DATASET,
+                    #                                method,
+                    #                                f"num_clusters_{num_clusters}",
+                    #                                lbl_assign_method,
+                    #                                'cluster_labels.csv')
 
-                        run_curr_job(job_cmd)
+                    # cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}"""
+                    # job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best cluster_random \
+                    # --cluster_assignment_path {assignment_path} \
+                    # --cluster_slug {cluster_slug}"""
+
+                    # run_curr_job(job_cmd)
+
+                    # # run 'one_cluster' for each cluster in cluster assignment
+                    # cluster_assignment_table = pd.read_csv(assignment_path)
+                    # for cluster_idx in cluster_assignment_table.cluster.unique():
+                    #     if len(cluster_assignment_table[cluster_assignment_table.cluster == cluster_idx]) >= num_clusters:
+                    #         curr_cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}-cluster_{cluster_idx}"""
+                    #         job_cmd = base_job_cmd + f""" --sampling_strategies one_cluster \
+                    #         --cluster_assignment_path {assignment_path} \
+                    #         --cluster_index {cluster_idx} \
+                    #         --cluster_slug {curr_cluster_slug}"""
+
+                    #         run_curr_job(job_cmd)

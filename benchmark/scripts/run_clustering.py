@@ -17,7 +17,7 @@ NUM_CLUSTERS = range(3, 8)
 
 LBL_ASSIGN_METHODS = ['kmeans', 'discretize', 'cluster_qr']
 
-DATASET = "imagenet-subset-10k-bak"
+DATASET = "imagenet-subset-10k"
 
 if __name__ == "__main__":
     for num_clusters in NUM_CLUSTERS:
