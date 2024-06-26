@@ -7,8 +7,7 @@ MODELS_CONFIG = "./models_config.json"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 
-# DATASETS = ["imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-40k", "imagenet-subset-80k", "imagenet-subset-160k"]
-DATASETS = ["imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k"]
+DATASETS = ["imagenet-subset-1k", "imagenet-subset-5k", "imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k", "imagenet-subset-40k"]
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
@@ -70,11 +69,8 @@ sim_method_config = [
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    models.pop('vgg16_gLocal')
-    models.pop('Kakaobrain_Align')
     models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
-    print(model_keys)
 
     num_jobs = len(DATASETS)
 
@@ -102,9 +98,7 @@ if __name__ == "__main__":
                                      --sigma {exp_dict['sigma']} \
                                      --max_workers {max_workers}
                         """
-        partition = 'gpu-2d' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
-        # mem = 32 if exp_dict['sim_method'] == 'cka' else 150
-        # partition = 'cpu-2d'
+        partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150
 
         run_job(

@@ -16,6 +16,7 @@ parser.add_argument('--datasets', type=str, nargs="+",
 parser.add_argument('--mode', type=str,
                     choices=["single_model", "ensemble", "combined_models"],
                     default='single_model')
+parser.add_argument('--feature_combiner', type=str, default="concat", choices=['concat', 'concat_pca'], help="Feature combiner to use")
 parser.add_argument('--hyperparams', type=str, default='imagenet1k')
 parser.add_argument('--batch_size', type=int, default=1024)
 parser.add_argument('--verbose', type=bool, default=False)
@@ -70,7 +71,7 @@ def save_dataframe(out_df: pd.DataFrame, dataset:str, mode:str, hyperparams:str,
         file_path = os.path.join(out_path, f"results_{hyperparams}.pkl")
         os.makedirs(out_path, exist_ok=True)
         if verbose:
-            print(f"Saving {len(out_df)} rows to", file_path)
+            print(f"\nSaving {len(out_df)} rows to", file_path, "\n")
         out_df.to_pickle(file_path)
 
 
@@ -81,7 +82,7 @@ def resolve_directory_name(dir_name: str) -> Dict:
     for part in dir_name_parts.split("-"):
         k, v = part.split("_")
         if k in param_names_map:
-            info[param_names_map[k]] = int(v)
+            info[param_names_map[k]] = int(v) # TODO: Problem only random and OneCluster have random
         else:
             raise ValueError(f"Unknown directory name component {k} of directory {dir_name}")
     return info
@@ -109,7 +110,7 @@ def resolve_similarity_slug(similarity_slug: Optional[str]) -> Dict:
                 skip = 1
             elif part == "unbiased":
                 info["cka_unbiased"] = True
-                skip = 1
+                skip = 0
             elif part == "method":
                 info["rsa_method"] = parts[p_i + 1]
                 skip = 1
@@ -143,7 +144,7 @@ def resolve_file_name(file_name: str) -> Dict:
                 except ValueError:
                     info[param_name] = part
 
-    info.update(resolve_similarity_slug(info["similarity_method"]))
+    # info.update(resolve_similarity_slug(info["similarity_method"]))
 
     return info
 
@@ -153,6 +154,8 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
     for root, dirs, files in os.walk(sampling_root):
         for file in files:
             if file.endswith(".json"):
+                if "test_files" in root:
+                    continue
                 sampling_dict = resolve_directory_name(root)
                 sampling_dict.update(resolve_file_name(file))
 
@@ -173,7 +176,7 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
 
     for model_id in models:
         args.model_key = model_id
-        pm = PathMaker(args, dataset)
+        pm = PathMaker(args, dataset, auto_create_dirs=False)
         pm.make_paths()
 
         db_path = os.path.join(pm._get_results_and_predictions_dirs()[0], "results.db")
@@ -205,8 +208,8 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
             del out_df[c]
 
     # Post process
-    out_df["model_ids"] = out_df["model_ids"].apply(lambda x: json.loads(x))
-    
+    if len(out_df)>0:
+        out_df["model_ids"] = out_df["model_ids"].apply(lambda x: json.loads(x))
     return out_df
 
 
@@ -215,7 +218,7 @@ if __name__ == "__main__":
     args.feature_root = FEATURES_ROOT
     args.model_root = MODELS_ROOT
     args.output_root = RESULTS_ROOT
-    args.feature_combiner = None
+    # args.feature_combiner = None
     args.seed = 0
     args.task = "linear_probe"
     hyper_params = get_processed_hyperparams(args.hyperparams, args.batch_size)
@@ -234,8 +237,8 @@ if __name__ == "__main__":
 
     elif args.mode in ("ensemble", "combined_models"):
         sampling_info = load_sampling_info(SAMPLING_ROOT)
-        out_dfs = []
         for dataset in args.datasets:
+            out_dfs = []
             for one_sample_info in sampling_info:
                 models = [one_sample_info["models"]]
 
@@ -246,7 +249,8 @@ if __name__ == "__main__":
 
                 out_dfs.append(df)
             out_df = pd.concat(out_dfs, ignore_index=True)
-            del out_df["model"]
+            if not out_df.empty:
+                del out_df["model"]
             save_dataframe(out_df, dataset, args.mode, args.hyperparams, verbose=args.verbose)
 
     if args.verbose:

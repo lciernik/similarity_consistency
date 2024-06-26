@@ -141,7 +141,7 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
 
 
 def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float],
-                 out_path: str) -> None:
+                 out_path: str, max_write_attempts: int = 10) -> None:
     """Save the results to a database (created if not existant)."""
     results_current_run = make_results_df(exp_args=args, model_ids=model_ids, metrics=metrics)
 
@@ -149,10 +149,20 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
         raise ValueError("results_current_run had no entries")
 
     database_path = os.path.join(out_path, "results.db")
-    time.sleep(int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5)
-    conn = sqlite3.connect(database_path)
-    results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
-    conn.close()
+    for i in range(max_write_attempts):
+        try:
+            conn = sqlite3.connect(database_path)
+            results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+            break
+        except Exception as e:
+            if 'disk I/O error' in str(e) or 'database' in str(e):
+                waiting_time = int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5
+                print(f"Writing on try {i + 1} failed because {str(e)}. Trying again in {str(waiting_time)} seconds.")
+                time.sleep(waiting_time)
+            else:
+                raise e
+        finally:
+            conn.close()
 
 
 def main():

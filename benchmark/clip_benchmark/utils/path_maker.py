@@ -6,11 +6,13 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None):
+    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None, auto_create_dirs: bool = True):
         self.dataset_name = dataset_name
         self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
         self.mode = args.mode
+        
+        self.auto_create_dirs = auto_create_dirs
 
         self.dataset_root = args.dataset_root
         self.feature_root = args.feature_root
@@ -51,7 +53,7 @@ class PathMaker:
             raise FileNotFoundError(f"Feature root folder {self.feature_root} does not exist.")
         if not os.path.exists(self.model_root) and self.task == "linear_probe":
             raise FileNotFoundError(f"Model root folder {self.model_root} does not exist.")
-        if not os.path.exists(self.output_root) and self.task == "linear_probe":
+        if not os.path.exists(self.output_root) and self.task == "linear_probe" and self.auto_create_dirs:
             os.makedirs(self.output_root, exist_ok=True)
             if self.verbose:
                 print(f'Created path ({self.output_root}), where results are to be stored ...')
@@ -78,7 +80,7 @@ class PathMaker:
     def _get_results_and_predictions_dirs(self) -> Tuple[str, str]:
         results_dir = os.path.join(self.output_root, self.task, self.mode, self.dataset_name, self.model_slug)
         predictions_dir = os.path.join(results_dir, self.hyperparams_slug)
-        if not os.path.exists(predictions_dir):
+        if not os.path.exists(predictions_dir) and self.auto_create_dirs:
             os.makedirs(predictions_dir, exist_ok=True)
             if self.verbose:
                 print(f'Created path ({results_dir}), where results are to be stored ...')
