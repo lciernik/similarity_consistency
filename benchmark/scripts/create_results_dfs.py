@@ -39,6 +39,7 @@ def retrieve_db_results(db_path:str, verbose:bool) -> pd.DataFrame:
         conn = sqlite3.connect(path)
         df = pd.read_sql('SELECT * FROM "results"', conn)
         conn.close()
+        df = df[~df.duplicated()].reset_index(drop=True)
     except (pd.errors.DatabaseError, sqlite3.OperationalError) as e:
         if verbose:
             print(f"ERROR: Tried to extract data from {path=}, but got Error: {e}")
