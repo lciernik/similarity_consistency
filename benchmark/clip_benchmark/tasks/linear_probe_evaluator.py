@@ -21,7 +21,10 @@ class BaseEvaluator:
                  fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
                  normalize: bool = True,
                  amp: bool = True, verbose: bool = False, val_proportion: float = 0,
-                 logit_filter: Optional[torch.Tensor] = None) -> None:
+                 logit_filter: Optional[torch.Tensor] = None,
+                 weight_decay: float = 0.0,
+                 weight_decay_type: str = "L2"
+                 ) -> None:
         super().__init__()
 
         self.batch_size = batch_size
@@ -44,8 +47,10 @@ class BaseEvaluator:
         self.verbose = verbose
         self.val_proportion = val_proportion
         self.logit_filter = logit_filter
-
-        self.wd_tuner = WeightDecayTuner(self.lr, self.epochs, self.autocast, self.device, self.verbose, self.seed)
+        self.weight_decay = weight_decay
+        self.weight_decay_type = weight_decay_type
+        self.wd_tuner = WeightDecayTuner(self.lr, self.epochs, self.autocast, self.device, self.verbose, self.seed,
+                                         weight_decay_type=self.weight_decay_type)
 
     @staticmethod
     def check_single_instance(param: List[Any], param_name: str) -> Union[Any, List[Any]]:
@@ -100,8 +105,7 @@ class BaseEvaluator:
             tmp_train_loader, tmp_val_loader = self._create_train_val_loaders(train_loader)
             best_wd = self.wd_tuner.tune_weight_decay(tmp_train_loader, tmp_val_loader)
         else:
-            # TODO Enable Weight Decay Settings without Validation Set
-            best_wd = 0
+            best_wd = self.weight_decay
 
         return best_wd
 
@@ -132,6 +136,7 @@ class BaseEvaluator:
                                    device=self.device,
                                    seed=self.seed,
                                    logit_filter=self.logit_filter,
+                                   weight_decay_type=self.weight_decay_type,
                                    )
         metric_dict = {"best_weight_decay": best_wd}
         linear_probe.train(train_loader, filename=filename)
@@ -156,9 +161,10 @@ class BaseEvaluator:
 class SingleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, model=None, train_dataloader=None, eval_dataloader=None, normalize=True,
-                 amp=True, verbose=False, val_proportion=0, logit_filter=None):
+                 amp=True, verbose=False, val_proportion=0, logit_filter=None, weight_decay=0.0,
+                 weight_decay_type='L2'):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, amp, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -221,10 +227,11 @@ class SingleModelEvaluator(BaseEvaluator):
 class CombinedModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, feature_combiner_cls, normalize=True, amp=True, verbose=False, val_proportion=0,
-                 logit_filter=None):
+                 logit_filter=None, weight_decay: float = 0.0,
+                 weight_decay_type: str = "L2"):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, amp, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
 
         self.feature_dirs = feature_dirs
         self.feature_combiner_cls = feature_combiner_cls
@@ -270,10 +277,12 @@ class CombinedModelEvaluator(BaseEvaluator):
 class EnsembleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_ids,
                  feature_dirs, model_dirs, predictions_dir, single_prediction_dirs,
-                 normalize=True, amp=True, verbose=False, val_proportion=0, logit_filter=None):
+                 normalize=True, amp=True, verbose=False, val_proportion=0, logit_filter=None,
+                 weight_decay: float = 0.0,
+                 weight_decay_type: str = "L2"):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, amp, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
 
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs

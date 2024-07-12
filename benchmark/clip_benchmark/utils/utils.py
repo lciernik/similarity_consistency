@@ -1,8 +1,14 @@
+import argparse
+import json
 import os
 import random
-from typing import List, Union, Dict, Optional, Tuple
+import sqlite3
+import time
+from itertools import product
+from typing import List, Union, Dict, Optional, Tuple, Any
 
 import numpy as np
+import pandas as pd
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
@@ -167,3 +173,161 @@ def set_all_random_seeds(seed):
     torch.cuda.manual_seed(seed)
     if torch.cuda.device_count() > 1:
         torch.cuda.manual_seed_all(seed)
+
+
+def prepare_device(distributed: bool) -> str:
+    if torch.cuda.is_available():
+        if distributed:
+            local_rank, rank, world_size = world_info_from_env()
+            device = 'cuda:%d' % local_rank
+            torch.cuda.set_device(device)
+        else:
+            device = "cuda"
+        return device
+    else:
+        return "cpu"
+
+
+def get_combination(
+        fewshot_ks: List[int],
+        fewshot_lrs: List[float],
+        fewshot_epochs: List[int],
+        seeds: List[int],
+        weight_decays: List[float],
+        weight_decay_types: List[str],
+) -> Tuple[int, float, int, int, float, str]:
+    combs = []
+    combs.extend(
+        list(
+            product(
+                fewshot_ks,
+                fewshot_lrs,
+                fewshot_epochs,
+                seeds,
+                weight_decays,
+                weight_decay_types,
+            )
+        )
+    )
+    return combs[int(os.environ["SLURM_ARRAY_TASK_ID"])]
+
+
+def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str, str]]:
+    """Get list of models and config to evaluate."""
+    models = as_list(base.model)
+    srcs = as_list(base.model_source)
+    params = as_list(base.model_parameters)
+    module_names = as_list(base.module_name)
+    feature_alignments = as_list(base.feature_alignment)
+    model_keys = as_list(base.model_key)
+
+    assert len(models) == len(srcs), "The number of model_source should be the same as the number of models"
+    assert len(models) == len(params), "The number of model_parameters should be the same as the number of models"
+    assert len(models) == len(module_names), "The number of module_name should be the same as the number of models"
+    assert len(models) == len(
+        feature_alignments), "The number of feature_alignment should be the same as the number of models"
+    assert len(models) == len(model_keys), "The number of model_key should be the same as the number of models"
+
+    models_w_config = list(zip(models, srcs, params, module_names, feature_alignments, model_keys))
+    models_w_config = sorted(models_w_config, key=lambda x: x[-1])
+    return models_w_config
+
+
+def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float]) -> pd.DataFrame:
+    results_current_run = pd.DataFrame(index=range(1))
+
+    # experiment config
+    results_current_run["task"] = exp_args.task
+    results_current_run["mode"] = exp_args.mode
+    results_current_run["combiner"] = exp_args.feature_combiner \
+        if exp_args.task == 'linear_probe' and exp_args.mode == 'combined_models' \
+        else None
+    # dataset
+    results_current_run["dataset"] = exp_args.dataset
+    results_current_run["feature_normalization"] = exp_args.normalize
+    results_current_run["feature_alignment"] = json.dumps(exp_args.feature_alignment)
+    results_current_run["train_split"] = exp_args.train_split
+    results_current_run["val_proportion"] = exp_args.val_proportion
+    results_current_run["test_split"] = exp_args.split
+    # model(s)
+    results_current_run["model_ids"] = json.dumps(model_ids)
+    results_current_run["model"] = json.dumps(exp_args.model)
+    results_current_run["model_source"] = json.dumps(exp_args.model_source)
+    results_current_run["model_parameters"] = json.dumps(exp_args.model_parameters)
+    results_current_run["module_name"] = json.dumps(exp_args.module_name)
+    # hyperparameters
+    results_current_run["fewshot_k"] = exp_args.fewshot_k
+    results_current_run["fewshot_lr"] = exp_args.fewshot_lr
+    results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
+    results_current_run["batch_size"] = exp_args.batch_size
+    results_current_run["seed"] = exp_args.seed
+    results_current_run["weight_decay"] = exp_args.weight_decay
+    results_current_run["weight_decay_type"] = exp_args.weight_decay_type
+
+    # metrics
+    def flatten_metrics(curr_metrics):
+        new_metrics = {}
+        if 'train_metrics' in curr_metrics:
+            new_metrics.update({f'train_{k}': v for k, v in curr_metrics['train_metrics'].items()})
+        if 'test_metrics' in curr_metrics:
+            new_metrics.update({f'test_{k}': v for k, v in curr_metrics['test_metrics'].items()})
+        new_metrics.update({k: v for k, v in curr_metrics.items() if not isinstance(v, dict)})
+        return new_metrics
+
+    flattened_metrics = flatten_metrics(metrics)
+    for key, value in flattened_metrics.items():
+        if key in results_current_run:
+            continue
+        results_current_run[key] = value
+
+    # serialize object columns
+    for col in results_current_run:
+        if results_current_run[col].dtype == "object":
+            try:
+                results_current_run[col] = results_current_run[col].apply(json.dumps)
+            except TypeError as e:
+                print(col)
+                print(results_current_run[col])
+                raise e
+
+    return results_current_run
+
+
+def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float],
+                 out_path: str, max_write_attempts: int = 10) -> None:
+    """Save the results to a database (created if not existant)."""
+    results_current_run = make_results_df(exp_args=args, model_ids=model_ids, metrics=metrics)
+
+    if len(results_current_run) == 0:
+        raise ValueError("results_current_run had no entries")
+
+    database_path = os.path.join(out_path, "results.db")
+    for i in range(max_write_attempts):
+        try:
+            conn = sqlite3.connect(database_path)
+            results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+            break
+        except Exception as e:
+            if 'disk I/O error' in str(e) or 'database' in str(e):
+                waiting_time = int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5
+                print(f"Writing on try {i + 1} failed because {str(e)}. Trying again in {str(waiting_time)} seconds.")
+                time.sleep(waiting_time)
+            else:
+                raise e
+        finally:
+            conn.close()
+
+
+def get_base_evaluator_args(
+        args: argparse.Namespace,
+        feature_dirs: List[str],
+        model_dirs: List[str],
+        predictions_dir: str
+) -> Dict[str, Any]:
+    base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
+                   "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
+                   "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": False,
+                   "verbose": args.verbose, "val_proportion": args.val_proportion, "weight_decay": args.weight_decay,
+                   "weight_decay_type": args.weight_decay_type}
+    return base_kwargs

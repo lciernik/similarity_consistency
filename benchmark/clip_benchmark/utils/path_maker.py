@@ -6,12 +6,13 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None, auto_create_dirs: bool = True):
+    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None,
+                 auto_create_dirs: bool = True):
         self.dataset_name = dataset_name
         self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
         self.mode = args.mode
-        
+
         self.auto_create_dirs = auto_create_dirs
 
         self.dataset_root = args.dataset_root
@@ -34,6 +35,7 @@ class PathMaker:
         subpath = os.path.join(fewshot_slug,
                                f"fewshot_lr_{args.fewshot_lr}",
                                f"fewshot_epochs_{args.fewshot_epochs}",
+                               f"weight_decay_{args.weight_decay_type}_{args.weight_decay}",
                                f"batch_size_{args.batch_size}",
                                f"seed_{args.seed}",
                                )
