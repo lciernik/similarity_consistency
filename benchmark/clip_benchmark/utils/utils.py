@@ -4,6 +4,7 @@ import os
 import random
 import sqlite3
 import time
+import warnings
 from itertools import product
 from typing import List, Union, Dict, Optional, Tuple, Any
 
@@ -269,6 +270,12 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
         new_metrics = {}
         if 'train_metrics' in curr_metrics:
             new_metrics.update({f'train_{k}': v for k, v in curr_metrics['train_metrics'].items()})
+        elif 'test_metrics' in curr_metrics:
+            # We get an Error when the Database has different Columns than the current run
+            new_metrics.update({f'train_{k}': None for k, v in curr_metrics['test_metrics'].items()})
+        else:
+            warnings.warn(
+                "No train or test metrics found in the metrics dictionary. Maybe Addition to Database wont work")
         if 'test_metrics' in curr_metrics:
             new_metrics.update({f'test_{k}': v for k, v in curr_metrics['test_metrics'].items()})
         new_metrics.update({k: v for k, v in curr_metrics.items() if not isinstance(v, dict)})
