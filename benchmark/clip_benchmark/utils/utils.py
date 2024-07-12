@@ -301,11 +301,11 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
     if len(results_current_run) == 0:
         raise ValueError("results_current_run had no entries")
 
-    database_path = os.path.join(out_path, "results.db")
+    database_path = os.path.join(out_path, "results_wd.db")
     for i in range(max_write_attempts):
         try:
             conn = sqlite3.connect(database_path)
-            results_current_run.to_sql("results", con=conn, index=False, if_exists="append")
+            results_current_run.to_sql("results_wd", con=conn, index=False, if_exists="append")
             break
         except Exception as e:
             if 'disk I/O error' in str(e) or 'database' in str(e):
