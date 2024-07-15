@@ -127,15 +127,15 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
             continue
         results_current_run[key] = value
 
-    # serialize object columns
-    for col in results_current_run:
-        if results_current_run[col].dtype == "object":
-            try:
-                results_current_run[col] = results_current_run[col].apply(json.dumps)
-            except TypeError as e:
-                print(col)
-                print(results_current_run[col])
-                raise e
+    # # serialize object columns
+    # for col in results_current_run:
+    #     if results_current_run[col].dtype == "object":
+    #         try:
+    #             results_current_run[col] = results_current_run[col].apply(json.dumps)
+    #         except TypeError as e:
+    #             print(col)
+    #             print(results_current_run[col])
+    #             raise e
 
     return results_current_run
 

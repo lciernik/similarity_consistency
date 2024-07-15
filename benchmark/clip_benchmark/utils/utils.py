@@ -1,5 +1,7 @@
 import os
 import random
+import sqlite3
+import json
 from pathlib import Path
 from typing import List, Union, Dict, Optional, Tuple
 
@@ -175,13 +177,30 @@ def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] =
     path = Path(base_path_exp)
     dfs = []
     for fn in path.rglob("**/results.json"):
-        df = pd.read_json(fn, orient='records', lines=True)
+        df = pd.read_json(fn)
         dfs.append(df)
 
     if len(dfs) == 0:
-        raise FileNotFoundError(f"No results found for in {base_path_exp=}")
+        # backward compatibility
+        bak_fn  = path / 'results.db'
+        if bak_fn.is_file():
+            print(f'Did not find any results.json files. Trying to load data from {bak_fn}')
+            try:
+                conn = sqlite3.connect(bak_fn)
+                df = pd.read_sql('SELECT * FROM "results"', conn)
+                conn.close()
+            except pd.errors.DatabaseError as e:
+                print(f"Tried to extract data from {path=}, but got Error: {e}")
+                raise e
 
-    df = pd.concat(dfs)
+            for col in df.columns:
+                if df[col].dtype == 'object':
+                    df[col] = df[col].apply(json.loads)
+        else:
+            raise FileNotFoundError(f"No results found for in {base_path_exp=}")
+    else:
+        df = pd.concat(dfs).reset_index(drop=True)
+
     if verbose:
         print(f"Found {len(df)} results in {base_path_exp=}")
     return df
