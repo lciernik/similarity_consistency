@@ -82,7 +82,7 @@ class LinearProbe:
                     pred = self.model(x)
                     loss = criterion(pred, y)
                     if self.weight_decay_type == "L1":
-                        l1_norm = sum(p.abs().sum() for p in self.model.parameters())
+                        l1_norm = sum(p.abs().mean() for p in self.model.parameters())
                         loss = loss + self.weight_decay * l1_norm
 
                 loss.backward()
