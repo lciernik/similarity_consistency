@@ -1,7 +1,7 @@
+import json
 import os
 import random
 import sqlite3
-import json
 from pathlib import Path
 from typing import List, Union, Dict, Optional, Tuple
 
@@ -182,7 +182,7 @@ def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] =
 
     if len(dfs) == 0:
         # backward compatibility
-        bak_fn  = path / 'results.db'
+        bak_fn = path / 'results.db'
         if bak_fn.is_file():
             print(f'Did not find any results.json files. Trying to load data from {bak_fn}')
             try:

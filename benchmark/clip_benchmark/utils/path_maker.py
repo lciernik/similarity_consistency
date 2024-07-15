@@ -6,12 +6,13 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None, auto_create_dirs: bool = True):
+    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None,
+                 auto_create_dirs: bool = True):
         self.dataset_name = dataset_name
         self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
         self.mode = args.mode
-        
+
         self.auto_create_dirs = auto_create_dirs
 
         self.dataset_root = args.dataset_root
@@ -77,7 +78,7 @@ class PathMaker:
                           for model_id in self.model_ids]
         return model_dirs
 
-    def _get_results_and_predictions_dirs(self) -> str:
+    def _get_results_dirs(self) -> str:
         base_results_dir = self.get_base_results_dir()
         results_dir = os.path.join(base_results_dir, self.hyperparams_slug)
 
@@ -111,7 +112,8 @@ class PathMaker:
             return feature_dirs, None, None, None, self.model_ids
 
         model_dirs = self._get_model_dirs()
-        results_dir = self._get_results_and_predictions_dirs()
+
+        results_dir = self._get_results_dirs()
 
         if self.task == "linear_probe" and self.mode == "ensemble":
             single_prediction_dirs = self._get_single_prediction_dirs()
