@@ -77,14 +77,20 @@ class PathMaker:
                           for model_id in self.model_ids]
         return model_dirs
 
-    def _get_results_and_predictions_dirs(self) -> Tuple[str, str]:
-        results_dir = os.path.join(self.output_root, self.task, self.mode, self.dataset_name, self.model_slug)
-        predictions_dir = os.path.join(results_dir, self.hyperparams_slug)
-        if not os.path.exists(predictions_dir) and self.auto_create_dirs:
-            os.makedirs(predictions_dir, exist_ok=True)
+    def _get_results_and_predictions_dirs(self) -> str:
+        base_results_dir = self.get_base_results_dir()
+        results_dir = os.path.join(base_results_dir, self.hyperparams_slug)
+
+        if not os.path.exists(results_dir) and self.auto_create_dirs:
+            os.makedirs(results_dir, exist_ok=True)
             if self.verbose:
                 print(f'Created path ({results_dir}), where results are to be stored ...')
-        return results_dir, predictions_dir
+
+        return results_dir
+
+    def get_base_results_dir(self) -> str:
+        base_results_dir = os.path.join(self.output_root, self.task, self.mode, self.dataset_name, self.model_slug)
+        return base_results_dir
 
     def _get_single_prediction_dirs(self) -> List[str]:
         single_prediction_dirs = [os.path.join(self.output_root, self.task, 'single_model', self.dataset_name, model_id,
@@ -98,18 +104,18 @@ class PathMaker:
             )
         return single_prediction_dirs
 
-    def make_paths(self) -> Tuple[List[str], List[str], str, str, Optional[List[str]], List[str]]:
+    def make_paths(self) -> Tuple[List[str], Optional[List[str]], Optional[str], Optional[List[str]], List[str]]:
         feature_dirs = self._get_feature_dirs()
 
         if self.task == "feature_extraction":
-            return feature_dirs, None, None, None, None, self.model_ids
+            return feature_dirs, None, None, None, self.model_ids
 
         model_dirs = self._get_model_dirs()
-        results_dir, predictions_dir = self._get_results_and_predictions_dirs()
+        results_dir = self._get_results_and_predictions_dirs()
 
         if self.task == "linear_probe" and self.mode == "ensemble":
             single_prediction_dirs = self._get_single_prediction_dirs()
         else:
             single_prediction_dirs = None
 
-        return feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, self.model_ids
+        return feature_dirs, model_dirs, results_dir, single_prediction_dirs, self.model_ids

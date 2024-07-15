@@ -30,10 +30,8 @@ Base folder located at `/home/space/diverse_priors`. It hase the following struc
 - `models`: Contains the trained linear probes of each dataset and model for single and combined models, but not
   ensembles.
 - `results`:
-    - For each linear probe evaluation mode (`single_model`, `combined_models` and `ensemble`), dataset and model, it
-      contains a `results.db` with the linear probe evaluation metrics.
-    - Additionally, it contains subfolders, e.g., `results/imagenet-subset-10k/dinov2-vit-large-p14/[HYPERPARAMETER]`
-      holding the `test_predictions.csv` file.
+    - It contains subfolders, e.g., `results/imagenet-subset-10k/dinov2-vit-large-p14/[HYPERPARAMETER]`
+      holding the `test_predictions.csv` and the `results.json` files.
 - `sampling`: Contains the `sampling.csv` files for each dataset, model and number of cluster (k).
 
 ## Run Commands

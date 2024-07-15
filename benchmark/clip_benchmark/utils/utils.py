@@ -1,8 +1,10 @@
 import os
 import random
+from pathlib import Path
 from typing import List, Union, Dict, Optional, Tuple
 
 import numpy as np
+import pandas as pd
 import torch
 
 from clip_benchmark.data.builder import get_dataset_collection_from_file, get_dataset_collection
@@ -160,10 +162,26 @@ def all_paths_exist(list_of_paths: List[str]) -> bool:
     return all([os.path.exists(p) for p in list_of_paths])
 
 
-def set_all_random_seeds(seed):
+def set_all_random_seeds(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     if torch.cuda.device_count() > 1:
         torch.cuda.manual_seed_all(seed)
+
+
+def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False) -> pd.DataFrame:
+    path = Path(base_path_exp)
+    dfs = []
+    for fn in path.rglob("**/results.json"):
+        df = pd.read_json(fn, orient='records', lines=True)
+        dfs.append(df)
+
+    if len(dfs) == 0:
+        raise FileNotFoundError(f"No results found for in {base_path_exp=}")
+
+    df = pd.concat(dfs)
+    if verbose:
+        print(f"Found {len(df)} results in {base_path_exp=}")
+    return df

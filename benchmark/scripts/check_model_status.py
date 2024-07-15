@@ -1,10 +1,10 @@
-import os
-
-from helper import load_models, get_hyperparams
 import argparse
 import json
+import os
 from itertools import product
+
 from clip_benchmark.utils.path_maker import PathMaker
+from helper import load_models, get_hyperparams
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
@@ -66,27 +66,25 @@ if __name__ == "__main__":
                     if not os.path.exists(f"{feature_dir}/features_train.pt") and not os.path.exists(
                             f"{feature_dir}/features_test.pt"):
                         not_finished_features[key] = feature_dir
-                        # print(f"Features for Model {key} do not exist in {feature_dir}.")
             except FileNotFoundError:
                 print(f"Feature root folder for Model {key} does not exist.")
             model_dirs = pm._get_model_dirs()
             # check if models are there
             for model_dir in model_dirs:
                 if not os.path.exists(f"{model_dir}/model.pkl"):
-                    # print(f"Model for Model {key} does not exist in {model_dir}.")
                     not_finished_probe[key] = model_dir
-            _, pred = pm._get_results_and_predictions_dirs()
+
             # check if predictions are there
-            if not os.path.exists(f"{pred}/predictions.pkl"):
-                # print(f"Predictions for Model {key} do not exist in {pred}.")
-                not_finished_pred[key] = pred
-    print("Models without features:")
+            pred_path = pm._get_results_and_predictions_dirs()
+            if not os.path.exists(f"{pred_path}/predictions.pkl"):
+                not_finished_pred[key] = pred_path
+    print("\nModels without features:")
     print("\n".join(not_finished_features.keys()))
 
-    print("Models without probe:")
+    print("\nModels without probe:")
     print("\n".join(not_finished_probe.keys()))
 
-    print("Models without predictions:")
+    print("\nModels without predictions:")
     print("\n".join(not_finished_pred.keys()))
 
     if args.generate_json == "features" and len(not_finished_features.keys()):
