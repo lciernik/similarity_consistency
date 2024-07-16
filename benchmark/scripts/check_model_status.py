@@ -4,8 +4,7 @@ import os
 from itertools import product
 
 from clip_benchmark.utils.path_maker import PathMaker
-from helper import load_models, get_hyperparams
-from helper import parse_datasets
+from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
@@ -44,13 +43,12 @@ if __name__ == "__main__":
         not_finished_features = {}
         not_finished_probe = {}
         not_finished_pred = {}
-
         pp_dataset = dataset.replace("/", "_")
 
         for i, (key, _) in enumerate(models.items()):
             # Using Pathmaker:
             for fewshot_k, fewshot_lr, fewshot_epochs, seed in combs:
-
+              
                 # Prepare args
                 args.mode = "single_model"
                 args.dataset_root = DATASETS_ROOT
