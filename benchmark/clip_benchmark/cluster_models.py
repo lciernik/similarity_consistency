@@ -1,6 +1,6 @@
 import argparse
 import os
-from typing import Union
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
@@ -25,7 +25,10 @@ def load_similarity_matrix(sim_mat_path: Union[str, os.PathLike], model_ids_path
     return pd.DataFrame(sim_mat, index=model_ids, columns=model_ids)
 
 
-def process_similarity_matrix(sim_mat: pd.DataFrame):
+def process_similarity_matrix(sim_mat: pd.DataFrame, allowed_models: List[str]) -> pd.DataFrame:
+    # filter only desired models
+    sim_mat = sim_mat.loc[allowed_models, allowed_models].copy()
+
     sim_mat = sim_mat.abs()
     if not np.all(np.diag(sim_mat.values) == 1):
         np.fill_diagonal(sim_mat.values, 1)
@@ -35,7 +38,7 @@ def process_similarity_matrix(sim_mat: pd.DataFrame):
 def main(args: argparse.Namespace):
     sim_mat_path, model_ids_path = check_paths(args)
     sim_mat = load_similarity_matrix(sim_mat_path, model_ids_path)
-    sim_mat = process_similarity_matrix(sim_mat)
+    sim_mat = process_similarity_matrix(sim_mat, args.model_key)
 
     clustering = SpectralClustering(n_clusters=args.num_clusters,
                                     affinity='precomputed',
@@ -75,6 +78,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--dataset', type=str, default='imagenet-subset-10k',
                         help="Dataset to use for clustering.")
+    parser.add_argument('--model_key', type=str, nargs='+', help="Define the models we want to consider during clustering.")
     parser.add_argument('--assign_labels', type=str, default='kmeans',
                         choices=['kmeans', 'discretize', 'cluster_qr'],
                         help="Method used to assign labels during SpectralClustering.")
