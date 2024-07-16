@@ -1,12 +1,13 @@
 import os
 import json
-from helper import load_models, get_hyperparams
+from helper import load_models, get_hyperparams, parse_datasets
 from slurm import run_job
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'])
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 parser.add_argument('--sampling_folder', type=str, nargs='+')
 parser.add_argument('--combination', type=str, default='ensemble',
                     choices=['ensemble', 'concat', 'concat_pca'], help="Model combination to use")
@@ -14,9 +15,7 @@ parser.add_argument('--combination', type=str, default='ensemble',
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-# MODELS_CONFIG = "./models_config.json"
-# DATASETS = "./webdatasets.txt"
-DATASETS = " ".join(args.datasets)
+DATASETS = " ".join(parse_datasets(arg.datasets))
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -26,10 +25,6 @@ OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 SAMPLING_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 
 if __name__ == "__main__":
-    # Retrieve the configuration of all models we intend to evaluate.
-    # models, n_models = load_models(MODELS_CONFIG)
-    # model_keys = ' '.join(models.keys())
-
     # We find all files in each sampling folder and load the jsons
     model_keys = []
     for sampling_folder in args.sampling_folder:
@@ -65,12 +60,11 @@ if __name__ == "__main__":
                                --feature_root {FEATURES_ROOT} \
                                --model_root {MODELS_ROOT} \
                                --output_root {OUTPUT_ROOT} \
-                                --models_config_file {MODELS_CONFIG} \
+                               --models_config_file {MODELS_CONFIG} \
                                --task=linear_probe \
                                --mode={'ensemble' if args.combination == 'ensemble' else 'combined_models'} \
                                --feature_combiner {args.combination if args.combination != 'ensemble' else 'concat'} \
                                --model_key {' '.join(model_set)} \
-                               --models_config_file {MODELS_CONFIG} \
                                --batch_size=1024 \
                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \

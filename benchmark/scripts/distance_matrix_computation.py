@@ -3,7 +3,8 @@ import json
 from slurm import run_job
 from helper import load_models, prepare_for_combined_usage, count_nr_datasets
 
-MODELS_CONFIG = "./models_config.json"
+# MODELS_CONFIG = "./models_config.json"
+MODELS_CONFIG = "./filtered_models_config.json"
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 
@@ -69,7 +70,8 @@ sim_method_config = [
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    models.pop('SegmentAnything_vit_b')
+    if 'SegmentAnything_vit_b' in models.keys():
+        models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
 
     num_jobs = len(DATASETS)
