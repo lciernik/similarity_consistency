@@ -1,4 +1,6 @@
-from typing import List
+from typing import List, Tuple
+
+from torch.utils.data import DataLoader
 
 from clip_benchmark.tasks.weight_decay_tuner import WeightDecayTuner
 
@@ -17,7 +19,7 @@ class HyperparameterTuner:
         self.verbose = verbose
         self.seed = seed
 
-    def tune(self, feature_train_loader, feature_val_loader):
+    def tune(self, feature_train_loader: DataLoader, feature_val_loader:DataLoader) -> Tuple[float, float]:
         best_lr, best_wd, max_acc = 0, 0, 0
         for lr in self.lrs:
             weight_decay_tuner = WeightDecayTuner(lr, self.epochs, self.device, self.verbose, self.seed)

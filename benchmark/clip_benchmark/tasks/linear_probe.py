@@ -1,9 +1,10 @@
 import os
 import time
-from typing import Optional
+from typing import Optional, Union, Tuple
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
@@ -13,6 +14,8 @@ class LinearProbe:
 
         self.weight_decay = weight_decay
         self.weight_decay_type = weight_decay_type
+        if self.weight_decay_type not in ["L1", "L2"]:
+            raise ValueError("Invalid weight decay type. Choose from 'L1' or 'L2'")
         self.lr = lr
         self.epochs = epochs
         self.device = device
@@ -21,11 +24,11 @@ class LinearProbe:
         self.logit_filter = logit_filter
 
     @staticmethod
-    def assign_learning_rate(param_group, new_lr):
+    def assign_learning_rate(param_group: dict, new_lr: float):
         param_group["lr"] = new_lr
 
     @staticmethod
-    def _warmup_lr(base_lr, warmup_length, step):
+    def _warmup_lr(base_lr: float, warmup_length: Union[float, int], step: int):
         return base_lr * (step + 1) / warmup_length
 
     def cosine_lr(self, optimizer, base_lrs, warmup_length, steps):
@@ -45,7 +48,7 @@ class LinearProbe:
 
         return _lr_adjuster
 
-    def train(self, dataloader, filename=None):
+    def train(self, dataloader: DataLoader, filename=None):
         # We reset the seed to ensure that the model is initialized with the same weights every time
         torch.manual_seed(self.seed)
 
@@ -114,7 +117,7 @@ class LinearProbe:
 
         return self.model
 
-    def infer(self, dataloader):
+    def infer(self, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
         if self.model is None:
             raise ValueError("Model not trained yet. Call train() first.")
         true, pred = [], []

@@ -21,7 +21,7 @@ from clip_benchmark.utils.utils import (as_list,
                                         prepare_ds_name,
                                         world_info_from_env,
                                         set_all_random_seeds, prepare_device, get_combination, get_list_of_models,
-                                        save_results, get_base_evaluator_args)
+                                        save_results, get_base_evaluator_args, check_existing_results)
 
 
 def main():
@@ -94,14 +94,18 @@ def main_model_sim(base):
 
 def main_eval(base):
     # prepare run combinations
-    (fewshot_k, fewshot_lr, fewshot_epochs, rnd_seed, weight_decay, weight_decay_type) = get_combination(
+    (fewshot_k, fewshot_epochs, rnd_seed, weight_decay_type), task_id = get_combination(
         base.fewshot_k,
-        base.fewshot_lr,
         base.fewshot_epochs,
+        base.weight_decay_type,
         base.seed,
-        base.weight_decay,
-        base.weight_decay_type
     )
+    base.fewshot_k = fewshot_k
+    base.fewshot_epochs = fewshot_epochs
+    base.seed = rnd_seed
+    base.weight_decay_type = weight_decay_type
+    base.task_id = task_id
+
     # Get list of models to evaluate
     models = get_list_of_models(base)
 
@@ -128,23 +132,11 @@ def main_eval(base):
         random.shuffle(runs)
         runs = [r for i, r in enumerate(runs) if i % world_size == rank]
 
-    # seed random number generator (important for reproducibility of results)
-
     for model_info, dataset in runs:
 
         args = copy(base)
         args = arg_fn(args, model_info)
         args.dataset = dataset
-
-        args.train_split = base.train_split
-        args.val_proportion = base.val_proportion  # This should be set for WD tuning!
-        args.fewshot_k = fewshot_k
-        args.fewshot_lr = fewshot_lr
-        args.fewshot_epochs = fewshot_epochs
-        args.seed = rnd_seed
-        args.weight_decay = weight_decay
-        args.weight_decay_type = weight_decay_type
-        args.task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
 
         try:
             run(args)
@@ -177,6 +169,11 @@ def run(args):
     feature_dirs, model_dirs, results_dir, single_prediction_dirs, model_ids = dirs
     if args.verbose:
         print(f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, {single_prediction_dirs=}, {model_ids=}\n")
+
+    if args.skip_existing and check_existing_results(results_dir):
+        if args.verbose:
+            print(f"Skipping existing results in {results_dir=}")
+        return 0
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(

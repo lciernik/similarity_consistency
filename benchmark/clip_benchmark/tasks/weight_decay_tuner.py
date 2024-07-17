@@ -1,11 +1,14 @@
+from typing import List, Tuple
+
 import numpy as np
+from torch.utils.data import DataLoader
 
 from clip_benchmark.eval.metrics import accuracy
 from clip_benchmark.tasks.linear_probe import LinearProbe
 
 
 class WeightDecayTuner:
-    def __init__(self, lr, epochs, device, verbose, seed, weight_decay_type="L2"):
+    def __init__(self, lr: float, epochs: int, device: str, verbose: bool, seed: int, weight_decay_type: str = "L2"):
         self.lr = lr
         self.epochs = epochs
         self.device = device
@@ -13,7 +16,13 @@ class WeightDecayTuner:
         self.seed = seed
         self.weight_decay_type = weight_decay_type
 
-    def find_peak(self, wd_list, idxs, train_loader, val_loader):
+    def find_peak(
+            self,
+            wd_list: List[float],
+            idxs: List[int],
+            train_loader: DataLoader,
+            val_loader: DataLoader
+    ) -> Tuple[int, float]:
         best_wd_idx, max_acc = 0, 0
         for idx in idxs:
             weight_decay = wd_list[idx]
@@ -34,7 +43,11 @@ class WeightDecayTuner:
                 best_wd_idx, max_acc = idx, acc1
         return best_wd_idx, max_acc
 
-    def tune_weight_decay(self, feature_train_loader, feature_val_loader):
+    def tune_weight_decay(
+            self,
+            feature_train_loader: DataLoader,
+            feature_val_loader: DataLoader
+    ) -> Tuple[float, float]:
         # perform openAI-like hyperparameter sweep
         # https://arxiv.org/pdf/2103.00020.pdf A.3
         # instead of scikit-learn LBFGS use FCNNs with AdamW

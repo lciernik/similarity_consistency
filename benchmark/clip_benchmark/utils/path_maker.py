@@ -6,8 +6,13 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None,
-                 auto_create_dirs: bool = True):
+    def __init__(
+            self,
+            args: argparse.Namespace,
+            dataset_name: str,
+            probe_dataset_name: Optional[str] = None,
+            auto_create_dirs: bool = True,
+    ):
         self.dataset_name = dataset_name
         self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
@@ -26,6 +31,7 @@ class PathMaker:
         self.hyperparams_slug = self._get_hyperparams_name(args)
         self.model_slug = self._create_model_slug()
 
+        self.skip_existing = args.skip_existing
         self.verbose = args.verbose
 
     @staticmethod

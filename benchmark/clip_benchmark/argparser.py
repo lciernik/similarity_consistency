@@ -58,21 +58,24 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--feature_combiner', type=str, default="concat",
        choices=['concat', 'concat_pca'], help="Feature combiner to use")
 
+    # LINEAR PROBE PARAMETERS
     aa('--fewshot_k', default=[-1], type=int, nargs="+",
-       help="for linear probe, how many shots. -1 = whole dataset.")
+       help="Number of examples per class for few-shot learning. Use -1 for the entire dataset.")
     aa('--fewshot_epochs', default=[10], type=int, nargs='+',
-       help="for linear probe, how many epochs.")
+       help="Number of training epochs for the few-shot learning model.")
     aa('--fewshot_lr', default=[0.1], type=float, nargs='+',
-       help="for linear probe, what is the learning rate.")
-    aa('--weight_decay', default=[0.0], type=float, nargs='+',
-       help="for linear probe, what is the weight decay")
+       help="Learning rate for training the few-shot learning model. If val_proportion > 0, the best learning rate "
+            "will be found from the list provided. If val_proportion == 0, the list should contain exactly one value, "
+            "which will be used for training.")
+    aa('--weight_decay', default=0, type=float,
+       help="Weight decay (regularization) value for training the few-shot learning model. This value is used only if "
+            "val_proportion > 0, in which case the best weight decay parameter will be searched.")
     aa('--weight_decay_type', default=["L2"], type=str, nargs='+',
-       help="Type of weight decay, allowed L2 and L1", choices=["L2", "L1"])
-    aa('--batch_size', default=64, type=int)
-    aa("--skip_load", action="store_true",
-       help="for linear probes, when everything is cached, no need to load model.")
+       help="Type of weight decay to use. Choose from L2 or L1.", choices=["L2", "L1"])
+    aa('--batch_size', default=64, type=int,
+       help="Batch size for training.")
     aa('--skip_existing', default=False, action="store_true",
-       help="whether to skip an evaluation if the output file exists.")
+       help="Skip the evaluation if the output file already exists.")
 
     ### Model similarity
     aa('--sim_method', type=str, default="cka",

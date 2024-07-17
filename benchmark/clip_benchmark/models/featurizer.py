@@ -2,6 +2,7 @@ import os
 
 import torch
 import torch.nn.functional as F
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
@@ -17,7 +18,12 @@ class Featurizer(torch.nn.Module):
             image_features = F.normalize(image_features, dim=-1)
         return image_features
 
-    def feature_extraction(self, train_dataloader, eval_dataloader, feature_dir, device):
+    def feature_extraction(
+            self,
+            train_dataloader: DataLoader,
+            eval_dataloader: DataLoader,
+            feature_dir: str, device: str
+    ):
         """
         Extract features from the dataset using the featurizer model and store them in the feature_dir
         """
