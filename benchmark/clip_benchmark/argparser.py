@@ -27,7 +27,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Dataset split to use")
     aa('--train_split', type=str, default="train",
        help="Dataset(s) train split names")
-    aa('--val_proportion', default=0, type=float,
+    aa('--val_proportion', default=0.1, type=float,
        help="what is the share of the train dataset will be used for validation part, "
             "if it doesn't predefined.")
     aa('--wds_cache_dir', default=None, type=str,

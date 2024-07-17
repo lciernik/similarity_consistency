@@ -1,6 +1,5 @@
 import os
 import pickle
-from contextlib import suppress
 from typing import List, Union, Any, Optional
 
 import numpy as np
@@ -12,27 +11,24 @@ from clip_benchmark.data.data_loader import get_feature_dl, get_combined_feature
 from clip_benchmark.data.data_utils import SubsetWithTargets
 from clip_benchmark.eval.metrics import compute_metrics
 from clip_benchmark.models.featurizer import Featurizer
+from clip_benchmark.tasks.hyperparameter_tuner import HyperparameterTuner
 from clip_benchmark.tasks.linear_probe import LinearProbe
-from clip_benchmark.tasks.weight_decay_tuner import WeightDecayTuner
 
 
 class BaseEvaluator:
-    def __init__(self, batch_size: int, num_workers: int, lr: float, epochs: int, seed: int, device: str,
+    def __init__(self, batch_size: int, num_workers: int, lrs: List[float], epochs: int, seed: int, device: str,
                  fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
-                 normalize: bool = True,
-                 amp: bool = True, verbose: bool = False, val_proportion: float = 0,
+                 normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
                  logit_filter: Optional[torch.Tensor] = None) -> None:
         super().__init__()
 
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.lr = lr
         self.epochs = epochs
         self.seed = seed
         self.device = device
         if self.device == 'cuda' and not torch.cuda.is_available():
             raise RuntimeError("CUDA is not available, please run on a machine with a GPU.")
-        self.autocast = torch.cuda.amp.autocast if amp else suppress
 
         self.normalize = normalize
         self.fewshot_k = fewshot_k
@@ -44,8 +40,10 @@ class BaseEvaluator:
         self.verbose = verbose
         self.val_proportion = val_proportion
         self.logit_filter = logit_filter
-
-        self.wd_tuner = WeightDecayTuner(self.lr, self.epochs, self.autocast, self.device, self.verbose, self.seed)
+        self.lr = None
+        self.wd = None
+        self.lrs = lrs
+        self.hp_tuner = HyperparameterTuner(lrs, self.epochs, self.device, self.verbose, self.seed)
 
     @staticmethod
     def check_single_instance(param: List[Any], param_name: str) -> Union[Any, List[Any]]:
@@ -92,18 +90,21 @@ class BaseEvaluator:
                                     shuffle=True, num_workers=train_loader.num_workers)
         return tmp_train_loader, tmp_val_loader
 
-    def optimize_weight_decay(self, train_loader):
+    def optimize_hyperparams(self, train_loader):
         if self.val_proportion > 0:
             if self.verbose:
-                print(f"\nTuning weight decay parameter of linear probe.\n")
+                print(f"\nTuning hyperparameters of linear probe.\n")
             # Split train set into train and validation
             tmp_train_loader, tmp_val_loader = self._create_train_val_loaders(train_loader)
-            best_wd = self.wd_tuner.tune_weight_decay(tmp_train_loader, tmp_val_loader)
+            best_lr, best_wd = self.hp_tuner.tune(tmp_train_loader, tmp_val_loader)
         else:
-            # TODO Enable Weight Decay Settings without Validation Set
+            if len(self.lrs) != 1:
+                raise ValueError("Only one learning rate is supported without a validation set.")
+            best_lr = self.lrs[0]
             best_wd = 0
 
-        return best_wd
+        self.lr = best_lr
+        self.wd = best_wd
 
     def load_test_set_predictions(self, linear_probe_dir):
         with open(os.path.join(linear_probe_dir, 'predictions.pkl'), 'rb') as f:
@@ -124,16 +125,19 @@ class BaseEvaluator:
             if self.verbose:
                 print(f"Stored test predictions in {os.path.join(self.predictions_dir, 'predictions.pkl')}.")
 
-    def _evaluate(self, train_loader, test_loader, best_wd, filename=None, evaluate_train=True):
-        linear_probe = LinearProbe(weight_decay=best_wd,
+    def _evaluate(self, train_loader, test_loader, filename=None, evaluate_train=True):
+        linear_probe = LinearProbe(weight_decay=self.wd,
                                    lr=self.lr,
                                    epochs=self.epochs,
-                                   autocast=self.autocast,
                                    device=self.device,
                                    seed=self.seed,
                                    logit_filter=self.logit_filter,
                                    )
-        metric_dict = {"best_weight_decay": best_wd}
+        metric_dict = {
+            "weight_decay": self.wd,
+            "learning_rate": self.lr,
+        }
+
         linear_probe.train(train_loader, filename=filename)
 
         if evaluate_train:
@@ -156,9 +160,9 @@ class BaseEvaluator:
 class SingleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, model=None, train_dataloader=None, eval_dataloader=None, normalize=True,
-                 amp=True, verbose=False, val_proportion=0, logit_filter=None):
+                 verbose=False, val_proportion=0, logit_filter=None):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, verbose, val_proportion, logit_filter)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -182,8 +186,7 @@ class SingleModelEvaluator(BaseEvaluator):
             featurizer.feature_extraction(train_dataloader=self.train_dataloader,
                                           eval_dataloader=self.eval_dataloader,
                                           feature_dir=self.feature_dir,
-                                          device=self.device,
-                                          autocast=self.autocast)
+                                          device=self.device)
         elif (not feat_available) and (not model_available):
             raise ValueError(f"Features are missing (in {self.feature_dir})\nand no model and dataloaders are provided."
                              f"Please run feature extraction first.")
@@ -206,25 +209,22 @@ class SingleModelEvaluator(BaseEvaluator):
                                                                    num_workers=self.num_workers,
                                                                    fewshot_k=self.fewshot_k,
                                                                    load_train=not probe_exists)
-        if probe_exists:
-            best_wd = None
-        else:
-            best_wd = self.optimize_weight_decay(feature_train_loader)
+        if not probe_exists:
+            self.optimize_hyperparams(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              best_wd=best_wd,
                               filename=self.linear_probe_fn,
                               evaluate_train=not probe_exists)
 
 
 class CombinedModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
-                 predictions_dir, feature_combiner_cls, normalize=True, amp=True, verbose=False, val_proportion=0,
+                 predictions_dir, feature_combiner_cls, normalize=True, verbose=False, val_proportion=0,
                  logit_filter=None):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, verbose, val_proportion, logit_filter)
 
         self.feature_dirs = feature_dirs
         self.feature_combiner_cls = feature_combiner_cls
@@ -253,16 +253,11 @@ class CombinedModelEvaluator(BaseEvaluator):
                                                                             normalize=self.normalize,
                                                                             load_train=not probe_exists)
 
-        if probe_exists:
-            if self.verbose:
-                print(f"Linear probe model already exists in {self.linear_probe_fn}. Skipping wd tuning.")
-            best_wd = None
-        else:
-            best_wd = self.optimize_weight_decay(feature_train_loader)
+        if not probe_exists:
+            self.optimize_hyperparams(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              best_wd=best_wd,
                               filename=self.linear_probe_fn,
                               evaluate_train=not probe_exists)
 
@@ -270,10 +265,10 @@ class CombinedModelEvaluator(BaseEvaluator):
 class EnsembleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_ids,
                  feature_dirs, model_dirs, predictions_dir, single_prediction_dirs,
-                 normalize=True, amp=True, verbose=False, val_proportion=0, logit_filter=None):
+                 normalize=True, verbose=False, val_proportion=0, logit_filter=None):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, amp, verbose, val_proportion, logit_filter)
+                         normalize, verbose, val_proportion, logit_filter)
 
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs

@@ -106,7 +106,6 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     results_current_run["module_name"] = json.dumps(exp_args.module_name)
     # hyperparameters
     results_current_run["fewshot_k"] = exp_args.fewshot_k
-    results_current_run["fewshot_lr"] = exp_args.fewshot_lr
     results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
     results_current_run["batch_size"] = exp_args.batch_size
     results_current_run["seed"] = exp_args.seed
@@ -126,16 +125,6 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
         if key in results_current_run:
             continue
         results_current_run[key] = value
-
-    # # serialize object columns
-    # for col in results_current_run:
-    #     if results_current_run[col].dtype == "object":
-    #         try:
-    #             results_current_run[col] = results_current_run[col].apply(json.dumps)
-    #         except TypeError as e:
-    #             print(col)
-    #             print(results_current_run[col])
-    #             raise e
 
     return results_current_run
 
@@ -289,8 +278,8 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": False,
-                   "verbose": args.verbose, "val_proportion": args.val_proportion}
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "verbose": args.verbose,
+                   "val_proportion": args.val_proportion}
     return base_kwargs
 
 

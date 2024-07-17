@@ -22,7 +22,7 @@ def accuracy(output, target, topk=(1,)):
 
     list of top-k accuracies in the same order as `topk`
     """
-    pred = output.topk(max(topk), 1, True, True)[1].t()
+    pred = output.topk(k=max(topk), dim=1, largest=True, sorted=True)[1].t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     n = len(target)
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) / n for k in topk]

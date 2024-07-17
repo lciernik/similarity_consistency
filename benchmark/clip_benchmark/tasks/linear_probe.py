@@ -1,5 +1,6 @@
 import os
 import time
+from typing import Optional
 
 import numpy as np
 import torch
@@ -7,11 +8,11 @@ from tqdm import tqdm
 
 
 class LinearProbe:
-    def __init__(self, weight_decay, lr, epochs, autocast, device, seed, logit_filter=None):
+    def __init__(self, weight_decay: float, lr: float, epochs: int, device: str, seed: int,
+                 logit_filter: Optional[torch.Tensor] = None):
         self.weight_decay = weight_decay
         self.lr = lr
         self.epochs = epochs
-        self.autocast = autocast
         self.device = device
         self.seed = seed
         self.model = None
@@ -77,9 +78,8 @@ class LinearProbe:
                 scheduler(step)
 
                 optimizer.zero_grad()
-                with self.autocast():
-                    pred = self.model(x)
-                    loss = criterion(pred, y)
+                pred = self.model(x)
+                loss = criterion(pred, y)
 
                 loss.backward()
                 optimizer.step()
@@ -117,10 +117,9 @@ class LinearProbe:
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                with self.autocast():
-                    logits = self.model(x)
-                    if self.logit_filter is not None:
-                        logits = logits @ self.logit_filter.T
+                logits = self.model(x)
+                if self.logit_filter is not None:
+                    logits = logits @ self.logit_filter.T
 
                 pred.append(logits.cpu())
                 true.append(y.cpu())
