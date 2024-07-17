@@ -39,9 +39,8 @@ class PathMaker:
         """Get the hyperparameters name for the output path."""
         fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
         subpath = os.path.join(fewshot_slug,
-                               f"fewshot_lr_{args.fewshot_lr}",
                                f"fewshot_epochs_{args.fewshot_epochs}",
-                               f"weight_decay_{args.weight_decay_type}_{args.weight_decay}",
+                               f"weight_decay_{args.weight_decay_type}",
                                f"batch_size_{args.batch_size}",
                                f"seed_{args.seed}",
                                )

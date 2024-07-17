@@ -27,18 +27,19 @@ class WeightDecayTuner:
         for idx in idxs:
             weight_decay = wd_list[idx]
             linear_probe = LinearProbe(
-                weight_decay,
-                self.lr,
-                self.epochs,
-                self.device,
-                self.seed,
-                weight_decay_type=self.weight_decay_type
+                weight_decay=weight_decay,
+                lr=self.lr,
+                epochs=self.epochs,
+                device=self.device,
+                seed=self.seed,
+                weight_decay_type=self.weight_decay_type,
+                verbose=self.verbose
             )
             linear_probe.train(train_loader)
             logits, target = linear_probe.infer(val_loader)
             acc1, = accuracy(logits.float(), target.float(), topk=(1,))
             if self.verbose:
-                print(f"Valid accuracy with weight_decay {weight_decay}: {acc1}")
+                print(f"\nValid accuracy with weight_decay {weight_decay}: {acc1}\n")
             if max_acc < acc1:
                 best_wd_idx, max_acc = idx, acc1
         return best_wd_idx, max_acc
@@ -54,9 +55,8 @@ class WeightDecayTuner:
         wd_list = np.logspace(-6, 2, num=97).tolist()
         wd_list_init = np.logspace(-6, 2, num=7).tolist()
         wd_init_idx = [i for i, val in enumerate(wd_list) if val in wd_list_init]
-        peak_idx = self.find_peak(wd_list, wd_init_idx, feature_train_loader, feature_val_loader)
+        peak_idx, acc1 = self.find_peak(wd_list, wd_init_idx, feature_train_loader, feature_val_loader)
         step_span = 8
-        acc1 = 0
         while step_span > 0:
             left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(wd_list) - 1)
             peak_idx, acc1 = self.find_peak(wd_list, [left, peak_idx, right], feature_train_loader, feature_val_loader)

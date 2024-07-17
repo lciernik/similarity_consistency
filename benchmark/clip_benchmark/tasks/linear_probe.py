@@ -10,7 +10,8 @@ from tqdm import tqdm
 
 class LinearProbe:
     def __init__(self, weight_decay: float, lr: float, epochs: int, device: str, seed: int,
-                 logit_filter: Optional[torch.Tensor] = None, weight_decay_type: str = "L2"):
+                 logit_filter: Optional[torch.Tensor] = None, weight_decay_type: str = "L2",
+                 verbose:bool=False):
 
         self.weight_decay = weight_decay
         self.weight_decay_type = weight_decay_type
@@ -22,6 +23,7 @@ class LinearProbe:
         self.seed = seed
         self.model = None
         self.logit_filter = logit_filter
+        self.verbose = verbose
 
     @staticmethod
     def assign_learning_rate(param_group: dict, new_lr: float):
@@ -53,7 +55,8 @@ class LinearProbe:
         torch.manual_seed(self.seed)
 
         if filename is not None and os.path.exists(filename):
-            print(f"Loading model from {filename}")
+            if self.verbose:
+                print(f"Loading model from {filename}")
             self.model = torch.load(filename)
             self.model = self.model.to(self.device)
             self.model = torch.nn.DataParallel(self.model, device_ids=[x for x in range(torch.cuda.device_count())])
@@ -95,24 +98,18 @@ class LinearProbe:
 
                 batch_time = time.time() - end
                 end = time.time()
-
-                if (i % 20) == 1:
-                    num_samples = i * len(x)
-                    try:
-                        percent_complete = 100.0 * i / len_loader
-                        progress_message = f"[{num_samples}/{len_loader} ({percent_complete:.0f}%)]"
-                    except TypeError:
-                        progress_message = f"[{num_samples} samples]"
-                    print(
-                        f"Train Epoch: {epoch} {progress_message}\t"
-                        f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}\t"
-                        f"LR {optimizer.param_groups[0]['lr']:.5f}"
-                    )
+            if self.verbose:
+                print(
+                    f"Train Epoch: {epoch} \t"
+                    f"Loss: {loss.item():.6f}\t"
+                    f"LR {optimizer.param_groups[0]['lr']:.5f}"
+                )
 
         if filename is not None:
             if not os.path.exists(os.path.dirname(filename)):
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
-            print(f"Saving model to {filename}")
+            if self.verbose:
+                print(f"Saving model to {filename}")
             torch.save(self.model, filename)
 
         return self.model

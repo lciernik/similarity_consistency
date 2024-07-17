@@ -153,6 +153,7 @@ class BaseEvaluator:
             seed=self.seed,
             logit_filter=self.logit_filter,
             weight_decay_type=self.weight_decay_type,
+            verbose=self.verbose
         )
         metric_dict = {
             "weight_decay": self.wd,

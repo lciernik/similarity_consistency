@@ -25,7 +25,7 @@ class HyperparameterTuner:
             weight_decay_tuner = WeightDecayTuner(lr, self.epochs, self.device, self.verbose, self.seed)
             weight_decay, acc1 = weight_decay_tuner.tune_weight_decay(feature_train_loader, feature_val_loader)
             if self.verbose:
-                print(f"Valid accuracy with lr {lr} and weight_decay {weight_decay}: {acc1}")
+                print(f"\nValid accuracy with lr {lr} and weight_decay {weight_decay}: {acc1}\n")
             if max_acc < acc1:
                 best_lr, best_wd, max_acc = lr, weight_decay, acc1
         return best_lr, best_wd

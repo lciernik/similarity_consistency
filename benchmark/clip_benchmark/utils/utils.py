@@ -266,11 +266,8 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
         new_metrics = {}
         if 'train_metrics' in curr_metrics:
             new_metrics.update({f'train_{k}': v for k, v in curr_metrics['train_metrics'].items()})
-        elif 'test_metrics' in curr_metrics:
-            new_metrics.update({f'train_{k}': None for k, v in curr_metrics['test_metrics'].items()})
-        else:
-            warnings.warn(
-                "No train or test metrics found in the metrics dictionary.")
+        if 'test_metrics' in curr_metrics:
+            new_metrics.update({f'test_{k}': v for k, v in curr_metrics['test_metrics'].items()})
         new_metrics.update({k: v for k, v in curr_metrics.items() if not isinstance(v, dict)})
         return new_metrics
 
@@ -307,7 +304,7 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lrs": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize,
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "verbose":args.verbose,
                    "val_proportion": args.val_proportion, "weight_decay": args.weight_decay,
                    "weight_decay_type": args.weight_decay_type}
     return base_kwargs

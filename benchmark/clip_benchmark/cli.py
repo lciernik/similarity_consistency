@@ -97,8 +97,8 @@ def main_eval(base):
     (fewshot_k, fewshot_epochs, rnd_seed, weight_decay_type), task_id = get_combination(
         base.fewshot_k,
         base.fewshot_epochs,
-        base.weight_decay_type,
         base.seed,
+        base.weight_decay_type,
     )
     base.fewshot_k = fewshot_k
     base.fewshot_epochs = fewshot_epochs

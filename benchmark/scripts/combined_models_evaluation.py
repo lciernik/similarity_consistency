@@ -15,7 +15,7 @@ parser.add_argument('--combination', type=str, default='ensemble',
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-DATASETS = " ".join(parse_datasets(arg.datasets))
+DATASETS = " ".join(parse_datasets(args.datasets))
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
-    val_proportion = 0
+    val_proportion = 0.1
 
     print("We evaluate the following hyperparameter", hyper_params)
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                                --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                               --weight_decay  {' '.join(hyper_params['weight_decay'])} \
+                               --weight_decay {hyper_params['weight_decay']} \
                                --weight_decay_type {' '.join(hyper_params['weight_decay_type'])} \
                                --train_split train \
                                --test_split test \

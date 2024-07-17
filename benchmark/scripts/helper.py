@@ -1,7 +1,7 @@
 import os
 import json
 from itertools import product
-
+import numpy as np
 
 def load_models(file_path):
     with open(file_path, "r") as file:
@@ -30,19 +30,19 @@ def prepare_for_combined_usage(models):
 def get_hyperparams(num_seeds=10, size="extended"):
     if size == "small":
         hyper_params = dict(
-            fewshot_lrs=['0.1', '0.01', '0.001'],
+            fewshot_lrs=['1e-1', '1e-2'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
-            weight_decay=['0.0'],
+            weight_decay='0',
             weight_decay_type=["L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     elif size == "imagenet1k":
         hyper_params = dict(
-            fewshot_lrs=['0.01', '0.001'],
+            fewshot_lrs=['1e-1', '1e-2', '1e-3', '1e-4'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
-            weight_decay=['1e-1', '1e-2', '1e-3', '1e-4', '1e-5', '1e-6'],
+            weight_decay='1e-2',
             weight_decay_type=["L2", "L1"],
             seeds=[str(num) for num in range(num_seeds)],
         )
@@ -51,11 +51,12 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['0.1', '0.01'],
             fewshot_ks=['-1', '5', '10', '100'],
             fewshot_epochs=['10', '20', '30'],
-            weight_decay=['0.0'],
+            weight_decay='0',
             weight_decay_type=["L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
-    num_jobs = len(list(product(*hyper_params.values())))
+    cols_for_array = ['fewshot_ks', 'fewshot_epochs', 'weight_decay_type', 'seeds']
+    num_jobs = np.prod([len(hyper_params[k]) for k in cols_for_array])
     return hyper_params, num_jobs
 
 
@@ -67,11 +68,12 @@ def format_path(path, num_samples_class, split):
 
 
 def parse_datasets(arg):
-    if os.path.isfile(arg):
-        with open(arg, 'r') as f:
-            datasets = [line.strip() for line in f if line.strip()]
-    elif isinstance(arg, list):
-        datasets = arg
+    if isinstance(arg, list):
+        if len(arg) == 1 and os.path.isfile(arg[0]):
+            with open(arg[0], 'r') as f:
+                datasets = [line.strip() for line in f if line.strip()]
+        else:
+            datasets = arg
     else:
         datasets = [arg]
     return datasets
