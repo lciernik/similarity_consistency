@@ -9,8 +9,10 @@ from tqdm import tqdm
 
 class LinearProbe:
     def __init__(self, weight_decay: float, lr: float, epochs: int, device: str, seed: int,
-                 logit_filter: Optional[torch.Tensor] = None):
+                 logit_filter: Optional[torch.Tensor] = None, weight_decay_type: str = "L2"):
+
         self.weight_decay = weight_decay
+        self.weight_decay_type = weight_decay_type
         self.lr = lr
         self.epochs = epochs
         self.device = device
@@ -62,7 +64,7 @@ class LinearProbe:
         optimizer = torch.optim.AdamW(
             self.model.parameters(),
             lr=self.lr,
-            weight_decay=self.weight_decay,
+            weight_decay=self.weight_decay if self.weight_decay_type == "L2" else 0.0,
         )
         criterion = torch.nn.CrossEntropyLoss()
 
@@ -78,8 +80,12 @@ class LinearProbe:
                 scheduler(step)
 
                 optimizer.zero_grad()
+
                 pred = self.model(x)
                 loss = criterion(pred, y)
+                if self.weight_decay_type == "L1":
+                    l1_norm = sum(p.abs().mean() for p in self.model.parameters())
+                    loss = loss + self.weight_decay * l1_norm
 
                 loss.backward()
                 optimizer.step()

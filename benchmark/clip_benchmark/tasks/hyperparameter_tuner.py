@@ -9,8 +9,9 @@ class HyperparameterTuner:
     It uses the WeightDecay tuner to find the best weight decay for each combination of the other hyperparameters.
     """
 
-    def __init__(self, lrs: List[float], epochs: int, device: str, verbose: bool, seed: int):
+    def __init__(self, lrs: List[float], epochs: int, device: str, verbose: bool, seed: int, weight_decay_type:str="L2"):
         self.lrs = lrs
+        self.weight_decay_type = weight_decay_type
         self.epochs = epochs
         self.device = device
         self.verbose = verbose

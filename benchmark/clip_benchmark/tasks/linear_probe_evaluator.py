@@ -19,7 +19,8 @@ class BaseEvaluator:
     def __init__(self, batch_size: int, num_workers: int, lrs: List[float], epochs: int, seed: int, device: str,
                  fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
                  normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-                 logit_filter: Optional[torch.Tensor] = None) -> None:
+                 logit_filter: Optional[torch.Tensor] = None, weight_decay: float = 0.0,
+                 weight_decay_type: str = "L2") -> None:
         super().__init__()
 
         self.batch_size = batch_size
@@ -43,6 +44,9 @@ class BaseEvaluator:
         self.lr = None
         self.wd = None
         self.lrs = lrs
+        self.weight_decay = weight_decay
+        self.weight_decay_type = weight_decay_type
+        # TODO: pass weight_decay_type to HyperparameterTuner
         self.hp_tuner = HyperparameterTuner(lrs, self.epochs, self.device, self.verbose, self.seed)
 
     @staticmethod
@@ -101,7 +105,7 @@ class BaseEvaluator:
             if len(self.lrs) != 1:
                 raise ValueError("Only one learning rate is supported without a validation set.")
             best_lr = self.lrs[0]
-            best_wd = 0
+            best_wd = self.weight_decay
 
         self.lr = best_lr
         self.wd = best_wd
@@ -132,6 +136,7 @@ class BaseEvaluator:
                                    device=self.device,
                                    seed=self.seed,
                                    logit_filter=self.logit_filter,
+                                   weight_decay_type=self.weight_decay_type,
                                    )
         metric_dict = {
             "weight_decay": self.wd,
@@ -160,9 +165,9 @@ class BaseEvaluator:
 class SingleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, model=None, train_dataloader=None, eval_dataloader=None, normalize=True,
-                 verbose=False, val_proportion=0, logit_filter=None):
+                 verbose=False, val_proportion=0, logit_filter=None, weight_decay=0.0, weight_decay_type='L2'):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter)
+                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -221,10 +226,10 @@ class SingleModelEvaluator(BaseEvaluator):
 class CombinedModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, feature_dirs, model_dirs,
                  predictions_dir, feature_combiner_cls, normalize=True, verbose=False, val_proportion=0,
-                 logit_filter=None):
+                 logit_filter=None, weight_decay: float = 0.0, weight_decay_type: str = "L2"):
 
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter)
+                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
 
         self.feature_dirs = feature_dirs
         self.feature_combiner_cls = feature_combiner_cls
@@ -265,11 +270,10 @@ class CombinedModelEvaluator(BaseEvaluator):
 class EnsembleModelEvaluator(BaseEvaluator):
     def __init__(self, batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_ids,
                  feature_dirs, model_dirs, predictions_dir, single_prediction_dirs,
-                 normalize=True, verbose=False, val_proportion=0, logit_filter=None):
-
+                 normalize=True, verbose=False, val_proportion=0, logit_filter=None, weight_decay: float = 0.0,
+                 weight_decay_type: str = "L2"):
         super().__init__(batch_size, num_workers, lr, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter)
-
+                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs
         self.single_prediction_dirs = single_prediction_dirs
