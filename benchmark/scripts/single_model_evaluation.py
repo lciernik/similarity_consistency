@@ -1,19 +1,18 @@
 import os
 import json
 from slurm import run_job
-from helper import load_models, get_hyperparams
+from helper import load_models, get_hyperparams, parse_datasets
 
 import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'])
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-# MODELS_CONFIG = "./models_config.json"
-# DATASETS = "./webdatasets.txt"
-DATASETS = " ".join(args.datasets)
+DATASETS = " ".join(parse_datasets(arg.datasets))
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -24,6 +23,8 @@ OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
+    if 'SegmentAnything_vit_b' in models.keys():
+        models.pop('SegmentAnything_vit_b')
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')

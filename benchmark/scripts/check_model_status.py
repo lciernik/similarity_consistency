@@ -1,10 +1,10 @@
-import os
-
-from helper import load_models, get_hyperparams
 import argparse
 import json
+import os
 from itertools import product
+
 from clip_benchmark.utils.path_maker import PathMaker
+from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
@@ -13,7 +13,6 @@ parser.add_argument('--generate_json', type=str, default='', choices=['', 'featu
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-DATASETS = args.dataset
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -36,65 +35,73 @@ if __name__ == "__main__":
             )
         )
     )
-    not_finished_features = {}
-    not_finished_probe = {}
-    not_finished_pred = {}
-    for i, (key, _) in enumerate(models.items()):
-        # Using Pathmaker:
-        for fewshot_k, fewshot_lr, fewshot_epochs, seed in combs:
 
-            args.mode = "single_model"
-            args.dataset_root = DATASETS_ROOT
-            args.feature_root = FEATURES_ROOT
-            args.model_root = MODELS_ROOT
-            args.output_root = OUTPUT_ROOT
-            args.model_key = key
-            args.feature_combiner = None
-            args.batch_size = 1024
-            args.verbose = False
-            args.fewshot_k = int(fewshot_k)
-            args.fewshot_lr = fewshot_lr
-            args.fewshot_epochs = fewshot_epochs
-            args.seed = seed
+    datasets = parse_datasets(args.dataset)
 
-            pm = PathMaker(args, DATASETS.replace("/", "_"))
+    for dataset in datasets:
+        print(f"\n\nChecking features, models and prediction for {dataset=}")
+        not_finished_features = {}
+        not_finished_probe = {}
+        not_finished_pred = {}
+        pp_dataset = dataset.replace("/", "_")
 
-            try:
-                feature_dirs = pm._get_feature_dirs()
+        for i, (key, _) in enumerate(models.items()):
+            # Using Pathmaker:
+            for fewshot_k, fewshot_lr, fewshot_epochs, seed in combs:
+              
+                # Prepare args
+                args.mode = "single_model"
+                args.dataset_root = DATASETS_ROOT
+                args.feature_root = FEATURES_ROOT
+                args.model_root = MODELS_ROOT
+                args.output_root = OUTPUT_ROOT
+                args.model_key = key
+                args.feature_combiner = None
+                args.batch_size = 1024
+                args.verbose = False
+                args.fewshot_k = int(fewshot_k)
+                args.fewshot_lr = fewshot_lr
+                args.fewshot_epochs = fewshot_epochs
+                args.seed = seed
+
+                pm = PathMaker(args, pp_dataset)
+
                 # check if features are there
-                for feature_dir in feature_dirs:
-                    if not os.path.exists(f"{feature_dir}/features_train.pt") and not os.path.exists(
-                            f"{feature_dir}/features_test.pt"):
-                        not_finished_features[key] = feature_dir
-                        # print(f"Features for Model {key} do not exist in {feature_dir}.")
-            except FileNotFoundError:
-                print(f"Feature root folder for Model {key} does not exist.")
-            model_dirs = pm._get_model_dirs()
-            # check if models are there
-            for model_dir in model_dirs:
-                if not os.path.exists(f"{model_dir}/model.pkl"):
-                    # print(f"Model for Model {key} does not exist in {model_dir}.")
-                    not_finished_probe[key] = model_dir
-            _, pred = pm._get_results_and_predictions_dirs()
-            # check if predictions are there
-            if not os.path.exists(f"{pred}/predictions.pkl"):
-                # print(f"Predictions for Model {key} do not exist in {pred}.")
-                not_finished_pred[key] = pred
-    print("Models without features:")
-    print("\n".join(not_finished_features.keys()))
+                try:
+                    feature_dirs = pm._get_feature_dirs()
+                    for feature_dir in feature_dirs:
+                        if not os.path.exists(f"{feature_dir}/features_train.pt") and not os.path.exists(
+                                f"{feature_dir}/features_test.pt"):
+                            not_finished_features[key] = feature_dir
+                except FileNotFoundError:
+                    print(f"Feature root folder for Model {key} does not exist.")
 
-    print("Models without probe:")
-    print("\n".join(not_finished_probe.keys()))
+                # check if models are there
+                model_dirs = pm._get_model_dirs()
+                for model_dir in model_dirs:
+                    if not os.path.exists(f"{model_dir}/model.pkl"):
+                        not_finished_probe[key] = model_dir
 
-    print("Models without predictions:")
-    print("\n".join(not_finished_pred.keys()))
+                # check if predictions are there
+                pred_path = pm._get_results_dirs()
+                if not os.path.exists(f"{pred_path}/predictions.pkl"):
+                    not_finished_pred[key] = pred_path
 
-    if args.generate_json == "features" and len(not_finished_features.keys()):
-        with open("not_finished_features.json", "w") as f:
-            json.dump({k: models[k] for k in not_finished_features.keys()}, f)
-    elif args.generate_json == "probe" and len(not_finished_probe.keys()):
-        with open("not_finished_probe.json", "w") as f:
-            json.dump({k: models[k] for k in not_finished_probe.keys()}, f)
-    elif args.generate_json == "predictions" and len(not_finished_pred.keys()):
-        with open("not_finished_pred.json", "w") as f:
-            json.dump({k: models[k] for k in not_finished_pred.keys()}, f)
+        print("\nModels without features:")
+        print("\n".join(not_finished_features.keys()))
+
+        print("\nModels without probe:")
+        print("\n".join(not_finished_probe.keys()))
+
+        print("\nModels without predictions:")
+        print("\n".join(not_finished_pred.keys()))
+
+        if args.generate_json == "features" and len(not_finished_features.keys()):
+            with open(f"not_finished_features_{pp_dataset}.json", "w") as f:
+                json.dump({k: models[k] for k in not_finished_features.keys()}, f)
+        elif args.generate_json == "probe" and len(not_finished_probe.keys()):
+            with open(f"not_finished_probe_{pp_dataset}.json", "w") as f:
+                json.dump({k: models[k] for k in not_finished_probe.keys()}, f)
+        elif args.generate_json == "predictions" and len(not_finished_pred.keys()):
+            with open(f"not_finished_pred_{pp_dataset}.json", "w") as f:
+                json.dump({k: models[k] for k in not_finished_pred.keys()}, f)

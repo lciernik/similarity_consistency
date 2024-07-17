@@ -1,3 +1,4 @@
+import os
 import json
 from itertools import product
 
@@ -63,3 +64,14 @@ def format_path(path, num_samples_class, split):
         num_samples_class=num_samples_class,
         split=split
     )
+
+
+def parse_datasets(arg):
+    if os.path.isfile(arg):
+        with open(arg, 'r') as f:
+            datasets = [line.strip() for line in f if line.strip()]
+    elif isinstance(arg, list):
+        datasets = arg
+    else:
+        datasets = [arg]
+    return datasets

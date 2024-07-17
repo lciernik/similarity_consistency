@@ -6,7 +6,8 @@ import pandas as pd
 from helper import load_models
 from slurm import run_job
 
-MODELS_CONFIG = "./models_config.json"
+# MODELS_CONFIG = "./models_config.json" 
+MODELS_CONFIG = "./filtered_models_config.json" 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 CLUSTERING_ROOT = os.path.join(BASE_PROJECT_PATH, 'clustering')
@@ -56,7 +57,8 @@ if __name__ == "__main__":
     num_samples = 10
 
     models, n_models = load_models(MODELS_CONFIG)
-    models.pop('SegmentAnything_vit_b')
+    if 'SegmentAnything_vit_b' in models.keys():
+        models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
 
     # Iterate over different number of models we want to use in the combined setting
@@ -78,7 +80,7 @@ if __name__ == "__main__":
 
                 for lbl_assign_method in LBL_ASSIGN_METHODS:
 
-                    # run 'cluster_best'
+                    # run 'cluster_best' and 'cluster_random'
                     assignment_path = os.path.join(CLUSTERING_ROOT,
                                                    DATASET,
                                                    method,
@@ -87,26 +89,11 @@ if __name__ == "__main__":
                                                    'cluster_labels.csv')
 
                     cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}"""
-                    job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best \
+                    job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best cluster_random \
                     --cluster_assignment_path {assignment_path} \
                     --cluster_slug {cluster_slug}"""
 
                     run_curr_job(job_cmd)
-
-                    # # run 'cluster_best' and 'cluster_random'
-                    # assignment_path = os.path.join(CLUSTERING_ROOT,
-                    #                                DATASET,
-                    #                                method,
-                    #                                f"num_clusters_{num_clusters}",
-                    #                                lbl_assign_method,
-                    #                                'cluster_labels.csv')
-
-                    # cluster_slug = f"""{method}-num_clusters_{num_clusters}-{lbl_assign_method}"""
-                    # job_cmd = base_job_cmd + f""" --sampling_strategies cluster_best cluster_random \
-                    # --cluster_assignment_path {assignment_path} \
-                    # --cluster_slug {cluster_slug}"""
-
-                    # run_curr_job(job_cmd)
 
                     # # run 'one_cluster' for each cluster in cluster assignment
                     # cluster_assignment_table = pd.read_csv(assignment_path)

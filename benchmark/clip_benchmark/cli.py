@@ -173,10 +173,9 @@ def run(args):
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
     dirs = path_maker.make_paths()
-    feature_dirs, model_dirs, results_dir, predictions_dir, single_prediction_dirs, model_ids = dirs
+    feature_dirs, model_dirs, results_dir, single_prediction_dirs, model_ids = dirs
     if args.verbose:
-        print(f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, "
-              f"{predictions_dir=}, {single_prediction_dirs=}, {model_ids=}\n")
+        print(f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, {single_prediction_dirs=}, {model_ids=}\n")
 
     if dataset_name.startswith("wds"):
         dataset_root = os.path.join(
@@ -190,7 +189,7 @@ def run(args):
     if args.verbose:
         print(f"\nRunning '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n")
 
-    base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, predictions_dir)
+    base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, results_dir)
 
     if task == 'feature_extraction':
         model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
