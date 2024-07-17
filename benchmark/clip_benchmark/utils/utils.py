@@ -287,42 +287,28 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
             continue
         results_current_run[key] = value
 
-    # serialize object columns
-    for col in results_current_run:
-        if results_current_run[col].dtype == "object":
-            try:
-                results_current_run[col] = results_current_run[col].apply(json.dumps)
-            except TypeError as e:
-                print(col)
-                print(results_current_run[col])
-                raise e
+    # # serialize object columns
+    # for col in results_current_run:
+    #     if results_current_run[col].dtype == "object":
+    #         try:
+    #             results_current_run[col] = results_current_run[col].apply(json.dumps)
+    #         except TypeError as e:
+    #             print(col)
+    #             print(results_current_run[col])
+    #             raise e
 
     return results_current_run
 
 
 def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[str, float],
-                 out_path: str, max_write_attempts: int = 10) -> None:
-    """Save the results to a database (created if not existant)."""
+                 out_path: str) -> None:
+    """Save the results to json file."""
     results_current_run = make_results_df(exp_args=args, model_ids=model_ids, metrics=metrics)
 
     if len(results_current_run) == 0:
         raise ValueError("results_current_run had no entries")
 
-    database_path = os.path.join(out_path, "results_wd.db")
-    for i in range(max_write_attempts):
-        try:
-            conn = sqlite3.connect(database_path)
-            results_current_run.to_sql("results_wd", con=conn, index=False, if_exists="append")
-            break
-        except Exception as e:
-            if 'disk I/O error' in str(e) or 'database' in str(e):
-                waiting_time = int(os.environ["SLURM_ARRAY_TASK_ID"]) * 5
-                print(f"Writing on try {i + 1} failed because {str(e)}. Trying again in {str(waiting_time)} seconds.")
-                time.sleep(waiting_time)
-            else:
-                raise e
-        finally:
-            conn.close()
+    results_current_run.to_json(os.path.join(out_path, "results.json"))
 
 
 def get_base_evaluator_args(
