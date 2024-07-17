@@ -35,6 +35,7 @@ class PathMaker:
         subpath = os.path.join(fewshot_slug,
                                f"fewshot_lr_{args.fewshot_lr}",
                                f"fewshot_epochs_{args.fewshot_epochs}",
+                               f"weight_decay_{args.weight_decay_type}_{args.weight_decay}",
                                f"batch_size_{args.batch_size}",
                                f"seed_{args.seed}",
                                )

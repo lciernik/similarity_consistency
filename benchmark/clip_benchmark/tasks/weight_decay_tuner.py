@@ -5,19 +5,21 @@ from clip_benchmark.tasks.linear_probe import LinearProbe
 
 
 class WeightDecayTuner:
-    def __init__(self, lr, epochs, autocast, device, verbose, seed):
+    def __init__(self, lr, epochs, autocast, device, verbose, seed, weight_decay_type="L2"):
         self.lr = lr
         self.epochs = epochs
         self.autocast = autocast
         self.device = device
         self.verbose = verbose
         self.seed = seed
+        self.weight_decay_type = weight_decay_type
 
     def find_peak(self, wd_list, idxs, train_loader, val_loader):
         best_wd_idx, max_acc = 0, 0
         for idx in idxs:
             weight_decay = wd_list[idx]
-            linear_probe = LinearProbe(weight_decay, self.lr, self.epochs, self.autocast, self.device, self.seed)
+            linear_probe = LinearProbe(weight_decay, self.lr, self.epochs, self.autocast, self.device, self.seed,
+                                       weight_decay_type=self.weight_decay_type)
             linear_probe.train(train_loader)
             logits, target = linear_probe.infer(val_loader)
             acc1, = accuracy(logits.float(), target.float(), topk=(1,))

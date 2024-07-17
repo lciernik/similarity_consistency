@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print(f"Filtered out duplicates, {len(model_keys)} model sets remaining.")
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
     val_proportion = 0
 
@@ -69,6 +69,8 @@ if __name__ == "__main__":
                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                                --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
+                               --weight_decay  {' '.join(hyper_params['weight_decay'])} \
+                               --weight_decay_type {' '.join(hyper_params['weight_decay_type'])} \
                                --train_split train \
                                --test_split test \
                                --val_proportion {val_proportion} \

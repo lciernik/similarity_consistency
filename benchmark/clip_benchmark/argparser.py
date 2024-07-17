@@ -64,6 +64,10 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="for linear probe, how many epochs.")
     aa('--fewshot_lr', default=[0.1], type=float, nargs='+',
        help="for linear probe, what is the learning rate.")
+    aa('--weight_decay', default=[0.0], type=float, nargs='+',
+       help="for linear probe, what is the weight decay")
+    aa('--weight_decay_type', default=["L2"], type=str, nargs='+',
+       help="Type of weight decay, allowed L2 and L1", choices=["L2", "L1"])
     aa('--batch_size', default=64, type=int)
     aa("--skip_load", action="store_true",
        help="for linear probes, when everything is cached, no need to load model.")

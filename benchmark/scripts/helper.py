@@ -33,6 +33,8 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['0.1', '0.01', '0.001'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
+            weight_decay=['0.0'],
+            weight_decay_type=["L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     elif size == "imagenet1k":
@@ -40,6 +42,8 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['0.01', '0.001'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
+            weight_decay=['1e-1', '1e-2', '1e-3', '1e-4', '1e-5', '1e-6'],
+            weight_decay_type=["L2", "L1"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     else:
@@ -47,6 +51,8 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['0.1', '0.01'],
             fewshot_ks=['-1', '5', '10', '100'],
             fewshot_epochs=['10', '20', '30'],
+            weight_decay=['0.0'],
+            weight_decay_type=["L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     num_jobs = len(list(product(*hyper_params.values())))
