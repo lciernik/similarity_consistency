@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print(f"Filtered out duplicates, {len(model_keys)} model sets remaining.")
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
 
     val_proportion = 0.2
 
