@@ -46,7 +46,7 @@ if __name__ == "__main__":
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
-    val_proportion = 0.1
+    val_proportion = 0.2
 
     print("We evaluate the following hyperparameter", hyper_params)
 

@@ -3,7 +3,6 @@ import json
 import os
 import random
 import sqlite3
-import warnings
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -304,7 +303,7 @@ def get_base_evaluator_args(
     base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lrs": args.fewshot_lr,
                    "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
                    "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "verbose":args.verbose,
+                   "predictions_dir": predictions_dir, "normalize": args.normalize, "verbose": args.verbose,
                    "val_proportion": args.val_proportion, "weight_decay": args.weight_decay,
                    "weight_decay_type": args.weight_decay_type}
     return base_kwargs

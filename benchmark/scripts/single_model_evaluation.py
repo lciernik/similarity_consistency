@@ -30,7 +30,7 @@ if __name__ == "__main__":
     hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
     # With val_proportion 0 we do not optimize weight decay!
-    val_proportion = 0.1
+    val_proportion = 0.2
 
     # Evaluate
     for i, (key, _) in enumerate(models.items()):

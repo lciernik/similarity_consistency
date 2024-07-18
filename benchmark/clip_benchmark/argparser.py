@@ -27,7 +27,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Dataset split to use")
     aa('--train_split', type=str, default="train",
        help="Dataset(s) train split names")
-    aa('--val_proportion', default=0.1, type=float,
+    aa('--val_proportion', default=0.2, type=float,
        help="what is the share of the train dataset will be used for validation part, "
             "if it doesn't predefined.")
     aa('--wds_cache_dir', default=None, type=str,
@@ -69,7 +69,8 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
             "which will be used for training.")
     aa('--weight_decay', default=0, type=float,
        help="Weight decay (regularization) value for training the few-shot learning model. This value is used only if "
-            "val_proportion > 0, in which case the best weight decay parameter will be searched.")
+            "val_proportion == 0. If val_proportion > 0, the best weight decay parameter will be searched in a "
+            "fixed range.")
     aa('--weight_decay_type', default=["L2"], type=str, nargs='+',
        help="Type of weight decay to use. Choose from L2 or L1.", choices=["L2", "L1"])
     aa('--batch_size', default=64, type=int,

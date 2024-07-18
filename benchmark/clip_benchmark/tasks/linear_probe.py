@@ -9,10 +9,17 @@ from tqdm import tqdm
 
 
 class LinearProbe:
-    def __init__(self, weight_decay: float, lr: float, epochs: int, device: str, seed: int,
-                 logit_filter: Optional[torch.Tensor] = None, weight_decay_type: str = "L2",
-                 verbose:bool=False):
-
+    def __init__(
+            self,
+            weight_decay: float,
+            lr: float,
+            epochs: int,
+            device: str,
+            seed: int,
+            logit_filter: Optional[torch.Tensor] = None,
+            weight_decay_type: str = "L2",
+            verbose: bool = False
+    ):
         self.weight_decay = weight_decay
         self.weight_decay_type = weight_decay_type
         if self.weight_decay_type not in ["L1", "L2"]:
@@ -50,7 +57,7 @@ class LinearProbe:
 
         return _lr_adjuster
 
-    def train(self, dataloader: DataLoader, filename=None):
+    def train(self, dataloader: DataLoader, filename: str = None) -> torch.nn.Module:
         # We reset the seed to ensure that the model is initialized with the same weights every time
         torch.manual_seed(self.seed)
 
@@ -67,6 +74,7 @@ class LinearProbe:
         devices = [x for x in range(torch.cuda.device_count())]
         self.model = self.model.to(self.device)
         self.model = torch.nn.DataParallel(self.model, device_ids=devices)
+        # L2 regularization is applied as standard weight decay in the AdamW optimizer
         optimizer = torch.optim.AdamW(
             self.model.parameters(),
             lr=self.lr,
