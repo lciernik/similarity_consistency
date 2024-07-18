@@ -27,7 +27,7 @@ def prepare_for_combined_usage(models):
     return model_names, sources, model_parameters, module_names
 
 
-def get_hyperparams(num_seeds=10, size="extended"):
+def get_hyperparams(num_seeds=10, size="small"):
     if size == "small":
         hyper_params = dict(
             fewshot_lrs=['1e-1', '1e-2'],
