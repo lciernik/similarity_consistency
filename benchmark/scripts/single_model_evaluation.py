@@ -27,7 +27,7 @@ if __name__ == "__main__":
         models.pop('SegmentAnything_vit_b')
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
     # With val_proportion 0 we do not optimize weight decay!
     val_proportion = 0.2
