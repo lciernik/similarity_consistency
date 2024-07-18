@@ -70,7 +70,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--regularization', default=["weight_decay"], type=str, nargs='+',
        help="Type of regularization applied during training.", choices=["weight_decay", "L1"])
     aa('--reg_lambda', default=0.2, type=float,
-       help="Regularization parameter (lambda, weight decay value) for training the few-shot learning model. "
+       help="Regularization parameter (lambda, weight decay value) for training the model. "
             "This parameter is used only when val_proportion==0. If val_proportion>0, the optimal value will be "
             "determined through a search within a fixed range.")
     aa('--batch_size', default=64, type=int,
