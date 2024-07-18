@@ -31,7 +31,8 @@ class HyperparameterTuner:
     def tune(self, feature_train_loader: DataLoader, feature_val_loader: DataLoader) -> Tuple[float, float]:
         best_lr, best_reg_lambda, max_acc = 0, 0, 0
         for lr in self.lrs:
-            regularization_tuner = RegularizationTuner(lr, self.epochs, self.device, self.verbose, self.seed)
+            regularization_tuner = RegularizationTuner(lr, self.epochs, self.device, self.verbose, self.seed,
+                                                       regularization=self.regularization)
             reg_lambda, acc1 = regularization_tuner.tune_lambda(feature_train_loader, feature_val_loader)
             if self.verbose:
                 print(f"\nValid accuracy with lr {lr} and reg_lambda {reg_lambda}: {acc1}\n")
