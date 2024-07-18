@@ -1,9 +1,10 @@
-import pickle
+from typing import List
 
+import torch
 from sklearn.metrics import balanced_accuracy_score, classification_report
 
 
-def accuracy(output, target, topk=(1,)):
+def accuracy(output: torch.Tensor, target: torch.Tensor, topk: tuple = (1,)) -> List[float]:
     """
     Compute top-k accuracy
 
@@ -22,13 +23,13 @@ def accuracy(output, target, topk=(1,)):
 
     list of top-k accuracies in the same order as `topk`
     """
-    pred = output.topk(max(topk), 1, True, True)[1].t()
+    pred = output.topk(k=max(topk), dim=1, largest=True, sorted=True)[1].t()
     correct = pred.eq(target.view(1, -1).expand_as(pred))
     n = len(target)
     return [float(correct[:k].reshape(-1).float().sum(0, keepdim=True).cpu().numpy()) / n for k in topk]
 
 
-def compute_metrics(logits, target, verbose=False):
+def compute_metrics(logits: torch.Tensor, target: torch.Tensor, verbose: bool = False) -> dict:
     pred = logits.argmax(dim=1)
 
     # measure accuracy

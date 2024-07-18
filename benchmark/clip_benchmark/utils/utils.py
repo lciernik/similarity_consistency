@@ -2,8 +2,9 @@ import argparse
 import json
 import os
 import random
-import warnings
+import sqlite3
 from itertools import product
+from pathlib import Path
 from typing import Any
 from typing import List, Union, Dict, Optional, Tuple
 
@@ -190,26 +191,23 @@ def prepare_device(distributed: bool) -> str:
 
 def get_combination(
         fewshot_ks: List[int],
-        fewshot_lrs: List[float],
         fewshot_epochs: List[int],
         seeds: List[int],
-        weight_decays: List[float],
-        weight_decay_types: List[str],
-) -> Tuple[int, float, int, int, float, str]:
+        regularization: List[str],
+) -> Tuple[Tuple[int, int, int, str], int]:
     combs = []
     combs.extend(
         list(
             product(
                 fewshot_ks,
-                fewshot_lrs,
                 fewshot_epochs,
                 seeds,
-                weight_decays,
-                weight_decay_types,
+                regularization,
             )
         )
     )
-    return combs[int(os.environ["SLURM_ARRAY_TASK_ID"])]
+    comb_idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
+    return combs[comb_idx], comb_idx
 
 
 def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str, str]]:
@@ -257,24 +255,16 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     results_current_run["module_name"] = json.dumps(exp_args.module_name)
     # hyperparameters
     results_current_run["fewshot_k"] = exp_args.fewshot_k
-    results_current_run["fewshot_lr"] = exp_args.fewshot_lr
     results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
     results_current_run["batch_size"] = exp_args.batch_size
     results_current_run["seed"] = exp_args.seed
-    results_current_run["weight_decay"] = exp_args.weight_decay
-    results_current_run["weight_decay_type"] = exp_args.weight_decay_type
+    results_current_run["regularization"] = exp_args.regularization
 
     # metrics
     def flatten_metrics(curr_metrics):
         new_metrics = {}
         if 'train_metrics' in curr_metrics:
             new_metrics.update({f'train_{k}': v for k, v in curr_metrics['train_metrics'].items()})
-        elif 'test_metrics' in curr_metrics:
-            # We get an Error when the Database has different Columns than the current run
-            new_metrics.update({f'train_{k}': None for k, v in curr_metrics['test_metrics'].items()})
-        else:
-            warnings.warn(
-                "No train or test metrics found in the metrics dictionary. Maybe Addition to Database wont work")
         if 'test_metrics' in curr_metrics:
             new_metrics.update({f'test_{k}': v for k, v in curr_metrics['test_metrics'].items()})
         new_metrics.update({k: v for k, v in curr_metrics.items() if not isinstance(v, dict)})
@@ -285,16 +275,6 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
         if key in results_current_run:
             continue
         results_current_run[key] = value
-
-    # # serialize object columns
-    # for col in results_current_run:
-    #     if results_current_run[col].dtype == "object":
-    #         try:
-    #             results_current_run[col] = results_current_run[col].apply(json.dumps)
-    #         except TypeError as e:
-    #             print(col)
-    #             print(results_current_run[col])
-    #             raise e
 
     return results_current_run
 
@@ -310,21 +290,26 @@ def save_results(args: argparse.Namespace, model_ids: List[str], metrics: Dict[s
     results_current_run.to_json(os.path.join(out_path, "results.json"))
 
 
+def check_existing_results(out_path: str) -> bool:
+    return os.path.exists(os.path.join(out_path, "results.json"))
+
+
 def get_base_evaluator_args(
         args: argparse.Namespace,
         feature_dirs: List[str],
         model_dirs: List[str],
         predictions_dir: str
 ) -> Dict[str, Any]:
-    base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lr": args.fewshot_lr,
-                   "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
-                   "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "amp": False,
-                   "verbose": args.verbose, "val_proportion": args.val_proportion, "weight_decay": args.weight_decay,
-                   "weight_decay_type": args.weight_decay_type}
+    base_kwargs = {
+        "batch_size": args.batch_size, "num_workers": args.num_workers, "lrs": args.fewshot_lr,
+        "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device, "fewshot_k": args.fewshot_k,
+        "feature_dirs": feature_dirs, "model_dirs": model_dirs, "predictions_dir": predictions_dir,
+        "normalize": args.normalize, "verbose": args.verbose, "val_proportion": args.val_proportion,
+        "reg_lambda": args.reg_lambda, "regularization": args.regularization
+    }
     return base_kwargs
 
- 
+
 def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False) -> pd.DataFrame:
     path = Path(base_path_exp)
     dfs = []

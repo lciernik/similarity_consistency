@@ -6,8 +6,13 @@ from clip_benchmark.utils.utils import as_list, all_paths_exist
 
 
 class PathMaker:
-    def __init__(self, args: argparse.Namespace, dataset_name: str, probe_dataset_name: Optional[str] = None,
-                 auto_create_dirs: bool = True):
+    def __init__(
+            self,
+            args: argparse.Namespace,
+            dataset_name: str,
+            probe_dataset_name: Optional[str] = None,
+            auto_create_dirs: bool = True,
+    ):
         self.dataset_name = dataset_name
         self.train_dataset_name = probe_dataset_name if probe_dataset_name is not None else dataset_name
         self.task = args.task
@@ -26,19 +31,20 @@ class PathMaker:
         self.hyperparams_slug = self._get_hyperparams_name(args)
         self.model_slug = self._create_model_slug()
 
+        self.skip_existing = args.skip_existing
         self.verbose = args.verbose
 
     @staticmethod
     def _get_hyperparams_name(args: argparse.Namespace) -> str:
         """Get the hyperparameters name for the output path."""
         fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-        subpath = os.path.join(fewshot_slug,
-                               f"fewshot_lr_{args.fewshot_lr}",
-                               f"fewshot_epochs_{args.fewshot_epochs}",
-                               f"weight_decay_{args.weight_decay_type}_{args.weight_decay}",
-                               f"batch_size_{args.batch_size}",
-                               f"seed_{args.seed}",
-                               )
+        subpath = os.path.join(
+            fewshot_slug,
+            f"fewshot_epochs_{args.fewshot_epochs}",
+            f"regularization_{args.regularization}",
+            f"batch_size_{args.batch_size}",
+            f"seed_{args.seed}",
+        )
         return subpath
 
     def _create_model_slug(self) -> str:

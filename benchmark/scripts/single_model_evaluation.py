@@ -12,7 +12,7 @@ parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k'
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-DATASETS = " ".join(parse_datasets(arg.datasets))
+DATASETS = " ".join(parse_datasets(args.datasets))
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -27,10 +27,10 @@ if __name__ == "__main__":
         models.pop('SegmentAnything_vit_b')
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
 
     # With val_proportion 0 we do not optimize weight decay!
-    val_proportion = 0
+    val_proportion = 0.2
 
     # Evaluate
     for i, (key, _) in enumerate(models.items()):
@@ -49,8 +49,8 @@ if __name__ == "__main__":
                        --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                        --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                        --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                       --weight_decay  {' '.join(hyper_params['weight_decay'])} \
-                       --weight_decay_type {' '.join(hyper_params['weight_decay_type'])} \
+                       --reg_lambda {hyper_params['reg_lambda']} \
+                       --regularization {' '.join(hyper_params['regularization'])} \
                        --train_split train \
                        --test_split test \
                        --val_proportion {val_proportion} \
@@ -60,7 +60,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"probe_{key}",
             job_cmd=job_cmd,
-            partition='gpu-5h',
+            partition='gpu-2d',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )

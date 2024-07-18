@@ -13,7 +13,7 @@ args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
 
-DATASETS = " ".join(parse_datasets(arg.datasets))
+DATASETS = " ".join(parse_datasets(args.datasets))
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')

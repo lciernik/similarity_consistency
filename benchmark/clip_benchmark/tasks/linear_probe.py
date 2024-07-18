@@ -1,29 +1,43 @@
 import os
 import time
+from typing import Optional, Union, Tuple
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 
 class LinearProbe:
-    def __init__(self, weight_decay, lr, epochs, autocast, device, seed, logit_filter=None, weight_decay_type="L2"):
-        self.weight_decay = weight_decay
-        self.weight_decay_type = weight_decay_type
+    def __init__(
+            self,
+            reg_lambda: float,
+            lr: float,
+            epochs: int,
+            device: str,
+            seed: int,
+            logit_filter: Optional[torch.Tensor] = None,
+            regularization: str = "weight_decay",
+            verbose: bool = False
+    ):
+        self.reg_lambda = reg_lambda
+        self.regularization = regularization
+        if self.regularization not in ["L1", "weight_decay"]:
+            raise ValueError("Invalid regularization type. Choose from 'L1' or 'weight_decay'")
         self.lr = lr
         self.epochs = epochs
-        self.autocast = autocast
         self.device = device
         self.seed = seed
         self.model = None
         self.logit_filter = logit_filter
+        self.verbose = verbose
 
     @staticmethod
-    def assign_learning_rate(param_group, new_lr):
+    def assign_learning_rate(param_group: dict, new_lr: float):
         param_group["lr"] = new_lr
 
     @staticmethod
-    def _warmup_lr(base_lr, warmup_length, step):
+    def _warmup_lr(base_lr: float, warmup_length: Union[float, int], step: int):
         return base_lr * (step + 1) / warmup_length
 
     def cosine_lr(self, optimizer, base_lrs, warmup_length, steps):
@@ -43,12 +57,13 @@ class LinearProbe:
 
         return _lr_adjuster
 
-    def train(self, dataloader, filename=None):
+    def train(self, dataloader: DataLoader, filename: str = None) -> torch.nn.Module:
         # We reset the seed to ensure that the model is initialized with the same weights every time
         torch.manual_seed(self.seed)
 
         if filename is not None and os.path.exists(filename):
-            print(f"Loading model from {filename}")
+            if self.verbose:
+                print(f"Loading model from {filename}")
             self.model = torch.load(filename)
             self.model = self.model.to(self.device)
             self.model = torch.nn.DataParallel(self.model, device_ids=[x for x in range(torch.cuda.device_count())])
@@ -62,7 +77,7 @@ class LinearProbe:
         optimizer = torch.optim.AdamW(
             self.model.parameters(),
             lr=self.lr,
-            weight_decay=self.weight_decay if self.weight_decay_type == "L2" else 0.0,
+            weight_decay=self.reg_lambda if self.regularization == "weight_decay" else 0.0,
         )
         criterion = torch.nn.CrossEntropyLoss()
 
@@ -78,41 +93,35 @@ class LinearProbe:
                 scheduler(step)
 
                 optimizer.zero_grad()
-                with self.autocast():
-                    pred = self.model(x)
-                    loss = criterion(pred, y)
-                    if self.weight_decay_type == "L1":
-                        l1_norm = sum(p.abs().mean() for p in self.model.parameters())
-                        loss = loss + self.weight_decay * l1_norm
+
+                pred = self.model(x)
+                loss = criterion(pred, y)
+                if self.regularization == "L1":
+                    l1_norm = sum(p.abs().mean() for p in self.model.parameters())
+                    loss = loss + self.reg_lambda * l1_norm
 
                 loss.backward()
                 optimizer.step()
 
                 batch_time = time.time() - end
                 end = time.time()
-
-                if (i % 20) == 1:
-                    num_samples = i * len(x)
-                    try:
-                        percent_complete = 100.0 * i / len_loader
-                        progress_message = f"[{num_samples}/{len_loader} ({percent_complete:.0f}%)]"
-                    except TypeError:
-                        progress_message = f"[{num_samples} samples]"
-                    print(
-                        f"Train Epoch: {epoch} {progress_message}\t"
-                        f"Loss: {loss.item():.6f}\tData (t) {data_time:.3f}\tBatch (t) {batch_time:.3f}\t"
-                        f"LR {optimizer.param_groups[0]['lr']:.5f}"
-                    )
+            if self.verbose:
+                print(
+                    f"Train Epoch: {epoch} \t"
+                    f"Loss: {loss.item():.6f}\t"
+                    f"LR {optimizer.param_groups[0]['lr']:.5f}"
+                )
 
         if filename is not None:
             if not os.path.exists(os.path.dirname(filename)):
                 os.makedirs(os.path.dirname(filename), exist_ok=True)
-            print(f"Saving model to {filename}")
+            if self.verbose:
+                print(f"Saving model to {filename}")
             torch.save(self.model, filename)
 
         return self.model
 
-    def infer(self, dataloader):
+    def infer(self, dataloader: DataLoader) -> Tuple[torch.Tensor, torch.Tensor]:
         if self.model is None:
             raise ValueError("Model not trained yet. Call train() first.")
         true, pred = [], []
@@ -121,10 +130,9 @@ class LinearProbe:
                 x = x.to(self.device)
                 y = y.to(self.device)
 
-                with self.autocast():
-                    logits = self.model(x)
-                    if self.logit_filter is not None:
-                        logits = logits @ self.logit_filter.T
+                logits = self.model(x)
+                if self.logit_filter is not None:
+                    logits = logits @ self.logit_filter.T
 
                 pred.append(logits.cpu())
                 true.append(y.cpu())
