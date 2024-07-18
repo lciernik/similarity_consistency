@@ -94,16 +94,16 @@ def main_model_sim(base):
 
 def main_eval(base):
     # prepare run combinations
-    (fewshot_k, fewshot_epochs, rnd_seed, weight_decay_type), task_id = get_combination(
+    (fewshot_k, fewshot_epochs, rnd_seed, regularization), task_id = get_combination(
         base.fewshot_k,
         base.fewshot_epochs,
         base.seed,
-        base.weight_decay_type,
+        base.regularization,
     )
     base.fewshot_k = fewshot_k
     base.fewshot_epochs = fewshot_epochs
     base.seed = rnd_seed
-    base.weight_decay_type = weight_decay_type
+    base.regularization = regularization
     base.task_id = task_id
 
     # Get list of models to evaluate

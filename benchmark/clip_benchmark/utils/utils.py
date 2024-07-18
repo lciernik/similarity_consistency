@@ -193,7 +193,7 @@ def get_combination(
         fewshot_ks: List[int],
         fewshot_epochs: List[int],
         seeds: List[int],
-        weight_decay_types: List[str],
+        regularization: List[str],
 ) -> Tuple[Tuple[int, int, int, str], int]:
     combs = []
     combs.extend(
@@ -202,7 +202,7 @@ def get_combination(
                 fewshot_ks,
                 fewshot_epochs,
                 seeds,
-                weight_decay_types,
+                regularization,
             )
         )
     )
@@ -258,7 +258,7 @@ def make_results_df(exp_args: argparse.Namespace, model_ids: List[str], metrics:
     results_current_run["fewshot_epochs"] = exp_args.fewshot_epochs
     results_current_run["batch_size"] = exp_args.batch_size
     results_current_run["seed"] = exp_args.seed
-    results_current_run["weight_decay_type"] = exp_args.weight_decay_type
+    results_current_run["regularization"] = exp_args.regularization
 
     # metrics
     def flatten_metrics(curr_metrics):
@@ -300,12 +300,13 @@ def get_base_evaluator_args(
         model_dirs: List[str],
         predictions_dir: str
 ) -> Dict[str, Any]:
-    base_kwargs = {"batch_size": args.batch_size, "num_workers": args.num_workers, "lrs": args.fewshot_lr,
-                   "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device,
-                   "fewshot_k": args.fewshot_k, "feature_dirs": feature_dirs, "model_dirs": model_dirs,
-                   "predictions_dir": predictions_dir, "normalize": args.normalize, "verbose": args.verbose,
-                   "val_proportion": args.val_proportion, "weight_decay": args.weight_decay,
-                   "weight_decay_type": args.weight_decay_type}
+    base_kwargs = {
+        "batch_size": args.batch_size, "num_workers": args.num_workers, "lrs": args.fewshot_lr,
+        "epochs": args.fewshot_epochs, "seed": args.seed, "device": args.device, "fewshot_k": args.fewshot_k,
+        "feature_dirs": feature_dirs, "model_dirs": model_dirs, "predictions_dir": predictions_dir,
+        "normalize": args.normalize, "verbose": args.verbose, "val_proportion": args.val_proportion,
+        "reg_lambda": args.reg_lambda, "regularization": args.regularization
+    }
     return base_kwargs
 
 

@@ -38,12 +38,13 @@ class PathMaker:
     def _get_hyperparams_name(args: argparse.Namespace) -> str:
         """Get the hyperparameters name for the output path."""
         fewshot_slug = "no_fewshot" if args.fewshot_k == -1 else f"fewshot_{args.fewshot_k}"
-        subpath = os.path.join(fewshot_slug,
-                               f"fewshot_epochs_{args.fewshot_epochs}",
-                               f"weight_decay_{args.weight_decay_type}",
-                               f"batch_size_{args.batch_size}",
-                               f"seed_{args.seed}",
-                               )
+        subpath = os.path.join(
+            fewshot_slug,
+            f"fewshot_epochs_{args.fewshot_epochs}",
+            f"regularization_{args.regularization}",
+            f"batch_size_{args.batch_size}",
+            f"seed_{args.seed}",
+        )
         return subpath
 
     def _create_model_slug(self) -> str:

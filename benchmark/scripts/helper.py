@@ -33,8 +33,8 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['1e-1', '1e-2'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
-            weight_decay='0',
-            weight_decay_type=["L2"],
+            reg_lambda='0',
+            regularization=["weight_decay"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     elif size == "imagenet1k":
@@ -42,8 +42,8 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['1e-1', '1e-2', '1e-3', '1e-4'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
-            weight_decay='1e-2',
-            weight_decay_type=["L2", "L1"],
+            reg_lambda='1e-2',
+            regularization=["weight_decay", "L1"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     else:
@@ -51,11 +51,11 @@ def get_hyperparams(num_seeds=10, size="extended"):
             fewshot_lrs=['0.1', '0.01'],
             fewshot_ks=['-1', '5', '10', '100'],
             fewshot_epochs=['10', '20', '30'],
-            weight_decay='0',
-            weight_decay_type=["L2"],
+            reg_lambda='0',
+            regularization=["weight_decay"],
             seeds=[str(num) for num in range(num_seeds)],
         )
-    cols_for_array = ['fewshot_ks', 'fewshot_epochs', 'weight_decay_type', 'seeds']
+    cols_for_array = ['fewshot_ks', 'fewshot_epochs', 'regularization', 'seeds']
     num_jobs = np.prod([len(hyper_params[k]) for k in cols_for_array])
     return hyper_params, num_jobs
 

@@ -11,19 +11,19 @@ from tqdm import tqdm
 class LinearProbe:
     def __init__(
             self,
-            weight_decay: float,
+            reg_lambda: float,
             lr: float,
             epochs: int,
             device: str,
             seed: int,
             logit_filter: Optional[torch.Tensor] = None,
-            weight_decay_type: str = "L2",
+            regularization: str = "weight_decay",
             verbose: bool = False
     ):
-        self.weight_decay = weight_decay
-        self.weight_decay_type = weight_decay_type
-        if self.weight_decay_type not in ["L1", "L2"]:
-            raise ValueError("Invalid weight decay type. Choose from 'L1' or 'L2'")
+        self.reg_lambda = reg_lambda
+        self.regularization = regularization
+        if self.regularization not in ["L1", "weight_decay"]:
+            raise ValueError("Invalid regularization type. Choose from 'L1' or 'weight_decay'")
         self.lr = lr
         self.epochs = epochs
         self.device = device
@@ -74,11 +74,10 @@ class LinearProbe:
         devices = [x for x in range(torch.cuda.device_count())]
         self.model = self.model.to(self.device)
         self.model = torch.nn.DataParallel(self.model, device_ids=devices)
-        # L2 regularization is applied as standard weight decay in the AdamW optimizer
         optimizer = torch.optim.AdamW(
             self.model.parameters(),
             lr=self.lr,
-            weight_decay=self.weight_decay if self.weight_decay_type == "L2" else 0.0,
+            weight_decay=self.reg_lambda if self.regularization == "weight_decay" else 0.0,
         )
         criterion = torch.nn.CrossEntropyLoss()
 
@@ -97,9 +96,9 @@ class LinearProbe:
 
                 pred = self.model(x)
                 loss = criterion(pred, y)
-                if self.weight_decay_type == "L1":
+                if self.regularization == "L1":
                     l1_norm = sum(p.abs().mean() for p in self.model.parameters())
-                    loss = loss + self.weight_decay * l1_norm
+                    loss = loss + self.reg_lambda * l1_norm
 
                 loss.backward()
                 optimizer.step()

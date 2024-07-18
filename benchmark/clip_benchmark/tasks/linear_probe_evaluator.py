@@ -21,7 +21,7 @@ class BaseEvaluator:
             self, batch_size: int, num_workers: int, lrs: List[float], epochs: int, seed: int, device: str,
             fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, weight_decay: float = 0.0, weight_decay_type: str = "L2"
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
     ) -> None:
         super().__init__()
 
@@ -44,15 +44,14 @@ class BaseEvaluator:
         self.val_proportion = val_proportion
         self.logit_filter = logit_filter
         self.lrs = lrs
-        self.weight_decay = weight_decay
-        self.weight_decay_type = weight_decay_type
+        self.reg_lambda = reg_lambda
+        self.regularization = regularization
 
         self.lr = None
-        self.wd = None
         self.hp_tuner = HyperparameterTuner(
             lrs=lrs,
             epochs=self.epochs,
-            weight_decay_type=self.weight_decay_type,
+            regularization=self.regularization,
             device=self.device,
             verbose=self.verbose,
             seed=self.seed
@@ -114,10 +113,10 @@ class BaseEvaluator:
             if len(self.lrs) != 1:
                 raise ValueError("Only one learning rate is supported without a validation set.")
             best_lr = self.lrs[0]
-            best_wd = self.weight_decay
+            best_wd = self.reg_lambda
 
         self.lr = best_lr
-        self.wd = best_wd
+        self.reg_lambda = best_wd
 
     def load_test_set_predictions(self, linear_probe_dir: str) -> Tuple[torch.Tensor, torch.Tensor]:
         with open(os.path.join(linear_probe_dir, 'predictions.pkl'), 'rb') as f:
@@ -146,17 +145,17 @@ class BaseEvaluator:
             evaluate_train: bool = True
     ) -> dict:
         linear_probe = LinearProbe(
-            weight_decay=self.wd,
+            reg_lambda=self.reg_lambda,
             lr=self.lr,
             epochs=self.epochs,
             device=self.device,
             seed=self.seed,
             logit_filter=self.logit_filter,
-            weight_decay_type=self.weight_decay_type,
+            regularization=self.regularization,
             verbose=self.verbose
         )
         metric_dict = {
-            "weight_decay": self.wd,
+            "reg_lambda": self.reg_lambda,
             "learning_rate": self.lr,
         }
 
@@ -188,10 +187,10 @@ class SingleModelEvaluator(BaseEvaluator):
             train_dataloader: Optional[torch.utils.data.DataLoader] = None,
             eval_dataloader: Optional[torch.utils.data.DataLoader] = None,
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, weight_decay: float = 0.0, weight_decay_type: str = 'L2'
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
     ) -> None:
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -238,7 +237,9 @@ class SingleModelEvaluator(BaseEvaluator):
                                                                    num_workers=self.num_workers,
                                                                    fewshot_k=self.fewshot_k,
                                                                    load_train=not probe_exists)
-        if not probe_exists:
+        if probe_exists:
+            self.reg_lambda = None
+        else:
             self.optimize_hyperparams(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
@@ -254,11 +255,11 @@ class CombinedModelEvaluator(BaseEvaluator):
             predictions_dir: Optional[str],
             feature_combiner_cls: Union[ConcatFeatureCombiner, PCAConcatFeatureCombiner],
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, weight_decay: float = 0.0, weight_decay_type: str = "L2"
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
     ) -> None:
 
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
         self.feature_dirs = feature_dirs
         self.feature_combiner_cls = feature_combiner_cls
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -286,7 +287,9 @@ class CombinedModelEvaluator(BaseEvaluator):
                                                                             normalize=self.normalize,
                                                                             load_train=not probe_exists)
 
-        if not probe_exists:
+        if probe_exists:
+            self.reg_lambda = None
+        else:
             self.optimize_hyperparams(feature_train_loader)
 
         return self._evaluate(train_loader=feature_train_loader,
@@ -301,10 +304,10 @@ class EnsembleModelEvaluator(BaseEvaluator):
             fewshot_k: int, model_ids: List[str], feature_dirs: Optional[List[str]], model_dirs: Optional[List[str]],
             predictions_dir: Optional[str], single_prediction_dirs: Optional[List[str]], normalize: bool = True,
             verbose: bool = False, val_proportion: float = 0, logit_filter: Optional[torch.Tensor] = None,
-            weight_decay: float = 0.0, weight_decay_type: str = "L2"
+            reg_lambda: float = 0.0, regularization: str = "weight_decay"
     ) -> None:
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, weight_decay, weight_decay_type)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs
         self.single_prediction_dirs = single_prediction_dirs

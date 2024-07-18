@@ -67,12 +67,12 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Learning rate for training the few-shot learning model. If val_proportion > 0, the best learning rate "
             "will be found from the list provided. If val_proportion == 0, the list should contain exactly one value, "
             "which will be used for training.")
-    aa('--weight_decay', default=0, type=float,
-       help="Weight decay (regularization) value for training the few-shot learning model. This value is used only if "
-            "val_proportion == 0. If val_proportion > 0, the best weight decay parameter will be searched in a "
-            "fixed range.")
-    aa('--weight_decay_type', default=["L2"], type=str, nargs='+',
-       help="Type of weight decay to use. Choose from L2 or L1.", choices=["L2", "L1"])
+    aa('--regularization', default=["weight_decay"], type=str, nargs='+',
+       help="Type of regularization applied during training.", choices=["weight_decay", "L1"])
+    aa('--reg_lambda', default=0.2, type=float,
+       help="Regularization parameter (lambda, weight decay value) for training the few-shot learning model. "
+            "This parameter is used only when val_proportion==0. If val_proportion>0, the optimal value will be "
+            "determined through a search within a fixed range.")
     aa('--batch_size', default=64, type=int,
        help="Batch size for training.")
     aa('--skip_existing', default=False, action="store_true",

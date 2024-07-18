@@ -69,8 +69,8 @@ if __name__ == "__main__":
                                --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
                                --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
                                --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                               --weight_decay {hyper_params['weight_decay']} \
-                               --weight_decay_type {' '.join(hyper_params['weight_decay_type'])} \
+                               --reg_lambda {hyper_params['reg_lambda']} \
+                               --regularization {' '.join(hyper_params['regularization'])} \
                                --train_split train \
                                --test_split test \
                                --val_proportion {val_proportion} \
