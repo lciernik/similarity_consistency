@@ -60,15 +60,20 @@ class RegularizationTuner:
         # perform openAI-like hyperparameter sweep
         # https://arxiv.org/pdf/2103.00020.pdf A.3
         # instead of scikit-learn LBFGS use FCNNs with AdamW
-        lambda_list = np.logspace(-6, 2, num=97).tolist()
-        lambda_list_init = np.logspace(-6, 2, num=7).tolist()
+        # lambda_list = np.logspace(-6, 2, num=97).tolist()
+        # lambda_list_init = np.logspace(-6, 2, num=7).tolist()
+        lambda_list = np.logspace(-5, 1, num=(7+6*8)).tolist()
+        lambda_list_init = np.logspace(-5, 1, num=7).tolist()
         lambda_init_idx = [i for i, val in enumerate(lambda_list) if val in lambda_list_init]
         peak_idx, acc1 = self.find_peak(lambda_list, lambda_init_idx, feature_train_loader, feature_val_loader)
-        step_span = 8
+        # step_span = 8
+        step_span = 4
         while step_span > 0:
             left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(lambda_list) - 1)
-            peak_idx, acc1 = self.find_peak(lambda_list, [left, peak_idx, right], feature_train_loader,
-                                            feature_val_loader)
+            new_peak_idx, new_acc1 = self.find_peak(lambda_list, [left, right], feature_train_loader, feature_val_loader)
+            if new_acc1 > acc1:
+                acc1 = new_acc1
+                peak_idx = new_peak_idx
             step_span //= 2
         best_lambda = lambda_list[peak_idx]
         return best_lambda, acc1
