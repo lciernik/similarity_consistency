@@ -81,7 +81,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"combined_eval",
             job_cmd=job_cmd,
-            partition='cpu-2h' if args.combination == 'ensemble' else 'gpu-5h',
+            partition='cpu-5h' if args.combination == 'ensemble' else 'gpu-2d',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs,
             mem=mem
