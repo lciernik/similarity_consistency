@@ -8,7 +8,7 @@ def load_json(fn):
 
 PCT_CUTOFF = 0.8 
 
-fn_performances = './test_results/max_performance_per_model/max_performance_per_model_wds_imagenet1k.json'
+fn_performances = './test_results/max_performance_per_tuned_model/max_performance_per_model_wds_imagenet1k.json'
 fn_models_config = './models_config.json'
 
 performances = load_json(fn_performances)

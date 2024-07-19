@@ -75,6 +75,36 @@
         "embedding_dim": 768,
         "alignment": null
     },
+    "mae-vit-large-p16": {
+        "model_name": "mae-vit-large-p16",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignment": null
+    },
+    "mae-vit-huge-p14": {
+        "model_name": "mae-vit-huge-p14",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1280,
+        "alignment": null
+    },
     "OpenCLIP_RN50_openai": {
         "model_name": "OpenCLIP",
         "source": "custom",

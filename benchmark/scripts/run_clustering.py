@@ -27,8 +27,6 @@ if __name__ == "__main__":
         models.pop('SegmentAnything_vit_b')
     model_keys = ' '.join(models.keys())
 
-    array = f"0"
-
     for num_clusters in NUM_CLUSTERS:
         for method_key in METHOD_KEYS:
             for lbl_assign_method in LBL_ASSIGN_METHODS:
@@ -48,5 +46,5 @@ if __name__ == "__main__":
                     job_cmd=job_cmd,
                     partition='cpu-9m',
                     log_dir=f'{OUTPUT_ROOT}/logs',
-                    array=array
+                    num_jobs_in_array=1
                 )

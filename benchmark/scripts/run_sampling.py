@@ -15,13 +15,13 @@ SELECTION_DATASET = 'wds_imagenet1k'
 DATASET = "imagenet-subset-10k"
 
 METHOD_KEYS = [
-    'cka_kernel_rbf_unbiased_sigma_0.2',
+    # 'cka_kernel_rbf_unbiased_sigma_0.2',
     'cka_kernel_rbf_unbiased_sigma_0.4',
-    'cka_kernel_rbf_unbiased_sigma_0.6',
-    'cka_kernel_rbf_unbiased_sigma_0.8',
-    'cka_kernel_linear_unbiased',
+    # 'cka_kernel_rbf_unbiased_sigma_0.6',
+    # 'cka_kernel_rbf_unbiased_sigma_0.8',
+    # 'cka_kernel_linear_unbiased',
     'rsa_method_correlation_corr_method_pearson',
-    'rsa_method_correlation_corr_method_spearman',
+    # 'rsa_method_correlation_corr_method_spearman',
 ]
 
 NUM_CLUSTERS = range(3, 8)
