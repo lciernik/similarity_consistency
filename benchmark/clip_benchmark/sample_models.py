@@ -92,6 +92,7 @@ def main(
     os.makedirs(output_root, exist_ok=True)
 
     for sampling_strategy in sampling_strategies:
+        print(sampling_strategy)
         sampling_strategy = SamplingStrategy(sampling_strategy)
         sampler = build_sampler(sampling_strategy=sampling_strategy,
                                 num_models=num_models,
@@ -121,6 +122,7 @@ def main(
 
         with open(output_file, 'w') as f:
             json.dump(model_sets, f)
+        print(f"Dumped {output_file=}")
 
 
 if __name__ == '__main__':

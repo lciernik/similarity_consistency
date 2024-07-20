@@ -75,5 +75,9 @@ def parse_datasets(arg):
         else:
             datasets = arg
     else:
-        datasets = [arg]
+        if os.path.isfile(arg):
+            with open(arg, 'r') as f:
+                datasets = [line.strip() for line in f if line.strip()]
+        else:
+            datasets = [arg]
     return datasets

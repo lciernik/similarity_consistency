@@ -44,7 +44,7 @@ if __name__ == "__main__":
     print(f"Filtered out duplicates, {len(model_keys)} model sets remaining.")
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
-    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
 
     val_proportion = 0.2
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         run_job(
             job_name=f"combined_eval",
             job_cmd=job_cmd,
-            partition='cpu-2h' if args.combination == 'ensemble' else 'gpu-5h',
+            partition='cpu-5h' if args.combination == 'ensemble' else 'gpu-2d',
             log_dir=f'{OUTPUT_ROOT}/logs',
             num_jobs_in_array=num_jobs,
             mem=mem

@@ -9,7 +9,7 @@ from clip_benchmark.analysis.utils import retrieve_performance
 parser = argparse.ArgumentParser()
 parser.add_argument('--model_config_dict', type=str, default="./models_config.json")
 parser.add_argument('--dataset', type=str, default="./webdatasets.txt")    
-parser.add_argument('--output_root', type=str, default="./test_results/max_performance_per_model_new")
+parser.add_argument('--output_root', type=str, default="./test_results/max_performance_per_tuned_model")
 args = parser.parse_args()
 
 datasets = parse_datasets(args.dataset)

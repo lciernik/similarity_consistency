@@ -147,7 +147,12 @@ def main_eval(base):
                 f"Continuing with the next run.",
                 flush=True)
             print(e, flush=True)
-            raise e
+            failed_path = os.path.join(base.output_root, 'failed_models.txt')
+            with open(failed_path, 'a') as f:
+                array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
+                task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
+                f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
+                f.write(f"{str(e)}\n")
 
 
 def run(args):
