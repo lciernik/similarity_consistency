@@ -1,22 +1,24 @@
-import os
-import json
-import sqlite3
-import pandas as pd
 import argparse
+import json
+import os
 from typing import Dict, List, Optional
 
-from helper import load_models, get_hyperparams
-from clip_benchmark.utils.utils import prepare_ds_name
+import pandas as pd
+
 from clip_benchmark.utils.path_maker import PathMaker
+from clip_benchmark.utils.utils import prepare_ds_name, retrieve_model_dataset_results
+from helper import load_models, get_hyperparams
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
 parser.add_argument('--datasets', type=str, nargs="+",
-                    default=["wds_imagenet-a","wds_imagenet-r","wds_imagenet_sketch","wds_imagenetv2", 'wds_imagenet1k'])
+                    default=["wds_imagenet-a", "wds_imagenet-r", "wds_imagenet_sketch", "wds_imagenetv2",
+                             'wds_imagenet1k'])
 parser.add_argument('--mode', type=str,
                     choices=["single_model", "ensemble", "combined_models"],
                     default='single_model')
-parser.add_argument('--feature_combiner', type=str, default="concat", choices=['concat', 'concat_pca'], help="Feature combiner to use")
+parser.add_argument('--feature_combiner', type=str, default="concat", choices=['concat', 'concat_pca'],
+                    help="Feature combiner to use")
 parser.add_argument('--hyperparams', type=str, default='imagenet1k')
 parser.add_argument('--batch_size', type=int, default=1024)
 parser.add_argument('--verbose', type=bool, default=False)
@@ -33,21 +35,6 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 
 
-def retrieve_db_results(db_path:str, verbose:bool) -> pd.DataFrame:
-    path = db_path
-    try:
-        conn = sqlite3.connect(path)
-        df = pd.read_sql('SELECT * FROM "results"', conn)
-        conn.close()
-        df = df[~df.duplicated()].reset_index(drop=True)
-    except (pd.errors.DatabaseError, sqlite3.OperationalError) as e:
-        if verbose:
-            print(f"ERROR: Tried to extract data from {path=}, but got Error: {e}")
-            print(f"{os.path.exists(path)=}")
-        df = None
-    return df
-
-
 def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     hyper_params, _ = get_hyperparams(num_seeds=1, size=size)
     hyper_params["fewshot_lr"] = hyper_params.pop("fewshot_lrs")
@@ -55,7 +42,7 @@ def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     del hyper_params["seeds"]
     hyper_params["batch_size"] = [batch_size]
 
-    for k,v in hyper_params.items():
+    for k, v in hyper_params.items():
         try:
             hyper_params[k] = [float(x) for x in v]
         except ValueError:
@@ -64,7 +51,7 @@ def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     return hyper_params
 
 
-def save_dataframe(out_df: pd.DataFrame, dataset:str, mode:str, hyperparams:str, verbose:bool=False):
+def save_dataframe(out_df: pd.DataFrame, dataset: str, mode: str, hyperparams: str, verbose: bool = False):
     if out_df.empty:
         print(f"Empty dataframe for {dataset}. Skipping.")
     else:
@@ -83,7 +70,7 @@ def resolve_directory_name(dir_name: str) -> Dict:
     for part in dir_name_parts.split("-"):
         k, v = part.split("_")
         if k in param_names_map:
-            info[param_names_map[k]] = int(v) # TODO: Problem only random and OneCluster have random
+            info[param_names_map[k]] = int(v)  # TODO: Problem only random and OneCluster have random
         else:
             raise ValueError(f"Unknown directory name component {k} of directory {dir_name}")
     return info
@@ -178,18 +165,16 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
     for model_id in models:
         args.model_key = model_id
         pm = PathMaker(args, dataset, auto_create_dirs=False)
-        pm.make_paths()
+        results_dir = pm.get_base_results_dir()
 
-        db_path = os.path.join(pm._get_results_and_predictions_dirs()[0], "results.db")
-
-        if not os.path.exists(db_path):
-            print(f"Database not found for {dataset} and {model_id}. Skipping.")
-            print(f" Location", db_path)
+        if not os.path.exists(results_dir):
+            print(f"No results directory found for {dataset} and {model_id}. Skipping.")
+            print(f" Location", results_dir)
             continue
 
-        df = retrieve_db_results(db_path, verbose=args.verbose)
+        df = retrieve_model_dataset_results(results_dir, verbose=args.verbose)
         if df is None:
-            print(f"Error loading database for {dataset} and {model_id}. Skipping.")
+            print(f"Error loading the results for {dataset} and {model_id}. Skipping.")
             continue
 
         # Filter by hyperparams
@@ -209,7 +194,7 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
             del out_df[c]
 
     # Post process
-    if len(out_df)>0:
+    if len(out_df) > 0:
         out_df["model_ids"] = out_df["model_ids"].apply(lambda x: json.loads(x))
     return out_df
 
