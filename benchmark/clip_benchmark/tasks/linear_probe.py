@@ -1,11 +1,46 @@
 import os
-import time
+from enum import Enum
 from typing import Optional, Union, Tuple
 
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+
+
+class Regularization(Enum):
+    L1 = 'L1'
+    L2 = 'L2'
+    weight_decay = 'weight_decay'
+
+
+class Regularizer:
+    def __init__(self, reg_type: str, reg_lambda: float):
+        try:
+            self.reg_type = Regularization(reg_type)
+        except ValueError as e:
+            raise ValueError(f"Regularization type {reg_type} not supported. Choose from {list(Regularization)}") from e
+        self.reg_lambda = reg_lambda
+        self.reg_func = self._get_regularizer(self.reg_type)
+
+    @staticmethod
+    def _get_regularizer(reg_type: Regularization):
+        if reg_type == Regularization.L1:
+            return lambda x: torch.sum(torch.abs(x))
+        elif reg_type == Regularization.L2:
+            return lambda x: torch.sum(x ** 2)
+        elif reg_type == Regularization.weight_decay:
+            return lambda x: 0.0
+
+    def reg_loss(self, model):
+        reg_loss = 0.0
+        for name, param in model.named_parameters():
+            if 'bias' not in name:
+                reg_loss += self.reg_func(param)
+        return self.reg_lambda * reg_loss
+
+    def get_lambda(self):
+        return self.reg_lambda if self.reg_type == Regularization.weight_decay else 0.0
 
 
 class LinearProbe:
@@ -20,10 +55,7 @@ class LinearProbe:
             regularization: str = "weight_decay",
             verbose: bool = False
     ):
-        self.reg_lambda = reg_lambda
-        self.regularization = regularization
-        if self.regularization not in ["L1", "weight_decay"]:
-            raise ValueError("Invalid regularization type. Choose from 'L1' or 'weight_decay'")
+        self.reg = Regularizer(regularization, reg_lambda)
         self.lr = lr
         self.epochs = epochs
         self.device = device
@@ -77,7 +109,7 @@ class LinearProbe:
         optimizer = torch.optim.AdamW(
             self.model.parameters(),
             lr=self.lr,
-            weight_decay=self.reg_lambda if self.regularization == "weight_decay" else 0.0,
+            weight_decay=self.reg.get_lambda(),
         )
         criterion = torch.nn.CrossEntropyLoss()
 
@@ -85,26 +117,20 @@ class LinearProbe:
         scheduler = self.cosine_lr(optimizer, self.lr, 0., self.epochs * len_loader)
 
         for epoch in range(self.epochs):
-            end = time.time()
             for i, (x, y) in enumerate(dataloader):
                 x, y = x.to(self.device), y.to(self.device)
                 step = i + epoch * len_loader
-                data_time = time.time() - end
                 scheduler(step)
 
                 optimizer.zero_grad()
 
                 pred = self.model(x)
                 loss = criterion(pred, y)
-                if self.regularization == "L1":
-                    l1_norm = sum(p.abs().mean() for p in self.model.parameters())
-                    loss = loss + self.reg_lambda * l1_norm
+                loss += self.reg.reg_loss(self.model)
 
                 loss.backward()
                 optimizer.step()
 
-                batch_time = time.time() - end
-                end = time.time()
             if self.verbose:
                 print(
                     f"Train Epoch: {epoch} \t"
