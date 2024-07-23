@@ -194,7 +194,8 @@ def get_combination(
         fewshot_epochs: List[int],
         seeds: List[int],
         regularization: List[str],
-) -> Tuple[Tuple[int, int, int, str], int]:
+        get_all:bool = False,
+) -> Tuple[Tuple[int, int, int, str], Optional[int]]:
     combs = []
     combs.extend(
         list(
@@ -206,8 +207,11 @@ def get_combination(
             )
         )
     )
-    comb_idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
-    return combs[comb_idx], comb_idx
+    if get_all:
+        return combs, None
+    else:
+        comb_idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
+        return combs[comb_idx], comb_idx
 
 
 def get_list_of_models(base: argparse.Namespace) -> List[Tuple[str, str, dict, str, str, str]]:

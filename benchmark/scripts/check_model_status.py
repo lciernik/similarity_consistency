@@ -4,12 +4,14 @@ import os
 from itertools import product
 
 from clip_benchmark.utils.path_maker import PathMaker
+from clip_benchmark.utils.utils import get_combination
 from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
 parser.add_argument('--dataset', type=str, default='wds/imagenet1k')
-parser.add_argument('--generate_json', type=str, default='', choices=['', 'features', 'probe', 'predictions'])
+parser.add_argument('--generate_json', type=str, default=[], nargs='+', choices=['', 'features', 'probe', 'predictions'])
+parser.add_argument('--quiet', dest='verbose', action="store_true", help="suppress verbose messages")
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
@@ -22,24 +24,15 @@ OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 
 if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
-    hyper_params, num_jobs = get_hyperparams(num_seeds=5, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
     args.task = "linear_probe"
-    combs = []
-    combs.extend(
-        list(
-            product(
-                hyper_params["fewshot_ks"],
-                hyper_params["fewshot_lrs"],
-                hyper_params["fewshot_epochs"],
-                hyper_params["seeds"]
-            )
-        )
-    )
+    combs, _ = get_combination(hyper_params, get_all=True)
 
     datasets = parse_datasets(args.dataset)
 
     for dataset in datasets:
-        print(f"\n\nChecking features, models and prediction for {dataset=}")
+        if args.verbose:
+            print(f"\n\nChecking features, models and prediction for {dataset=}")
         not_finished_features = {}
         not_finished_probe = {}
         not_finished_pred = {}
@@ -47,7 +40,7 @@ if __name__ == "__main__":
 
         for i, (key, _) in enumerate(models.items()):
             # Using Pathmaker:
-            for fewshot_k, fewshot_lr, fewshot_epochs, seed in combs:
+            for fewshot_k, fewshot_epochs, seed, regularization in combs:
               
                 # Prepare args
                 args.mode = "single_model"
@@ -60,9 +53,9 @@ if __name__ == "__main__":
                 args.batch_size = 1024
                 args.verbose = False
                 args.fewshot_k = int(fewshot_k)
-                args.fewshot_lr = fewshot_lr
                 args.fewshot_epochs = fewshot_epochs
                 args.seed = seed
+                args.regularization = regularization
 
                 pm = PathMaker(args, pp_dataset)
 
@@ -86,22 +79,24 @@ if __name__ == "__main__":
                 pred_path = pm._get_results_dirs()
                 if not os.path.exists(f"{pred_path}/predictions.pkl"):
                     not_finished_pred[key] = pred_path
+        
+        if args.verbose:
+            print("\nModels without features:")
+            print("\n".join(not_finished_features.keys()))
 
-        print("\nModels without features:")
-        print("\n".join(not_finished_features.keys()))
+            print("\nModels without probe:")
+            print("\n".join(not_finished_probe.keys()))
 
-        print("\nModels without probe:")
-        print("\n".join(not_finished_probe.keys()))
+            print("\nModels without predictions:")
+            print("\n".join(not_finished_pred.keys()))
 
-        print("\nModels without predictions:")
-        print("\n".join(not_finished_pred.keys()))
-
-        if args.generate_json == "features" and len(not_finished_features.keys()):
-            with open(f"not_finished_features_{pp_dataset}.json", "w") as f:
-                json.dump({k: models[k] for k in not_finished_features.keys()}, f)
-        elif args.generate_json == "probe" and len(not_finished_probe.keys()):
-            with open(f"not_finished_probe_{pp_dataset}.json", "w") as f:
-                json.dump({k: models[k] for k in not_finished_probe.keys()}, f)
-        elif args.generate_json == "predictions" and len(not_finished_pred.keys()):
-            with open(f"not_finished_pred_{pp_dataset}.json", "w") as f:
-                json.dump({k: models[k] for k in not_finished_pred.keys()}, f)
+        if args.generate_json: 
+            if "features" in args.generate_json and len(not_finished_features.keys()) > 0 :
+                with open(f"models_configs/not_finished_features_{pp_dataset}.json", "w") as f:
+                    json.dump({k: models[k] for k in not_finished_features.keys()}, f, indent=4)
+            if "probe" in args.generate_json and len(not_finished_probe.keys())>0 :
+                with open(f"models_configs/not_finished_probe_{pp_dataset}.json", "w") as f:
+                    json.dump({k: models[k] for k in not_finished_probe.keys()}, f, indent=4)
+            if "predictions" in args.generate_json and len(not_finished_pred.keys())>0:
+                with open(f"models_configs/not_finished_pred_{pp_dataset}.json", "w") as f:
+                    json.dump({k: models[k] for k in not_finished_pred.keys()}, f, indent=4)

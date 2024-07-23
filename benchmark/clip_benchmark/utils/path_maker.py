@@ -31,7 +31,6 @@ class PathMaker:
         self.hyperparams_slug = self._get_hyperparams_name(args)
         self.model_slug = self._create_model_slug()
 
-        self.skip_existing = args.skip_existing
         self.verbose = args.verbose
 
     @staticmethod
