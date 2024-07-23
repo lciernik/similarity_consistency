@@ -26,7 +26,7 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
     hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
     args.task = "linear_probe"
-    combs = get_combination(hyper_params, get_all=True)
+    combs, _ = get_combination(hyper_params, get_all=True)
 
     datasets = parse_datasets(args.dataset)
 
