@@ -195,7 +195,7 @@ def get_combination(
         seeds: List[int],
         regularization: List[str],
         get_all:bool = False,
-) -> Tuple[Tuple[int, int, int, str], int]:
+) -> Tuple[Tuple[int, int, int, str], Optional[int]]:
     combs = []
     combs.extend(
         list(
@@ -208,7 +208,7 @@ def get_combination(
         )
     )
     if get_all:
-        return combs
+        return combs, None
     else:
         comb_idx = int(os.environ["SLURM_ARRAY_TASK_ID"])
         return combs[comb_idx], comb_idx
