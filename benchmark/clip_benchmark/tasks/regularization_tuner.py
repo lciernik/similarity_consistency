@@ -56,8 +56,8 @@ class RegularizationTuner:
             self,
             feature_train_loader: DataLoader,
             feature_val_loader: DataLoader,
-            min_exp:int = -6,
-            max_exp:int = 1,
+            min_exp: int = -6,
+            max_exp: int = 1,
     ) -> Tuple[float, float]:
         # perform openAI-like hyperparameter sweep
         # https://arxiv.org/pdf/2103.00020.pdf A.3
@@ -67,7 +67,8 @@ class RegularizationTuner:
 
         num_init = max_exp - min_exp + 1
         lambda_list_init = np.logspace(min_exp, max_exp, num=num_init).tolist()
-        lambda_list = np.logspace(min_exp, max_exp, num=(num_init + (num_init-1)*8)).tolist() # Put 8 values betwenn each lambda_list_init value
+        # Put 8 values between each lambda_list_init value
+        lambda_list = np.logspace(min_exp, max_exp, num=(num_init + (num_init - 1) * 8)).tolist()
         lambda_init_idx = [lambda_list.index(val) for val in lambda_list_init]
 
         peak_idx, acc1 = self.find_peak(lambda_list, lambda_init_idx, feature_train_loader, feature_val_loader)
@@ -75,8 +76,9 @@ class RegularizationTuner:
         step_span = 4
         while step_span > 0:
             left, right = max(peak_idx - step_span, 0), min(peak_idx + step_span, len(lambda_list) - 1)
-            idxs_to_test = [idx for idx in [left, right] if idx!=peak_idx]
-            if len(idxs_to_test)==0:
+            # avoid testing the peak_idx
+            idxs_to_test = [idx for idx in [left, right] if idx != peak_idx]
+            if len(idxs_to_test) == 0:
                 break
             new_peak_idx, new_acc1 = self.find_peak(lambda_list, idxs_to_test, feature_train_loader, feature_val_loader)
             if new_acc1 > acc1:
