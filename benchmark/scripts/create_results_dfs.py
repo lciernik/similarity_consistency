@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from clip_benchmark.utils.path_maker import PathMaker
-from clip_benchmark.utils.utils import prepare_ds_name, retrieve_model_dataset_results, get_combination
+from clip_benchmark.utils.utils import prepare_ds_name, retrieve_model_dataset_results
 from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
