@@ -33,10 +33,9 @@ class Regularizer:
             return lambda x: 0.0
 
     def reg_loss(self, model):
-        reg_loss = 0.0
-        for name, param in model.named_parameters():
-            if 'bias' not in name:
-                reg_loss += self.reg_func(param)
+        if self.reg_type == Regularization.weight_decay:
+            return 0
+        reg_loss = sum([self.reg_func(param) for name, param in model.named_parameters() if 'bias' not in name])
         return self.reg_lambda * reg_loss
 
     def get_lambda(self):
