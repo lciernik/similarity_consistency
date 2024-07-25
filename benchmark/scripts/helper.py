@@ -1,7 +1,8 @@
-import os
 import json
-from itertools import product
+import os
+
 import numpy as np
+
 
 def load_models(file_path):
     with open(file_path, "r") as file:
@@ -30,11 +31,11 @@ def prepare_for_combined_usage(models):
 def get_hyperparams(num_seeds=10, size="small"):
     if size == "small":
         hyper_params = dict(
-            fewshot_lrs=['1e-1', '1e-2'],
+            fewshot_lrs=['1e-2', '1e-3'],
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
             reg_lambda='0',
-            regularization=["weight_decay"],
+            regularization=["weight_decay", "L1", "L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     elif size == "imagenet1k":
@@ -43,7 +44,7 @@ def get_hyperparams(num_seeds=10, size="small"):
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
             reg_lambda='1e-2',
-            regularization=["weight_decay", "L1"],
+            regularization=["weight_decay", "L1", "L2"],
             seeds=[str(num) for num in range(num_seeds)],
         )
     else:

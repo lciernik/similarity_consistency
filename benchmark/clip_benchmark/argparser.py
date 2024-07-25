@@ -3,6 +3,7 @@ import json
 import os
 from typing import Tuple, List
 
+from clip_benchmark.tasks.linear_probe import Regularization
 from clip_benchmark.utils.utils import as_list
 
 
@@ -67,8 +68,8 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Learning rate for training the few-shot learning model. If val_proportion > 0, the best learning rate "
             "will be found from the list provided. If val_proportion == 0, the list should contain exactly one value, "
             "which will be used for training.")
-    aa('--regularization', default=["weight_decay"], type=str, nargs='+',
-       help="Type of regularization applied during training.", choices=["weight_decay", "L1"])
+    aa('--regularization', default=['weight_decay'], type=str, nargs='+',
+       help="Type of regularization applied during training.", choices=[reg.value for reg in Regularization])
     aa('--reg_lambda', default=0.2, type=float,
        help="Regularization parameter (lambda, weight decay value) for training the model. "
             "This parameter is used only when val_proportion==0. If val_proportion>0, the optimal value will be "
