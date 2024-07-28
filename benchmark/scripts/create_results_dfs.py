@@ -7,13 +7,12 @@ import pandas as pd
 
 from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import prepare_ds_name, retrieve_model_dataset_results
-from helper import load_models, get_hyperparams
+from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, nargs="+",
-                    default=["wds_imagenet-a", "wds_imagenet-r", "wds_imagenet_sketch", "wds_imagenetv2",
-                             'wds_imagenet1k'])
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 parser.add_argument('--mode', type=str,
                     choices=["single_model", "ensemble", "combined_models"],
                     default='single_model')
@@ -37,11 +36,11 @@ MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 
 def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     hyper_params, _ = get_hyperparams(num_seeds=1, size=size)
-    hyper_params["fewshot_lr"] = hyper_params.pop("fewshot_lrs")
+    del hyper_params["fewshot_lrs"]
+    del hyper_params["reg_lambda"]
     hyper_params["fewshot_k"] = hyper_params.pop("fewshot_ks")
-    del hyper_params["seeds"]
     hyper_params["batch_size"] = [batch_size]
-
+    hyper_params["seed"] = hyper_params.pop("seeds")
     for k, v in hyper_params.items():
         try:
             hyper_params[k] = [float(x) for x in v]
@@ -51,12 +50,15 @@ def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     return hyper_params
 
 
-def save_dataframe(out_df: pd.DataFrame, dataset: str, mode: str, hyperparams: str, verbose: bool = False):
+def save_dataframe(out_df: pd.DataFrame, dataset: str, mode: str, hyperparams: str, feature_combiner:str = 'concat', verbose: bool = False):
+    pp_ds = prepare_ds_name(dataset)
     if out_df.empty:
-        print(f"Empty dataframe for {dataset}. Skipping.")
+        print(f"Empty dataframe for {pp_ds}. Skipping.")
     else:
-        out_path = os.path.join(OUTPUT_ROOT, dataset, mode)
-        file_path = os.path.join(out_path, f"results_{hyperparams}.pkl")
+        if mode == 'combined_models':
+            mode += f"_{feature_combiner}"
+        out_path = os.path.join(OUTPUT_ROOT, pp_ds, mode)
+        file_path = os.path.join(out_path, f"results_hp_size_{hyperparams}.pkl")
         os.makedirs(out_path, exist_ok=True)
         if verbose:
             print(f"\nSaving {len(out_df)} rows to", file_path, "\n")
@@ -142,7 +144,7 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
     for root, dirs, files in os.walk(sampling_root):
         for file in files:
             if file.endswith(".json"):
-                if "test_files" in root:
+                if "test_files" in root or 'sampling_including_bad_models' in root:
                     continue
                 sampling_dict = resolve_directory_name(root)
                 sampling_dict.update(resolve_file_name(file))
@@ -161,7 +163,7 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
 def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, args) -> pd.DataFrame:
     dataset = prepare_ds_name(dataset)
     out_df = pd.DataFrame()
-
+    
     for model_id in models:
         args.model_key = model_id
         pm = PathMaker(args, dataset, auto_create_dirs=False)
@@ -172,7 +174,12 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
             print(f" Location", results_dir)
             continue
 
-        df = retrieve_model_dataset_results(results_dir, verbose=args.verbose)
+        try:
+            df = retrieve_model_dataset_results(results_dir, verbose=args.verbose)
+        except (pd.errors.DatabaseError, FileNotFoundError) as e:
+            print(e)
+            df = None 
+
         if df is None:
             print(f"Error loading the results for {dataset} and {model_id}. Skipping.")
             continue
@@ -195,7 +202,8 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
 
     # Post process
     if len(out_df) > 0:
-        out_df["model_ids"] = out_df["model_ids"].apply(lambda x: json.loads(x))
+        out_df["model_ids"] = out_df["model_ids"].apply(lambda x: tuple(json.loads(x)))
+    out_df = out_df.reset_index(drop=True)
     return out_df
 
 
@@ -205,17 +213,19 @@ if __name__ == "__main__":
     args.model_root = MODELS_ROOT
     args.output_root = RESULTS_ROOT
     # args.feature_combiner = None
-    args.seed = 0
     args.task = "linear_probe"
     hyper_params = get_processed_hyperparams(args.hyperparams, args.batch_size)
     # We only need hyperparams in args to instantiate the PathMaker. We pick "real" hyperparams to avoid creating new folders.
     args.fewshot_k = hyper_params["fewshot_k"][0]
-    args.fewshot_lr = hyper_params["fewshot_lr"][0]
     args.fewshot_epochs = hyper_params["fewshot_epochs"][0]
+    args.regularization = hyper_params["regularization"][0]
+    args.seed=0
+
+    datasets = parse_datasets(args.datasets)
 
     if args.mode == "single_model":
         models, _ = load_models(args.models_config)
-        for dataset in args.datasets:
+        for dataset in datasets:
             out_df = build_dataframe_for_dataset(dataset, models.keys(), hyper_params, args)
             del out_df["combiner"]
             del out_df["model"]
@@ -223,21 +233,20 @@ if __name__ == "__main__":
 
     elif args.mode in ("ensemble", "combined_models"):
         sampling_info = load_sampling_info(SAMPLING_ROOT)
-        for dataset in args.datasets:
+        for dataset in datasets:
             out_dfs = []
             for one_sample_info in sampling_info:
                 models = [one_sample_info["models"]]
 
                 df = build_dataframe_for_dataset(dataset, models, hyper_params, args)
-
                 info_df = pd.DataFrame([one_sample_info] * len(df))
                 df = pd.concat([df, info_df], axis=1)
-
                 out_dfs.append(df)
+            
             out_df = pd.concat(out_dfs, ignore_index=True)
             if not out_df.empty:
                 del out_df["model"]
-            save_dataframe(out_df, dataset, args.mode, args.hyperparams, verbose=args.verbose)
+            save_dataframe(out_df, dataset, args.mode, args.hyperparams, feature_combiner=args.feature_combiner, verbose=args.verbose)
 
     if args.verbose:
         print("Done.")

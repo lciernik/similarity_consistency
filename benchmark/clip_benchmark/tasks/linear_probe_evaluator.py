@@ -21,7 +21,8 @@ class BaseEvaluator:
             self, batch_size: int, num_workers: int, lrs: List[float], epochs: int, seed: int, device: str,
             fewshot_k: int, model_dirs: Optional[List[str]], predictions_dir: Optional[str],
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay",
+            force_train: bool = False
     ) -> None:
         super().__init__()
 
@@ -46,6 +47,7 @@ class BaseEvaluator:
         self.lrs = lrs
         self.reg_lambda = reg_lambda
         self.regularization = regularization
+        self.force_train = force_train
 
         self.lr = None
         self.hp_tuner = HyperparameterTuner(
@@ -187,10 +189,11 @@ class SingleModelEvaluator(BaseEvaluator):
             train_dataloader: Optional[torch.utils.data.DataLoader] = None,
             eval_dataloader: Optional[torch.utils.data.DataLoader] = None,
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay",
+            force_train: bool = False
     ) -> None:
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization, force_train)
 
         self.feature_dir = self.check_single_instance(feature_dirs, "feature directory")
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -223,7 +226,8 @@ class SingleModelEvaluator(BaseEvaluator):
                 print(f"Features are already available in {self.feature_dir}.")
 
     def evaluate(self) -> dict:
-        probe_exists = os.path.exists(self.linear_probe_fn)
+        probe_exists = os.path.exists(self.linear_probe_fn) and not self.force_train
+        
         if self.verbose:
             if probe_exists:
                 print("Found probe at ", self.linear_probe_fn)
@@ -244,7 +248,7 @@ class SingleModelEvaluator(BaseEvaluator):
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              filename=self.linear_probe_fn,
+                              filename= None if self.force_train else self.linear_probe_fn ,
                               evaluate_train=not probe_exists)
 
 
@@ -255,11 +259,12 @@ class CombinedModelEvaluator(BaseEvaluator):
             predictions_dir: Optional[str],
             feature_combiner_cls: Union[ConcatFeatureCombiner, PCAConcatFeatureCombiner],
             normalize: bool = True, verbose: bool = False, val_proportion: float = 0,
-            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay"
+            logit_filter: Optional[torch.Tensor] = None, reg_lambda: float = 0.0, regularization: str = "weight_decay",
+            force_train: bool = False
     ) -> None:
 
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization, force_train)
         self.feature_dirs = feature_dirs
         self.feature_combiner_cls = feature_combiner_cls
         self.linear_probe_fn = self.check_single_instance(self.linear_probe_fns, "linear probe filename")
@@ -275,7 +280,7 @@ class CombinedModelEvaluator(BaseEvaluator):
             raise ValueError(f"Features are missing in {not_available_features}, please run single evaluator first!")
 
     def evaluate(self) -> dict:
-        probe_exists = os.path.exists(self.linear_probe_fn)
+        probe_exists = os.path.exists(self.linear_probe_fn) and not self.force_train
 
         self.require_feature_existence(check_train=not probe_exists)
 
@@ -294,7 +299,7 @@ class CombinedModelEvaluator(BaseEvaluator):
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              filename=self.linear_probe_fn,
+                              filename= None if self.force_train else self.linear_probe_fn ,
                               evaluate_train=not probe_exists)
 
 
@@ -304,10 +309,10 @@ class EnsembleModelEvaluator(BaseEvaluator):
             fewshot_k: int, model_ids: List[str], feature_dirs: Optional[List[str]], model_dirs: Optional[List[str]],
             predictions_dir: Optional[str], single_prediction_dirs: Optional[List[str]], normalize: bool = True,
             verbose: bool = False, val_proportion: float = 0, logit_filter: Optional[torch.Tensor] = None,
-            reg_lambda: float = 0.0, regularization: str = "weight_decay"
+            reg_lambda: float = 0.0, regularization: str = "weight_decay", force_train: bool = False
     ) -> None:
         super().__init__(batch_size, num_workers, lrs, epochs, seed, device, fewshot_k, model_dirs, predictions_dir,
-                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization)
+                         normalize, verbose, val_proportion, logit_filter, reg_lambda, regularization, False)
         self.model_ids = model_ids
         self.feature_dirs = feature_dirs
         self.single_prediction_dirs = single_prediction_dirs
