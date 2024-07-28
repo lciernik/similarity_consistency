@@ -8,9 +8,12 @@ import pandas as pd
 from clip_benchmark.utils.path_maker import PathMaker
 from clip_benchmark.utils.utils import prepare_ds_name, retrieve_model_dataset_results
 from helper import load_models, get_hyperparams, parse_datasets
+from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
+parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 parser.add_argument('--mode', type=str,
@@ -38,8 +41,11 @@ def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
     hyper_params, _ = get_hyperparams(num_seeds=1, size=size)
     del hyper_params["fewshot_lrs"]
     del hyper_params["reg_lambda"]
+    del hyper_params["fewshot_lrs"]
+    del hyper_params["reg_lambda"]
     hyper_params["fewshot_k"] = hyper_params.pop("fewshot_ks")
     hyper_params["batch_size"] = [batch_size]
+    hyper_params["seed"] = hyper_params.pop("seeds")
     hyper_params["seed"] = hyper_params.pop("seeds")
     for k, v in hyper_params.items():
         try:
@@ -145,6 +151,7 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
         for file in files:
             if file.endswith(".json"):
                 if "test_files" in root or 'sampling_including_bad_models' in root:
+                if "test_files" in root or 'sampling_including_bad_models' in root:
                     continue
                 sampling_dict = resolve_directory_name(root)
                 sampling_dict.update(resolve_file_name(file))
@@ -163,7 +170,7 @@ def load_sampling_info(sampling_root: str) -> List[Dict]:
 def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, args) -> pd.DataFrame:
     dataset = prepare_ds_name(dataset)
     out_df = pd.DataFrame()
-    
+        
     for model_id in models:
         args.model_key = model_id
         pm = PathMaker(args, dataset, auto_create_dirs=False)
@@ -173,6 +180,12 @@ def build_dataframe_for_dataset(dataset: str, models: List, hyper_params: Dict, 
             print(f"No results directory found for {dataset} and {model_id}. Skipping.")
             print(f" Location", results_dir)
             continue
+
+        try:
+            df = retrieve_model_dataset_results(results_dir, verbose=args.verbose)
+        except (pd.errors.DatabaseError, FileNotFoundError) as e:
+            print(e)
+            df = None 
 
         try:
             df = retrieve_model_dataset_results(results_dir, verbose=args.verbose)
@@ -222,9 +235,14 @@ if __name__ == "__main__":
     args.seed=0
 
     datasets = parse_datasets(args.datasets)
+    args.regularization = hyper_params["regularization"][0]
+    args.seed=0
+
+    datasets = parse_datasets(args.datasets)
 
     if args.mode == "single_model":
         models, _ = load_models(args.models_config)
+        for dataset in datasets:
         for dataset in datasets:
             out_df = build_dataframe_for_dataset(dataset, models.keys(), hyper_params, args)
             del out_df["combiner"]
@@ -233,6 +251,7 @@ if __name__ == "__main__":
 
     elif args.mode in ("ensemble", "combined_models"):
         sampling_info = load_sampling_info(SAMPLING_ROOT)
+        for dataset in datasets:
         for dataset in datasets:
             out_dfs = []
             for one_sample_info in sampling_info:

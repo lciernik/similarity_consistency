@@ -1,7 +1,8 @@
-import os
 import json
-from itertools import product
+import os
+
 import numpy as np
+
 
 def load_models(file_path):
     with open(file_path, "r") as file:
