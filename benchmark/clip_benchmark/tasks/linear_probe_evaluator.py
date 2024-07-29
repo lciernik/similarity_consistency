@@ -161,7 +161,7 @@ class BaseEvaluator:
             "learning_rate": self.lr,
         }
 
-        linear_probe.train(train_loader, filename=filename)
+        linear_probe.train(train_loader, filename=filename, force_train=self.force_train)
 
         if evaluate_train:
             train_logits, train_targets = linear_probe.infer(train_loader)
@@ -248,7 +248,7 @@ class SingleModelEvaluator(BaseEvaluator):
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              filename= None if self.force_train else self.linear_probe_fn ,
+                              filename=self.linear_probe_fn ,
                               evaluate_train=not probe_exists)
 
 
@@ -299,7 +299,7 @@ class CombinedModelEvaluator(BaseEvaluator):
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              filename= None if self.force_train else self.linear_probe_fn ,
+                              filename=self.linear_probe_fn,
                               evaluate_train=not probe_exists)
 
 
