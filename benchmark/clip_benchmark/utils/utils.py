@@ -102,6 +102,11 @@ def map_to_probe_dataset(dataset: str, verbose: bool = False) -> str:
     return dataset
 
 
+def check_force_train(dataset: str, force_train:bool, verbose: bool = False) -> bool:
+    if dataset in probe_dataset_map and force_train:
+        return False
+    return force_train
+
 def prepare_ds_name(dataset: str) -> str:
     # if dataset.startswith("wds/"):
     #     dataset = dataset.replace("wds/", "", 1)

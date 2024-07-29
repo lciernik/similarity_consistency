@@ -21,7 +21,7 @@ from clip_benchmark.utils.utils import (as_list,
                                         prepare_ds_name,
                                         world_info_from_env,
                                         set_all_random_seeds, prepare_device, get_combination, get_list_of_models,
-                                        save_results, get_base_evaluator_args, check_existing_results)
+                                        save_results, get_base_evaluator_args, check_existing_results, check_force_train)
 
 
 def main():
@@ -167,6 +167,7 @@ def run(args):
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
     probe_dataset_name = map_to_probe_dataset(dataset_name, verbose=args.verbose)
+    args.force_train = check_force_train(dataset_name,  args.force_train, verbose=args.verbose)
 
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
