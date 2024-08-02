@@ -37,15 +37,12 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 
 
-def get_processed_hyperparams(size: str, batch_size: int) -> Dict[str, List]:
-    hyper_params, _ = get_hyperparams(num_seeds=1, size=size)
-    del hyper_params["fewshot_lrs"]
-    del hyper_params["reg_lambda"]
+def get_processed_hyperparams(size: str, batch_size: int, num_seeds:int = 3) -> Dict[str, List]:
+    hyper_params, _ = get_hyperparams(num_seeds=num_seeds, size=size)
     del hyper_params["fewshot_lrs"]
     del hyper_params["reg_lambda"]
     hyper_params["fewshot_k"] = hyper_params.pop("fewshot_ks")
     hyper_params["batch_size"] = [batch_size]
-    hyper_params["seed"] = hyper_params.pop("seeds")
     hyper_params["seed"] = hyper_params.pop("seeds")
     for k, v in hyper_params.items():
         try:
@@ -251,7 +248,6 @@ if __name__ == "__main__":
 
     elif args.mode in ("ensemble", "combined_models"):
         sampling_info = load_sampling_info(SAMPLING_ROOT)
-        for dataset in datasets:
         for dataset in datasets:
             out_dfs = []
             for one_sample_info in sampling_info:

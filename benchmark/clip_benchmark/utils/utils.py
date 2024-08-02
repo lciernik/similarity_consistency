@@ -319,7 +319,7 @@ def get_base_evaluator_args(
     return base_kwargs
 
 
-def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False) -> pd.DataFrame:
+def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False, allow_db_results:bool = True) -> pd.DataFrame:
     path = Path(base_path_exp)
     dfs = []
     for fn in path.rglob("**/results.json"):
@@ -327,23 +327,26 @@ def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] =
         dfs.append(df)
 
     if len(dfs) == 0:
-        # backward compatibility
-        bak_fn = path / 'results.db'
-        if bak_fn.is_file():
-            print(f'Did not find any results.json files. Trying to load data from {bak_fn}')
-            try:
-                conn = sqlite3.connect(bak_fn)
-                df = pd.read_sql('SELECT * FROM "results"', conn)
-                conn.close()
-            except pd.errors.DatabaseError as e:
-                print(f"Tried to extract data from {path=}, but got Error: {e}")
-                raise e
+        if allow_db_results:
+            # backward compatibility
+            bak_fn = path / 'results.db'
+            if bak_fn.is_file():
+                print(f'Did not find any results.json files. Trying to load data from {bak_fn}')
+                try:
+                    conn = sqlite3.connect(bak_fn)
+                    df = pd.read_sql('SELECT * FROM "results"', conn)
+                    conn.close()
+                except pd.errors.DatabaseError as e:
+                    print(f"Tried to extract data from {path=}, but got Error: {e}")
+                    raise e
 
-            for col in df.columns:
-                if df[col].dtype == 'object':
-                    df[col] = df[col].apply(json.loads)
+                for col in df.columns:
+                    if df[col].dtype == 'object':
+                        df[col] = df[col].apply(json.loads)
+            else:
+                raise FileNotFoundError(f"No results found for in {base_path_exp=} (neither .json files not results.db)")
         else:
-            raise FileNotFoundError(f"No results found for in {base_path_exp=}")
+            raise FileNotFoundError(f"No results found for in {base_path_exp=} (no .json files)")
     else:
         df = pd.concat(dfs).reset_index(drop=True)
 
