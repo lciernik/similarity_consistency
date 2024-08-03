@@ -1,14 +1,15 @@
 import os
 import json
 from slurm import run_job
-from helper import load_models, prepare_for_combined_usage, count_nr_datasets
+from helper import load_models, prepare_for_combined_usage, count_nr_datasets, parse_datasets
 
 # MODELS_CONFIG = "./models_config.json"
 MODELS_CONFIG = "./filtered_models_config.json"
 
-BASE_PROJECT_PATH = "/home/space/diverse_priors"
+# DATASETS = ["imagenet-subset-1k", "imagenet-subset-5k", "imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k", "imagenet-subset-40k"]
+DATASETS = " ".join(parse_datasets("./webdatasets_wo_imagenet.txt"))
 
-DATASETS = ["imagenet-subset-1k", "imagenet-subset-5k", "imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k", "imagenet-subset-40k"]
+BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
@@ -98,7 +99,8 @@ if __name__ == "__main__":
                                      --rsa_method {exp_dict['rsa_method']} \
                                      --corr_method {exp_dict['corr_method']} \
                                      --sigma {exp_dict['sigma']} \
-                                     --max_workers {max_workers}
+                                     --max_workers {max_workers} \
+                                     --use_ds_subset
                         """
         partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150
