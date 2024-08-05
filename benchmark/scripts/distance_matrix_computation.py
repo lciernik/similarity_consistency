@@ -1,14 +1,18 @@
 import json
 import os
-
+import argparse
 from helper import load_models, parse_datasets
 from slurm import run_job
 
-MODELS_CONFIG = "./filtered_models_config.json"
+parser = argparse.ArgumentParser()
+parser.add_argument('--models_config', type=str, default='./models_config.json')
+parser.add_argument('--datasets', type=str, nargs='+', default='./webdatasets_wo_imagenet.txt',
+                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
+args = parser.parse_args()
 
-# DATASETS = parse_datasets("./webdatasets_wo_imagenet.txt")
-# DATASETS = ['wds/vtab/flowers', 'wds/vtab/cifar10']
-DATASETS = ['wds/vtab/cifar10']
+MODELS_CONFIG = args.models_config
+
+DATASETS = parse_datasets(args.datasets)
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -17,8 +21,7 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
-# SIM_METRIC_CONFIG = "./similarity_metric_config.json"
-SIM_METRIC_CONFIG = "./similarity_metric_config_test.json"
+SIM_METRIC_CONFIG = "./similarity_metric_config.json"
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 
