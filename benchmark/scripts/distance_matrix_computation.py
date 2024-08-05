@@ -1,13 +1,14 @@
 import json
 import os
 
-from helper import load_models
+from helper import load_models, parse_datasets
 from slurm import run_job
 
 MODELS_CONFIG = "./filtered_models_config.json"
 
 # DATASETS = parse_datasets("./webdatasets_wo_imagenet.txt")
-DATASETS = ['wds/vtab/flowers', 'wds/vtab/cifar10']
+# DATASETS = ['wds/vtab/flowers', 'wds/vtab/cifar10']
+DATASETS = ['wds/vtab/cifar10']
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')

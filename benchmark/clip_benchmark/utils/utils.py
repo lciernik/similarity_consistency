@@ -23,16 +23,7 @@ def as_list(l):
     return [l] if type(l) != list else l
 
 
-def get_subset_data(data: torch.Tensor, subset_root: str, model_id: str, split: str) -> torch.Tensor:
-    subset_path = os.path.join(subset_root, f'subset_indices_{split}.json')
-    if not os.path.exists(subset_path):
-        warnings.warn(
-            f"Subset indices not found at {subset_path}. "
-            f"Continuing with full set of features ({len(data)=})."
-        )
-        return data
-    with open(subset_path, 'r') as f:
-        subset_indices = json.load(f)
+def get_subset_data(data: torch.Tensor, subset_indices: List[int], model_id: str, split: str) -> torch.Tensor:
     return data[subset_indices]
 
 
@@ -40,7 +31,7 @@ def load_features(
         feature_root: str,
         model_id: Optional[str] = None,
         split: str = 'train',
-        subset_root: Optional[str] = None,
+        subset_indices: Optional[List[int]] = None,
         verbose: bool = False
 ) -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
@@ -49,8 +40,8 @@ def load_features(
     if verbose:
         print(f"Loaded features for {model_id} with shape {features.shape}")
 
-    if subset_root:
-        features = get_subset_data(features, subset_root, model_id, split)
+    if subset_indices:
+        features = get_subset_data(features, subset_indices, model_id, split)
         if verbose:
             print(f"Loaded subset of features for {model_id} with shape {features.shape}")
 
@@ -61,13 +52,13 @@ def load_targets(
         feature_root: str,
         model_id: Optional[str] = None,
         split: str = 'train',
-        subset_root: Optional[str] = None,
+        subset_indices: Optional[List[int]] = None,
         verbose: bool = False
 ) -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     targets = torch.load(os.path.join(model_dir, f'targets_{split}.pt'))
-    if subset_root:
-        targets = get_subset_data(targets, subset_root, model_id, split)
+    if subset_indices:
+        targets = get_subset_data(targets, subset_indices, model_id, split)
         if verbose:
             print(f"Loaded subset of features for {model_id} with shape {targets.shape}")
 

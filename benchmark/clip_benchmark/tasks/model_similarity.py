@@ -14,13 +14,24 @@ class BaseModelSimilarity:
     def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda',
                  max_workers: int = 4) -> None:
         self.feature_root = feature_root
-        self.subset_root = subset_root
         self.split = split
         self.device = device
         self.model_ids = []
         self.max_workers = max_workers
+        self.subset_indices = self._load_subset_indices(subset_root)
         self.name = 'Base'
 
+    def _load_subset_indices(self, subset_root) -> Optional[List[int]]:
+        subset_path = os.path.join(subset_root, f'subset_indices_{self.split}.json')
+        if not os.path.exists(subset_path):
+            warnings.warn(
+                f"Subset indices not found at {subset_path}. Continuing with full datasets."
+            )
+            return None
+        with open(subset_path, 'r') as f:
+            subset_indices = json.load(f)
+        return subset_indices
+            
     def load_model_ids(self, model_ids: List[str]) -> None:
         assert os.path.exists(self.feature_root), "Feature root path non-existent"
         self.model_ids = check_models(self.feature_root, model_ids, self.split)
@@ -80,7 +91,7 @@ class CKAModelSimilarity(BaseModelSimilarity):
         self.sigma = sigma
 
     # def _load_feature(self, model_id:str) -> np.ndarray:
-    #     features = load_features(self.feature_root, model_id, self.split, self.subset_root)
+    #     features = load_features(self.feature_root, model_id, self.split, self.subset_indices)
     #     return features
 
     # def _compute_similarity(self, feat1: np.ndarray, feat2: np.ndarray) -> float:
@@ -93,11 +104,11 @@ class CKAModelSimilarity(BaseModelSimilarity):
     def compute_similarity_matrix(self) -> np.ndarray:
         sim_matrix = self._prepare_sim_matrix()
         for idx1, model1 in tqdm(self.model_ids_with_idx, desc=f"Computing CKA matrix"):
-            features_i = load_features(self.feature_root, model1, self.split, self.subset_root)
+            features_i = load_features(self.feature_root, model1, self.split, self.subset_indices)
             for idx2, model2 in self.model_ids_with_idx:
                 if idx1 >= idx2:
                     continue
-                features_j = load_features(self.feature_root, model2, self.split, self.subset_root)
+                features_j = load_features(self.feature_root, model2, self.split, self.subset_indices)
                 assert features_i.shape[0] == features_j.shape[0], \
                     f"Number of features should be equal for CKA computation. (model1: {model1}, model2: {model2})"
 
@@ -127,7 +138,7 @@ class RSAModelSimilarity(BaseModelSimilarity):
         self.name = 'RSA'
 
     def _load_feature(self, model_id: str) -> np.ndarray:
-        features = load_features(self.feature_root, model_id, self.split, self.subset_root).numpy()
+        features = load_features(self.feature_root, model_id, self.split, self.subset_indices).numpy()
         rdm_features = compute_rdm(features, method=self.rsa_method)
         return rdm_features
 
