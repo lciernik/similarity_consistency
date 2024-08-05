@@ -1,4 +1,6 @@
+import json
 import os
+import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Tuple, List, Optional
 
@@ -31,7 +33,7 @@ class BaseModelSimilarity:
         with open(subset_path, 'r') as f:
             subset_indices = json.load(f)
         return subset_indices
-            
+
     def load_model_ids(self, model_ids: List[str]) -> None:
         assert os.path.exists(self.feature_root), "Feature root path non-existent"
         self.model_ids = check_models(self.feature_root, model_ids, self.split)

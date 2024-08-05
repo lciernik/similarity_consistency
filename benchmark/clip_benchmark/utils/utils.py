@@ -3,7 +3,6 @@ import json
 import os
 import random
 import sqlite3
-import warnings
 from itertools import product
 from pathlib import Path
 from typing import Any
@@ -23,7 +22,7 @@ def as_list(l):
     return [l] if type(l) != list else l
 
 
-def get_subset_data(data: torch.Tensor, subset_indices: List[int], model_id: str, split: str) -> torch.Tensor:
+def get_subset_data(data: torch.Tensor, subset_indices: List[int]) -> torch.Tensor:
     return data[subset_indices]
 
 
@@ -41,7 +40,7 @@ def load_features(
         print(f"Loaded features for {model_id} with shape {features.shape}")
 
     if subset_indices:
-        features = get_subset_data(features, subset_indices, model_id, split)
+        features = get_subset_data(features, subset_indices)
         if verbose:
             print(f"Loaded subset of features for {model_id} with shape {features.shape}")
 
@@ -58,7 +57,7 @@ def load_targets(
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     targets = torch.load(os.path.join(model_dir, f'targets_{split}.pt'))
     if subset_indices:
-        targets = get_subset_data(targets, subset_indices, model_id, split)
+        targets = get_subset_data(targets, subset_indices)
         if verbose:
             print(f"Loaded subset of features for {model_id} with shape {targets.shape}")
 
