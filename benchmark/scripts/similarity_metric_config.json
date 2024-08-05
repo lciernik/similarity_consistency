@@ -1,0 +1,51 @@
+[
+  {
+    "sim_method": "cka",
+    "sim_kernel": "linear",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0
+  },
+  {
+    "sim_method": "cka",
+    "sim_kernel": "rbf",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0.2
+  },
+  {
+    "sim_method": "cka",
+    "sim_kernel": "rbf",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0.4
+  },
+  {
+    "sim_method": "cka",
+    "sim_kernel": "rbf",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0.6
+  },
+  {
+    "sim_method": "cka",
+    "sim_kernel": "rbf",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0.8
+  },
+  {
+    "sim_method": "rsa",
+    "sim_kernel": "linear",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0
+  },
+  {
+    "sim_method": "rsa",
+    "sim_kernel": "linear",
+    "rsa_method": "correlation",
+    "corr_method": "spearman",
+    "sigma": 0
+  }
+]

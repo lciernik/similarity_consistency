@@ -1,72 +1,23 @@
-import os
 import json
-from slurm import run_job
-from helper import load_models, prepare_for_combined_usage, count_nr_datasets, parse_datasets
+import os
 
-# MODELS_CONFIG = "./models_config.json"
+from helper import load_models, parse_datasets
+from slurm import run_job
+
 MODELS_CONFIG = "./filtered_models_config.json"
 
-# DATASETS = ["imagenet-subset-1k", "imagenet-subset-5k", "imagenet-subset-10k", "imagenet-subset-20k", "imagenet-subset-30k", "imagenet-subset-40k"]
-DATASETS = " ".join(parse_datasets("./webdatasets_wo_imagenet.txt"))
+DATASETS = parse_datasets("./webdatasets_wo_imagenet.txt")
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
+SUBSET_ROOT = os.path.join(DATASETS_ROOT, 'subsets')
 FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
-sim_method_config = [
-    {
-        'sim_method' : 'cka',
-        'sim_kernel' : 'linear',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0,
-    },
-    {
-        'sim_method' : 'cka',
-        'sim_kernel' : 'rbf',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0.2,
-    },
-    {
-        'sim_method' : 'cka',
-        'sim_kernel' : 'rbf',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0.4,
-    },
-    {
-        'sim_method' : 'cka',
-        'sim_kernel' : 'rbf',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0.6,
-    },
-    {
-        'sim_method' : 'cka',
-        'sim_kernel' : 'rbf',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0.8,
-    },
-    {
-        'sim_method' : 'rsa',
-        'sim_kernel' : 'linear',
-        'rsa_method' : 'correlation',
-        'corr_method': 'pearson',
-        'sigma': 0,
-    },
-    {
-        'sim_method' : 'rsa',
-        'sim_kernel' : 'linear',
-        'rsa_method' : 'correlation',
-        'corr_method': 'spearman',
-        'sigma': 0,
-    },
-
-]
+SIM_METRIC_CONFIG = "./similarity_metric_config.json"
+with open(SIM_METRIC_CONFIG, "r") as file:
+    sim_method_config = json.load(file)
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
@@ -78,7 +29,7 @@ if __name__ == "__main__":
     num_jobs = len(DATASETS)
 
     datasets = ' '.join(DATASETS)
-    
+
     for exp_dict in sim_method_config:
         print(f"Computing model similarity matrix with config:\n{json.dumps(exp_dict, indent=4)}")
 
@@ -100,7 +51,8 @@ if __name__ == "__main__":
                                      --corr_method {exp_dict['corr_method']} \
                                      --sigma {exp_dict['sigma']} \
                                      --max_workers {max_workers} \
-                                     --use_ds_subset
+                                     --use_ds_subset \
+                                     --subset_root {SUBSET_ROOT}
                         """
         partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150
