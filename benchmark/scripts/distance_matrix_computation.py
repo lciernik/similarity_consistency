@@ -1,7 +1,7 @@
 import json
 import os
 
-from helper import load_models, parse_datasets
+from helper import load_models
 from slurm import run_job
 
 MODELS_CONFIG = "./filtered_models_config.json"

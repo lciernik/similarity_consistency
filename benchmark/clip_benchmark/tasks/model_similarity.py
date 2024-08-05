@@ -69,9 +69,11 @@ class BaseModelSimilarity:
 
 
 class CKAModelSimilarity(BaseModelSimilarity):
-    def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda', kernel: str = 'linear',
-                 backend: str = 'torch', unbiased: bool = True, sigma: Optional[float] = None, max_workers: int = 4) -> None:
-        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device, max_workers=max_workers)
+    def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda',
+                 kernel: str = 'linear', backend: str = 'torch', unbiased: bool = True, sigma: Optional[float] = None,
+                 max_workers: int = 4) -> None:
+        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device,
+                         max_workers=max_workers)
         self.kernel = kernel
         self.backend = backend
         self.unbiased = unbiased
@@ -116,9 +118,10 @@ class CKAModelSimilarity(BaseModelSimilarity):
 
 
 class RSAModelSimilarity(BaseModelSimilarity):
-    def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda', rsa_method: str = 'correlation',
-                 corr_method: str = 'spearman', max_workers: int = 4) -> None:
-        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device, max_workers=max_workers)
+    def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda',
+                 rsa_method: str = 'correlation', corr_method: str = 'spearman', max_workers: int = 4) -> None:
+        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device,
+                         max_workers=max_workers)
         self.rsa_method = rsa_method
         self.corr_method = corr_method
         self.name = 'RSA'
@@ -156,25 +159,25 @@ def compute_sim_matrix(
     if sim_method == 'cka':
         model_similarity = CKAModelSimilarity(
             feature_root=feature_root,
-            subset_root=subset_root, 
-            split=split, 
-            device=device, 
-            kernel=kernel, 
-            backend=backend, 
-            unbiased=unbiased, 
+            subset_root=subset_root,
+            split=split,
+            device=device,
+            kernel=kernel,
+            backend=backend,
+            unbiased=unbiased,
             sigma=sigma,
             max_workers=max_workers
-            )
+        )
     elif sim_method == 'rsa':
         model_similarity = RSAModelSimilarity(
-            feature_root=feature_root, 
-            subset_root=subset_root, 
-            split=split, 
-            device=device, 
-            rsa_method=rsa_method, 
-            corr_method=corr_method, 
+            feature_root=feature_root,
+            subset_root=subset_root,
+            split=split,
+            device=device,
+            rsa_method=rsa_method,
+            corr_method=corr_method,
             max_workers=max_workers
-            )
+        )
     else:
         raise ValueError(f"Unknown similarity method: {sim_method}")
 
