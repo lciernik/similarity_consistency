@@ -5,7 +5,7 @@ from helper import load_models, parse_datasets
 from slurm import run_job
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--models_config', type=str, default='./models_config.json')
+parser.add_argument('--models_config', type=str, default='./filtered_models_config.json')
 parser.add_argument('--datasets', type=str, nargs='+', default='./webdatasets_wo_imagenet.txt',
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 args = parser.parse_args()
