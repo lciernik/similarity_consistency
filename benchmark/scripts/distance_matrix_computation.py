@@ -6,7 +6,8 @@ from slurm import run_job
 
 MODELS_CONFIG = "./filtered_models_config.json"
 
-DATASETS = parse_datasets("./webdatasets_wo_imagenet.txt")
+# DATASETS = parse_datasets("./webdatasets_wo_imagenet.txt")
+DATASETS = ['wds/vtab/flowers', 'wds/vtab/cifar10']
 
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
@@ -15,7 +16,8 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
-SIM_METRIC_CONFIG = "./similarity_metric_config.json"
+# SIM_METRIC_CONFIG = "./similarity_metric_config.json"
+SIM_METRIC_CONFIG = "./similarity_metric_config_test.json"
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 

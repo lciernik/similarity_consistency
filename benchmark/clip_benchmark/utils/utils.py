@@ -24,7 +24,7 @@ def as_list(l):
 
 
 def get_subset_data(data: torch.Tensor, subset_root: str, model_id: str, split: str) -> torch.Tensor:
-    subset_path = os.path.join(subset_root, model_id, f'subset_indices_{split}.json')
+    subset_path = os.path.join(subset_root, f'subset_indices_{split}.json')
     if not os.path.exists(subset_path):
         warnings.warn(
             f"Subset indices not found at {subset_path}. "

@@ -27,7 +27,7 @@ class BaseModelSimilarity:
         self.model_ids_with_idx = [(i, model_id) for i, model_id in enumerate(self.model_ids)]
 
     def _prepare_sim_matrix(self) -> np.ndarray:
-        return np.zeros((len(self.model_ids_with_idx), len(self.model_ids_with_idx)))
+        return np.ones((len(self.model_ids_with_idx), len(self.model_ids_with_idx)))
 
     def _load_feature(self, model_id: str) -> np.ndarray:
         raise NotImplementedError()
@@ -70,9 +70,8 @@ class BaseModelSimilarity:
 
 class CKAModelSimilarity(BaseModelSimilarity):
     def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda', kernel: str = 'linear',
-                 backend: str = 'torch', unbiased: bool = True, sigma: Optional[float] = None,
-                 max_workers: int = 4) -> None:
-        super().__init__(feature_root, subset_root, split, device, max_workers)
+                 backend: str = 'torch', unbiased: bool = True, sigma: Optional[float] = None, max_workers: int = 4) -> None:
+        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device, max_workers=max_workers)
         self.kernel = kernel
         self.backend = backend
         self.unbiased = unbiased
@@ -119,7 +118,7 @@ class CKAModelSimilarity(BaseModelSimilarity):
 class RSAModelSimilarity(BaseModelSimilarity):
     def __init__(self, feature_root: str, subset_root: Optional[str], split: str = 'train', device: str = 'cuda', rsa_method: str = 'correlation',
                  corr_method: str = 'spearman', max_workers: int = 4) -> None:
-        super().__init__(feature_root, subset_root, split, device, max_workers)
+        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device, max_workers=max_workers)
         self.rsa_method = rsa_method
         self.corr_method = corr_method
         self.name = 'RSA'
@@ -142,9 +141,9 @@ class RSAModelSimilarity(BaseModelSimilarity):
 def compute_sim_matrix(
         sim_method: str,
         feature_root: str,
-        subset_root: Optional[str],
         model_ids: List[str],
         split: str,
+        subset_root: Optional[str] = None,
         kernel: str = 'linear',
         rsa_method: str = 'correlation',
         corr_method: str = 'spearman',
@@ -155,10 +154,27 @@ def compute_sim_matrix(
         max_workers: int = 4,
 ) -> Tuple[np.ndarray, List[str], str]:
     if sim_method == 'cka':
-        model_similarity = CKAModelSimilarity(feature_root, split, device, kernel, backend, unbiased, sigma,
-                                              max_workers)
+        model_similarity = CKAModelSimilarity(
+            feature_root=feature_root,
+            subset_root=subset_root, 
+            split=split, 
+            device=device, 
+            kernel=kernel, 
+            backend=backend, 
+            unbiased=unbiased, 
+            sigma=sigma,
+            max_workers=max_workers
+            )
     elif sim_method == 'rsa':
-        model_similarity = RSAModelSimilarity(feature_root, split, device, rsa_method, corr_method, max_workers)
+        model_similarity = RSAModelSimilarity(
+            feature_root=feature_root, 
+            subset_root=subset_root, 
+            split=split, 
+            device=device, 
+            rsa_method=rsa_method, 
+            corr_method=corr_method, 
+            max_workers=max_workers
+            )
     else:
         raise ValueError(f"Unknown similarity method: {sim_method}")
 

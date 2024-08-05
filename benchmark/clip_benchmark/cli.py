@@ -66,9 +66,9 @@ def main_model_sim(base):
     # Compute CKA matrix
     sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
                                                             feature_root=feature_root,
-                                                            subset_root=subset_root,
                                                             model_ids=model_ids,
                                                             split=train_split,
+                                                            subset_root=subset_root,
                                                             kernel=base.sim_kernel,
                                                             rsa_method=base.rsa_method,
                                                             corr_method=base.corr_method,
