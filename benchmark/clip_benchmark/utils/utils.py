@@ -131,15 +131,13 @@ def map_to_probe_dataset(dataset: str, verbose: bool = False) -> str:
     return dataset
 
 
-def check_force_train(dataset: str, force_train: bool, verbose: bool = False) -> bool:
+def check_force_train(dataset: str, force_train: bool) -> bool:
     if dataset in probe_dataset_map and force_train:
         return False
     return force_train
 
 
 def prepare_ds_name(dataset: str) -> str:
-    # if dataset.startswith("wds/"):
-    #     dataset = dataset.replace("wds/", "", 1)
     dataset = dataset.replace("/", "_")
     return dataset
 
@@ -349,8 +347,11 @@ def get_base_evaluator_args(
     return base_kwargs
 
 
-def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False,
-                                   allow_db_results: bool = True) -> pd.DataFrame:
+def retrieve_model_dataset_results(
+        base_path_exp: str,
+        verbose: Optional[bool] = False,
+        allow_db_results: bool = True
+) -> pd.DataFrame:
     path = Path(base_path_exp)
     dfs = []
     for fn in path.rglob("**/results.json"):
