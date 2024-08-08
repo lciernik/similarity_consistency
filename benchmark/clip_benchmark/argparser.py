@@ -78,6 +78,8 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
        help="Batch size for training.")
     aa('--skip_existing', default=False, action="store_true",
        help="Skip the evaluation if the output file already exists.")
+    aa('--force_train', default=False, action="store_true",
+       help="Retrain linear probe even if model already exists.")
 
     ### Model similarity
     aa('--sim_method', type=str, default="cka",

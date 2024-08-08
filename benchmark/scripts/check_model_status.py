@@ -24,9 +24,12 @@ OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
 
 if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
-    hyper_params, num_jobs = get_hyperparams(num_seeds=1, size='imagenet1k')
+    hyper_params, num_jobs = get_hyperparams(num_seeds=3, size='imagenet1k')
+    hyper_params.pop('fewshot_lrs')
+    hyper_params.pop('reg_lambda')
+
     args.task = "linear_probe"
-    combs, _ = get_combination(hyper_params, get_all=True)
+    combs, _ = get_combination(**hyper_params, get_all=True)
 
     datasets = parse_datasets(args.dataset)
 
@@ -79,6 +82,7 @@ if __name__ == "__main__":
                 pred_path = pm._get_results_dirs()
                 if not os.path.exists(f"{pred_path}/predictions.pkl"):
                     not_finished_pred[key] = pred_path
+                    print(f"Did not find predictions with {dataset=}, {key=}, {fewshot_k=}, {fewshot_epochs=}, {seed=}, {regularization=}")
         
         if args.verbose:
             print("\nModels without features:")
