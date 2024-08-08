@@ -7,3 +7,13 @@ sim_metric_name_mapping = {
     'rsa_method_correlation_corr_method_pearson': 'RSA pearson',
     'rsa_method_correlation_corr_method_spearman': 'RSA spearman',
 }
+
+similarity_metrics = [
+    'cka_kernel_linear_unbiased',
+    'cka_kernel_rbf_unbiased_sigma_0.2',
+    'cka_kernel_rbf_unbiased_sigma_0.4',
+    'cka_kernel_rbf_unbiased_sigma_0.6',
+    'cka_kernel_rbf_unbiased_sigma_0.8',
+    'rsa_method_correlation_corr_method_pearson',
+    'rsa_method_correlation_corr_method_spearman',
+]
