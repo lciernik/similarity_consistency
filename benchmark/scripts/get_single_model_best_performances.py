@@ -11,7 +11,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--model_config_dict', type=str, default="./models_config.json")
 parser.add_argument('--dataset', type=str, default="./webdatasets.txt")    
 parser.add_argument('--regularization', default=["weight_decay", "L1", "L2"], type=str, nargs='+', help="Type of regularization applied during training.", choices=[reg.value for reg in Regularization])
-parser.add_argument('--output_root', type=str, default="./test_results/max_performance_per_model")
+parser.add_argument('--output_root', type=str, default="/home/space/diverse_priors/results/aggregated/max_performance_per_model_n_ds")
 parser.add_argument('--force_computation', action='store_true')
 args = parser.parse_args()
 
@@ -42,7 +42,7 @@ for dataset in datasets:
             except (pd.errors.DatabaseError, FileNotFoundError) as e:
                 print(e)
                 continue
-
+        
         if not max_performance:
             print(f"max_performance is empty! Not storing and continuing")
             continue

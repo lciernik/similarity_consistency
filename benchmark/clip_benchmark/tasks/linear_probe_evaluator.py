@@ -227,7 +227,7 @@ class SingleModelEvaluator(BaseEvaluator):
 
     def evaluate(self) -> dict:
         probe_exists = os.path.exists(self.linear_probe_fn) and not self.force_train
-        
+
         if self.verbose:
             if probe_exists:
                 print("Found probe at ", self.linear_probe_fn)
@@ -248,7 +248,7 @@ class SingleModelEvaluator(BaseEvaluator):
 
         return self._evaluate(train_loader=feature_train_loader,
                               test_loader=feature_test_loader,
-                              filename=self.linear_probe_fn ,
+                              filename=self.linear_probe_fn,
                               evaluate_train=not probe_exists)
 
 

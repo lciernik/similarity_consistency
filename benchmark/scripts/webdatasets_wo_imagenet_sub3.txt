@@ -1,0 +1,8 @@
+wds/fgvc_aircraft
+wds/vtab/dtd
+wds/fer2013
+wds/vtab/cifar10
+wds/vtab/dmlab
+wds/vtab/resisc45
+entity13
+nonliving26

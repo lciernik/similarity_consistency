@@ -22,16 +22,45 @@ def as_list(l):
     return [l] if type(l) != list else l
 
 
-## Load features and targets
-def load_features(feature_root: str, model_id: Optional[str] = None, split: str = 'train') -> torch.Tensor:
+def get_subset_data(data: torch.Tensor, subset_indices: List[int]) -> torch.Tensor:
+    return data[subset_indices]
+
+
+def load_features(
+        feature_root: str,
+        model_id: Optional[str] = None,
+        split: str = 'train',
+        subset_indices: Optional[List[int]] = None,
+        verbose: bool = False
+) -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     features = torch.load(os.path.join(model_dir, f'features_{split}.pt'))
+
+    if verbose:
+        print(f"Loaded features for {model_id} with shape {features.shape}")
+
+    if subset_indices:
+        features = get_subset_data(features, subset_indices)
+        if verbose:
+            print(f"Loaded subset of features for {model_id} with shape {features.shape}")
+
     return features
 
 
-def load_targets(feature_root: str, model_id: Optional[str] = None, split: str = 'train') -> torch.Tensor:
+def load_targets(
+        feature_root: str,
+        model_id: Optional[str] = None,
+        split: str = 'train',
+        subset_indices: Optional[List[int]] = None,
+        verbose: bool = False
+) -> torch.Tensor:
     model_dir = os.path.join(feature_root, model_id) if model_id else feature_root
     targets = torch.load(os.path.join(model_dir, f'targets_{split}.pt'))
+    if subset_indices:
+        targets = get_subset_data(targets, subset_indices)
+        if verbose:
+            print(f"Loaded subset of features for {model_id} with shape {targets.shape}")
+
     return targets
 
 
@@ -102,14 +131,13 @@ def map_to_probe_dataset(dataset: str, verbose: bool = False) -> str:
     return dataset
 
 
-def check_force_train(dataset: str, force_train:bool, verbose: bool = False) -> bool:
+def check_force_train(dataset: str, force_train: bool) -> bool:
     if dataset in probe_dataset_map and force_train:
         return False
     return force_train
 
+
 def prepare_ds_name(dataset: str) -> str:
-    # if dataset.startswith("wds/"):
-    #     dataset = dataset.replace("wds/", "", 1)
     dataset = dataset.replace("/", "_")
     return dataset
 
@@ -199,7 +227,7 @@ def get_combination(
         fewshot_epochs: List[int],
         seeds: List[int],
         regularization: List[str],
-        get_all:bool = False,
+        get_all: bool = False,
 ) -> Tuple[Tuple[int, int, int, str], Optional[int]]:
     combs = []
     combs.extend(
@@ -319,7 +347,11 @@ def get_base_evaluator_args(
     return base_kwargs
 
 
-def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] = False, allow_db_results:bool = True) -> pd.DataFrame:
+def retrieve_model_dataset_results(
+        base_path_exp: str,
+        verbose: Optional[bool] = False,
+        allow_db_results: bool = True
+) -> pd.DataFrame:
     path = Path(base_path_exp)
     dfs = []
     for fn in path.rglob("**/results.json"):
@@ -344,7 +376,8 @@ def retrieve_model_dataset_results(base_path_exp: str, verbose: Optional[bool] =
                     if df[col].dtype == 'object':
                         df[col] = df[col].apply(json.loads)
             else:
-                raise FileNotFoundError(f"No results found for in {base_path_exp=} (neither .json files not results.db)")
+                raise FileNotFoundError(
+                    f"No results found for in {base_path_exp=} (neither .json files not results.db)")
         else:
             raise FileNotFoundError(f"No results found for in {base_path_exp=} (no .json files)")
     else:

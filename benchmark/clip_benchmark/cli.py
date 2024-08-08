@@ -21,7 +21,8 @@ from clip_benchmark.utils.utils import (as_list,
                                         prepare_ds_name,
                                         world_info_from_env,
                                         set_all_random_seeds, prepare_device, get_combination, get_list_of_models,
-                                        save_results, get_base_evaluator_args, check_existing_results, check_force_train)
+                                        save_results, get_base_evaluator_args, check_existing_results,
+                                        check_force_train)
 
 
 def main():
@@ -60,12 +61,14 @@ def main_model_sim(base):
     model_ids = as_list(base.model_key)
 
     feature_root = os.path.join(base.feature_root, dataset_name)
+    subset_root = os.path.join(base.subset_root, dataset_name) if base.use_ds_subset else None
 
     # Compute CKA matrix
     sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
                                                             feature_root=feature_root,
                                                             model_ids=model_ids,
                                                             split=train_split,
+                                                            subset_root=subset_root,
                                                             kernel=base.sim_kernel,
                                                             rsa_method=base.rsa_method,
                                                             corr_method=base.corr_method,
@@ -167,7 +170,7 @@ def run(args):
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
     probe_dataset_name = map_to_probe_dataset(dataset_name, verbose=args.verbose)
-    args.force_train = check_force_train(dataset_name,  args.force_train, verbose=args.verbose)
+    args.force_train = check_force_train(dataset_name, args.force_train, verbose=args.verbose)
 
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 

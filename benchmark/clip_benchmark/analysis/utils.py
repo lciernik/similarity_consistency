@@ -18,9 +18,14 @@ def retrieve_performance(model_id: str, dataset_id: str, metric_column: str = 't
         )
 
     # filter regularization method
+    if 'regularization' not in df.columns:
+        raise ValueError(f"Regularization was not available yet.")
+            
     df = df[df.regularization == regularization]
     if len(df) == 0:
         raise ValueError(f'No results available for {dataset_id=}, {model_id=} and {regularization=}.')
 
+    df = df[df['seed'].isin([0,1,2])]
+    
     performance = df.groupby(HYPER_PARAM_COLS)[metric_column].mean().max()
     return performance

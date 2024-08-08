@@ -47,7 +47,7 @@ def run_job(
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
-        "exclude": "head[026-033],head022,head034,head042,head073,head071", # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
+        "exclude": "head[026-033],head022,head023,head034,head042,head073,head071", # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
