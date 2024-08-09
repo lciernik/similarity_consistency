@@ -1,7 +1,9 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
 from itertools import product
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+
 
 def get_model_ids(fn):
     with open(fn, 'r') as file:
@@ -10,19 +12,18 @@ def get_model_ids(fn):
     return lines
 
 
-
-def plot_r_coeff_distribution(df, sim_met_col, r_x , r_y = 'gap', ds_col = 'dataset'):
+def plot_r_coeff_distribution(df, sim_met_col, r_x, r_y='gap', ds_col='dataset'):
     r_vals = []
     for key, group_data in df.groupby([ds_col, sim_met_col]):
         r = group_data[r_x].corr(group_data[r_y], method="spearman")
         r_vals.append({
             'Dataset': key[0],
-             sim_met_col: key[1],
+            sim_met_col: key[1],
             'r_coeff': r,
-        }) 
-    
+        })
+
     r_values = pd.DataFrame(r_vals)
-    
+
     fig, axs = plt.subplots(nrows=1, ncols=3, figsize=(18, 5))
     sns.boxplot(
         r_values,
@@ -39,7 +40,7 @@ def plot_r_coeff_distribution(df, sim_met_col, r_x , r_y = 'gap', ds_col = 'data
         kde=True,
         ax=axs[1],
         alpha=0.5,
-    
+
     );
     sns.kdeplot(
         r_values,
@@ -51,16 +52,16 @@ def plot_r_coeff_distribution(df, sim_met_col, r_x , r_y = 'gap', ds_col = 'data
     for i in range(3):
         axs[i].set_xlabel('Correlation coefficient');
 
-    axs[0].set_xticklabels(axs[0].get_xticklabels(), rotation = 45, ha="right")
-    
+    axs[0].set_xticklabels(axs[0].get_xticklabels(), rotation=45, ha="right")
+
     fig.suptitle(f'Distibution correlation coefficients over all datasets.')
 
     vmin = max(r_values['r_coeff'].min(), -0.5)
     vmax = min(r_values['r_coeff'].max(), 0.5)
-    
+
     for idx, val in product([1, 2], [vmin, vmax]):
         axs[idx].axvline(val, ls=':', c='grey', alpha=0.5)
-        
+
     return fig
 
 
@@ -103,4 +104,3 @@ def save_or_show(fig, path, save):
         print(f'stored img at {path}.')
     else:
         plt.show(fig)
-    
