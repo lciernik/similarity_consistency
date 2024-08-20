@@ -1,10 +1,11 @@
-import pandas as pd
 import argparse
-import json 
+import json
+
 import torch
 
 from clip_benchmark.models import load_model
 from helper import load_models
+
 
 def format_params(num_params):
     if num_params >= 1_000_000_000:  # Billions
@@ -16,19 +17,19 @@ def format_params(num_params):
     else:  # Less than a thousand
         return str(num_params)
 
+
 def class_params(num_params):
-    if num_params < 100_000_000: # < 100M
+    if num_params < 100_000_000:  # < 100M
         return 'small'
-    elif num_params < 300_000_000: # < 300M
+    elif num_params < 300_000_000:  # < 300M
         return 'medium'
-    elif num_params < 400_000_000: # < 400M
+    elif num_params < 400_000_000:  # < 400M
         return 'large'
     else:
         return 'xlarge'
 
 
 def main(args):
-    
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     models_config, nmodels = load_models(args.models_config)
@@ -45,7 +46,7 @@ def main(args):
             config['model_parameters'],
             config['alignment'],
             device
-            )
+        )
         model_size = model.n_parameters()
         config['size'] = model_size
         config['size_fmt'] = format_params(model_size)
@@ -56,21 +57,10 @@ def main(args):
         json.dump(new_models_config, f, indent=4)
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--models_config', type=str, default='./models_config.json')
     parser.add_argument('--out_fn', type=str, default='./models_config.json')
     parser.add_argument('--verbose', action='store_true')
-    args = parser.parse_args() 
+    args = parser.parse_args()
     main(args)
-
-    
-
-    
-
-    
-
-    
-
-
-
