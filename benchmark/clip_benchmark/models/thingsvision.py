@@ -1,10 +1,9 @@
+import zipfile
+import zlib
 from typing import Union, Dict, Optional
 
 import torch
-import zipfile
-import zlib
 from thingsvision import get_extractor
-
 
 
 class ThingsvisionModel:
@@ -19,11 +18,12 @@ class ThingsvisionModel:
 
     def encode_image(self, x):
         with self._extractor.batch_extraction(
-            self._module_name, output_type=self._output_type
+                self._module_name, output_type=self._output_type
         ) as e:
             features = e.extract_batch(
                 batch=x,
-                flatten_acts=self._flatten_acts,  # flatten 2D feature maps from an early convolutional or attention layer
+                flatten_acts=self._flatten_acts,
+                # flatten 2D feature maps from an early convolutional or attention layer
             )
 
         features = features.to(torch.float32)
@@ -43,14 +43,20 @@ class ThingsvisionModel:
 
         return features
 
+    def parameters(self):
+        return self._extractor.model.parameters()
+
+    def n_parameters(self):
+        return sum(p.numel() for p in self.parameters())
+
 
 def load_thingsvision_model(
-    model_name: str,
-    source: str,
-    device: Union[str, torch.device],
-    model_parameters: Dict,
-    module_name: str,
-    feature_alignment: Optional[str] = None,
+        model_name: str,
+        source: str,
+        device: Union[str, torch.device],
+        model_parameters: Dict,
+        module_name: str,
+        feature_alignment: Optional[str] = None,
 ):
     extractor = get_extractor(
         model_name=model_name,
@@ -62,9 +68,9 @@ def load_thingsvision_model(
 
     flatten_acts = True
     if (
-        "extract_cls_token" in model_parameters
-        and model_parameters["extract_cls_token"]
-        or "token_extraction" in model_parameters
+            "extract_cls_token" in model_parameters
+            and model_parameters["extract_cls_token"]
+            or "token_extraction" in model_parameters
     ):
         flatten_acts = False
 
