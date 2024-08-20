@@ -43,6 +43,12 @@ class ThingsvisionModel:
 
         return features
 
+    def parameters(self):
+        return self._extractor.model.parameters()
+
+    def n_parameters(self):
+        return sum(p.numel() for p in self.parameters())
+
 
 def load_thingsvision_model(
     model_name: str,

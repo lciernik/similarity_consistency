@@ -12,7 +12,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 304368640,
+        "size_fmt": "304.4M",
+        "size_class": "large"
     },
     "dinov2-vit-large-p14_gLocal": {
         "model_name": "dinov2-vit-large-p14",
@@ -27,7 +31,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": "gLocal"
+        "alignment": "gLocal",
+        "dataset_class": "Large DS",
+        "size": 304368640,
+        "size_fmt": "304.4M",
+        "size_class": "large"
     },
     "dino-vit-base-p16": {
         "model_name": "dino-vit-base-p16",
@@ -42,7 +50,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 85798656,
+        "size_fmt": "85.8M",
+        "size_class": "small"
     },
     "dino-vit-base-p16_gLocal": {
         "model_name": "dino-vit-base-p16",
@@ -57,7 +69,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": "gLocal"
+        "alignment": "gLocal",
+        "dataset_class": "ImageNet1k",
+        "size": 85798656,
+        "size_fmt": "85.8M",
+        "size_class": "small"
     },
     "DreamSim_dino_vitb16": {
         "model_name": "DreamSim",
@@ -73,7 +89,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 0,
+        "size_fmt": "0",
+        "size_class": "small"
     },
     "mae-vit-large-p16": {
         "model_name": "mae-vit-large-p16",
@@ -88,7 +108,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 303301632,
+        "size_fmt": "303.3M",
+        "size_class": "large"
     },
     "mae-vit-huge-p14": {
         "model_name": "mae-vit-huge-p14",
@@ -103,7 +127,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 630764800,
+        "size_fmt": "630.8M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_RN50_openai": {
         "model_name": "OpenCLIP",
@@ -115,10 +143,14 @@
         "module_name": "visual",
         "objective": "Image-Text",
         "dataset": "WIT-400M",
-        "architecture_class": "Transformer",
+        "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 102007137,
+        "size_fmt": "102.0M",
+        "size_class": "medium"
     },
     "OpenCLIP_ViT-B-16_openai": {
         "model_name": "OpenCLIP",
@@ -133,7 +165,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 149620737,
+        "size_fmt": "149.6M",
+        "size_class": "medium"
     },
     "OpenCLIP_ViT-B-16_laion400m_e32": {
         "model_name": "OpenCLIP",
@@ -148,7 +184,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 149620737,
+        "size_fmt": "149.6M",
+        "size_class": "medium"
     },
     "OpenCLIP_ViT-B-16_laion2b_s34b_b88k": {
         "model_name": "OpenCLIP",
@@ -163,7 +203,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 149620737,
+        "size_fmt": "149.6M",
+        "size_class": "medium"
     },
     "OpenCLIP_ViT-L-14_openai": {
         "model_name": "OpenCLIP",
@@ -178,7 +222,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_ViT-L-14_laion400m_e32": {
         "model_name": "OpenCLIP",
@@ -193,7 +241,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_ViT-L-14_laion400m_e32_gLocal": {
         "model_name": "OpenCLIP",
@@ -208,7 +260,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": "gLocal"
+        "alignment": "gLocal",
+        "dataset_class": "Large DS",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_ViT-L-14_laion2b_s32b_b82k": {
         "model_name": "OpenCLIP",
@@ -223,7 +279,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_ViT-L-14_laion2b_s32b_b82k_gLocal": {
         "model_name": "OpenCLIP",
@@ -238,7 +298,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": "gLocal"
+        "alignment": "gLocal",
+        "dataset_class": "XLarge DS",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_ViT-B-16-SigLIP_webli": {
         "model_name": "OpenCLIP",
@@ -253,7 +317,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 203155970,
+        "size_fmt": "203.2M",
+        "size_class": "medium"
     },
     "OpenCLIP_EVA01-g-14_laion400m_s11b_b41k": {
         "model_name": "OpenCLIP",
@@ -268,7 +336,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 1136435841,
+        "size_fmt": "1.1B",
+        "size_class": "xlarge"
     },
     "OpenCLIP_EVA01-g-14-plus_merged2b_s11b_b114k": {
         "model_name": "OpenCLIP",
@@ -283,7 +355,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 1366621569,
+        "size_fmt": "1.4B",
+        "size_class": "xlarge"
     },
     "OpenCLIP_EVA02-L-14_merged2b_s4b_b131k": {
         "model_name": "OpenCLIP",
@@ -298,7 +374,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 427755457,
+        "size_fmt": "427.8M",
+        "size_class": "xlarge"
     },
     "OpenCLIP_EVA02-B-16_merged2b_s8b_b131k": {
         "model_name": "OpenCLIP",
@@ -313,7 +393,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 512,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 149691137,
+        "size_fmt": "149.7M",
+        "size_class": "medium"
     },
     "vgg16": {
         "model_name": "vgg16",
@@ -327,7 +411,11 @@
         "architecture_class": "Convolutional",
         "architecture": "VGG",
         "embedding_dim": 4096,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 138357544,
+        "size_fmt": "138.4M",
+        "size_class": "medium"
     },
     "vgg19": {
         "model_name": "vgg19",
@@ -341,7 +429,11 @@
         "architecture_class": "Convolutional",
         "architecture": "VGG",
         "embedding_dim": 4096,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 143667240,
+        "size_fmt": "143.7M",
+        "size_class": "medium"
     },
     "resnet50": {
         "model_name": "resnet50",
@@ -355,7 +447,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 25557032,
+        "size_fmt": "25.6M",
+        "size_class": "small"
     },
     "resnet50_gLocal": {
         "model_name": "resnet50",
@@ -369,7 +465,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignment": "gLocal"
+        "alignment": "gLocal",
+        "dataset_class": "ImageNet1k",
+        "size": 25557032,
+        "size_fmt": "25.6M",
+        "size_class": "small"
     },
     "resnet152": {
         "model_name": "resnet152",
@@ -383,7 +483,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 60192808,
+        "size_fmt": "60.2M",
+        "size_class": "small"
     },
     "resnext50_32x4d": {
         "model_name": "resnext50_32x4d",
@@ -395,7 +499,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNeXt",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 25028904,
+        "size_fmt": "25.0M",
+        "size_class": "small"
     },
     "seresnet50": {
         "model_name": "seresnet50",
@@ -407,7 +515,11 @@
         "architecture_class": "Convolutional",
         "architecture": "SE-ResNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 28088024,
+        "size_fmt": "28.1M",
+        "size_class": "small"
     },
     "convnext_base": {
         "model_name": "convnext_base",
@@ -419,7 +531,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ConvNeXt",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 88591464,
+        "size_fmt": "88.6M",
+        "size_class": "small"
     },
     "convnext_large": {
         "model_name": "convnext_large",
@@ -431,7 +547,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ConvNeXt",
         "embedding_dim": 1536,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 197767336,
+        "size_fmt": "197.8M",
+        "size_class": "medium"
     },
     "efficientnet_b3": {
         "model_name": "efficientnet_b3",
@@ -445,7 +565,11 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 1536,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 12233232,
+        "size_fmt": "12.2M",
+        "size_class": "small"
     },
     "efficientnet_b4": {
         "model_name": "efficientnet_b4",
@@ -459,7 +583,11 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 1792,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 19341616,
+        "size_fmt": "19.3M",
+        "size_class": "small"
     },
     "efficientnet_b5": {
         "model_name": "efficientnet_b5",
@@ -473,7 +601,11 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 30389784,
+        "size_fmt": "30.4M",
+        "size_class": "small"
     },
     "efficientnet_b6": {
         "model_name": "efficientnet_b6",
@@ -487,7 +619,11 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2304,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 43040704,
+        "size_fmt": "43.0M",
+        "size_class": "small"
     },
     "efficientnet_b7": {
         "model_name": "efficientnet_b7",
@@ -501,7 +637,11 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 2560,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 66347960,
+        "size_fmt": "66.3M",
+        "size_class": "small"
     },
     "vicreg-rn50": {
         "model_name": "vicreg-rn50",
@@ -513,7 +653,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 23508032,
+        "size_fmt": "23.5M",
+        "size_class": "small"
     },
     "barlowtwins-rn50": {
         "model_name": "barlowtwins-rn50",
@@ -525,7 +669,11 @@
         "architecture_class": "Convolutional",
         "architecture": "ResNet",
         "embedding_dim": 2048,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 23508032,
+        "size_fmt": "23.5M",
+        "size_class": "small"
     },
     "vit_base_patch16_224": {
         "model_name": "vit_base_patch16_224",
@@ -540,7 +688,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 86567656,
+        "size_fmt": "86.6M",
+        "size_class": "small"
     },
     "vit_base_patch16_224.augreg_in21k": {
         "model_name": "vit_base_patch16_224.augreg_in21k",
@@ -555,7 +707,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 102595923,
+        "size_fmt": "102.6M",
+        "size_class": "medium"
     },
     "vit_large_patch16_224": {
         "model_name": "vit_large_patch16_224",
@@ -570,7 +726,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 304326632,
+        "size_fmt": "304.3M",
+        "size_class": "large"
     },
     "vit_large_patch16_224.augreg_in21k": {
         "model_name": "vit_large_patch16_224.augreg_in21k",
@@ -585,7 +745,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 325690707,
+        "size_fmt": "325.7M",
+        "size_class": "large"
     },
     "vit_large_patch14_clip_224.laion2b": {
         "model_name": "vit_large_patch14_clip_224.laion2b",
@@ -600,7 +764,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 303966976,
+        "size_fmt": "304.0M",
+        "size_class": "large"
     },
     "vit_huge_patch14_224.orig_in21k": {
         "model_name": "vit_huge_patch14_224.orig_in21k",
@@ -615,7 +783,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 630764800,
+        "size_fmt": "630.8M",
+        "size_class": "xlarge"
     },
     "vit_huge_patch14_clip_224.laion2b": {
         "model_name": "vit_huge_patch14_clip_224.laion2b",
@@ -630,7 +802,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1280,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "XLarge DS",
+        "size": 632077824,
+        "size_fmt": "632.1M",
+        "size_class": "xlarge"
     },
     "beit_base_patch16_224": {
         "model_name": "beit_base_patch16_224",
@@ -645,7 +821,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 86530984,
+        "size_fmt": "86.5M",
+        "size_class": "small"
     },
     "beit_base_patch16_224.in22k_ft_in22k": {
         "model_name": "beit_base_patch16_224.in22k_ft_in22k",
@@ -660,7 +840,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 102557713,
+        "size_fmt": "102.6M",
+        "size_class": "medium"
     },
     "beit_large_patch16_224": {
         "model_name": "beit_large_patch16_224",
@@ -675,7 +859,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 304430568,
+        "size_fmt": "304.4M",
+        "size_class": "large"
     },
     "beit_large_patch16_224.in22k_ft_in22k": {
         "model_name": "beit_large_patch16_224.in22k_ft_in22k",
@@ -690,7 +878,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 325792593,
+        "size_fmt": "325.8M",
+        "size_class": "large"
     },
     "deit3_base_patch16_224": {
         "model_name": "deit3_base_patch16_224",
@@ -705,7 +897,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 86585320,
+        "size_fmt": "86.6M",
+        "size_class": "small"
     },
     "deit3_base_patch16_224.fb_in22k_ft_in1k": {
         "model_name": "deit3_base_patch16_224.fb_in22k_ft_in1k",
@@ -720,7 +916,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 768,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 86585320,
+        "size_fmt": "86.6M",
+        "size_class": "small"
     },
     "deit3_large_patch16_224": {
         "model_name": "deit3_large_patch16_224",
@@ -735,7 +935,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 304374760,
+        "size_fmt": "304.4M",
+        "size_class": "large"
     },
     "deit3_large_patch16_224.fb_in22k_ft_in1k": {
         "model_name": "deit3_large_patch16_224.fb_in22k_ft_in1k",
@@ -750,7 +954,11 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet21k",
+        "size": 304374760,
+        "size_fmt": "304.4M",
+        "size_class": "large"
     },
     "swin_base_patch4_window7_224": {
         "model_name": "swin_base_patch4_window7_224",
@@ -762,7 +970,11 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 87768224,
+        "size_fmt": "87.8M",
+        "size_class": "small"
     },
     "swin_base_patch4_window7_224.ms_in22k": {
         "model_name": "swin_base_patch4_window7_224.ms_in22k",
@@ -774,7 +986,11 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1024,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 109130249,
+        "size_fmt": "109.1M",
+        "size_class": "medium"
     },
     "swin_large_patch4_window7_224": {
         "model_name": "swin_large_patch4_window7_224",
@@ -786,7 +1002,11 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1536,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 196532476,
+        "size_fmt": "196.5M",
+        "size_class": "medium"
     },
     "swin_large_patch4_window7_224.ms_in22k": {
         "model_name": "swin_large_patch4_window7_224.ms_in22k",
@@ -798,7 +1018,11 @@
         "architecture_class": "Transformer",
         "architecture": "SwinTransformer",
         "embedding_dim": 1536,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 228565093,
+        "size_fmt": "228.6M",
+        "size_class": "medium"
     },
     "Kakaobrain_Align": {
         "model_name": "Kakaobrain_Align",
@@ -810,6 +1034,10 @@
         "architecture_class": "Convolutional",
         "architecture": "EfficientNet",
         "embedding_dim": 640,
-        "alignment": null
+        "alignment": null,
+        "dataset_class": "Large DS",
+        "size": 62143440,
+        "size_fmt": "62.1M",
+        "size_class": "small"
     }
 }
