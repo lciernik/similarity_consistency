@@ -141,9 +141,9 @@ def load_sim_matrix(path: Union[str, Path], allowed_models: List[str]) -> pd.Dat
 
     # available_models = sorted(list(set(model_ids).intersection(allowed_models)))
     # df = df.loc[available_models, available_models]
-    
+
     df = df.loc[allowed_models, allowed_models]
-    
+
     return df
 
 
@@ -177,7 +177,7 @@ def load_model_configs_and_allowed_models(
         path: Union[str, Path],
         exclude_models: List[str] = ['SegmentAnything_vit_b', 'DreamSim_dino_vitb16', 'DreamSim_open_clip_vitb32'],
         exclude_alignment: bool = True,
-        sort_by:str = 'objective',
+        sort_by: str = 'objective',
 
 ) -> Tuple[pd.DataFrame, List[str]]:
     with open(path, 'r') as f:
@@ -197,5 +197,5 @@ def load_model_configs_and_allowed_models(
 
     model_configs = model_configs.reset_index().sort_values(['objective', 'index']).set_index('index')
     allowed_models = model_configs.index.tolist()
-    
+
     return model_configs, allowed_models
