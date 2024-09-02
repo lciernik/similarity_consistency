@@ -37,13 +37,13 @@ def run_job(
         # """
     else:
         submit_cmd = job_cmd
-        
+
     if not isinstance(mem, int):
-      raise TypeError("The variable mem needs to be a (positive) integer.")
+        raise TypeError("The variable mem needs to be a (positive) integer.")
 
     if not isinstance(mem, int):
         raise ValueError("Argument mem must be an int")
-        
+
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
