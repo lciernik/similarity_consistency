@@ -170,7 +170,7 @@ def run(args):
     # prepare dataset name
     dataset_name = prepare_ds_name(args.dataset)
     probe_dataset_name = map_to_probe_dataset(dataset_name, verbose=args.verbose)
-    args.force_train = check_force_train(dataset_name, args.force_train, verbose=args.verbose)
+    args.force_train = check_force_train(dataset_name, args.force_train)
 
     path_maker = PathMaker(args, dataset_name, probe_dataset_name)
 
