@@ -3,7 +3,7 @@ import os
 from helper import load_models
 from slurm import run_job
 
-MODELS_CONFIG = "./models_config.json"
+MODELS_CONFIG = "./new_models_config.json"
 
 PROJECT_PATH = "/home/space/diverse_priors"
 
@@ -20,7 +20,8 @@ if __name__ == "__main__":
 
     # model_keys = "Kakaobrain_Align"
 
-    nr_samples = [1, 5, 10, 20, 30, 40]
+    # nr_samples = [1, 5, 10, 20, 30, 40]
+    nr_samples = [10]
 
     for num_samples_class in nr_samples:
         for split in ['train', 'test']:
