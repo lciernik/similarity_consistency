@@ -23,7 +23,7 @@ FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
 MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
 
-SIM_METRIC_CONFIG = "./similarity_metric_config.json"
+SIM_METRIC_CONFIG = "./similarity_metric_config_local_global.json"
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 
@@ -62,7 +62,7 @@ if __name__ == "__main__":
                                      --use_ds_subset \
                                      --subset_root {SUBSET_ROOT}
                         """
-        partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
+        partition = 'gpu-2d' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150
 
         run_job(

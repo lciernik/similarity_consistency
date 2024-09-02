@@ -37,17 +37,17 @@ def run_job(
         # """
     else:
         submit_cmd = job_cmd
-        
+
     if not isinstance(mem, int):
-      raise TypeError("The variable mem needs to be a (positive) integer.")
+        raise TypeError("The variable mem needs to be a (positive) integer.")
 
     if not isinstance(mem, int):
         raise ValueError("Argument mem must be an int")
-        
+
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
-        "exclude": "head[026-033],head022,head023,head034,head042,head073,head071", # head073 -> RuntimeError: CUDA error: no kernel image is available for execution on the device
+        # "exclude": "head22",
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
@@ -64,7 +64,7 @@ def run_job(
 
     if device == "gpu":
         slurm_options["gres"] = "gpu:1"
-        slurm_options["constraint"] = "'[80gb|40gb]'"
+        slurm_options["constraint"] = "'[80gb|40gb|h100]'"
 
     time_mapping = {
         "test": "00-00:15:00",
