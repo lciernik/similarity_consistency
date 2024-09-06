@@ -15,7 +15,7 @@
     "domain": "Natural (multi-domain)"
   },
   "wds/gtsrb": {
-    "domain": "Structured"
+    "domain": "Natural (single-domain)"
   },
   "wds/country211": {
     "domain": "Natural (multi-domain)"
