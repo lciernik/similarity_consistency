@@ -1,0 +1,89 @@
+{
+  "wds/fer2013": {
+    "domain": "Structured"
+  },
+  "wds/voc2007": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/cars": {
+    "domain": "Natural (fine)"
+  },
+  "wds/fgvc_aircraft": {
+    "domain": "Natural (fine)"
+  },
+  "wds/stl10": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/gtsrb": {
+    "domain": "Structured"
+  },
+  "wds/country211": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/vtab/caltech101": {
+    "domain": "Natural (fine)"
+  },
+  "wds/vtab/cifar10": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/vtab/cifar100": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/vtab/diabetic_retinopathy": {
+    "domain": "Structured"
+  },
+  "wds/vtab/dmlab": {
+    "domain": "Structured"
+  },
+  "wds/vtab/dtd": {
+    "domain": "Natural (fine)"
+  },
+  "wds/vtab/eurosat": {
+    "domain": "Structured"
+  },
+  "wds/vtab/flowers": {
+    "domain": "Natural (fine)"
+  },
+  "wds/vtab/pets": {
+    "domain": "Natural (fine)"
+  },
+  "wds/vtab/pcam": {
+    "domain": "Structured"
+  },
+  "wds/vtab/resisc45": {
+    "domain": "Structured"
+  },
+  "wds/vtab/svhn": {
+    "domain": "Natural (fine)"
+  },
+  "cifar100-coarse": {
+    "domain": "Natural (coarse)"
+  },
+  "entity13": {
+    "domain": "Natural (fine)"
+  },
+  "entity30": {
+    "domain": "Natural (fine)"
+  },
+  "living17": {
+    "domain": "Natural (fine)"
+  },
+  "nonliving26": {
+    "domain": "Natural (fine)"
+  },
+  "wds/imagenet1k": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/imagenetv2": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/imagenet-a": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/imagenet-r": {
+    "domain": "Natural (coarse)"
+  },
+  "wds/imagenet_sketch": {
+    "domain": "Natural (coarse)"
+  }
+}
