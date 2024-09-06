@@ -3,87 +3,87 @@
     "domain": "Structured"
   },
   "wds/voc2007": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/cars": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (single-domain)"
   },
   "wds/fgvc_aircraft": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (single-domain)"
   },
   "wds/stl10": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/gtsrb": {
     "domain": "Structured"
   },
   "wds/country211": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/vtab/caltech101": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/vtab/cifar10": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/vtab/cifar100": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/vtab/diabetic_retinopathy": {
-    "domain": "Structured"
+    "domain": "Specialized"
   },
   "wds/vtab/dmlab": {
     "domain": "Structured"
   },
   "wds/vtab/dtd": {
-    "domain": "Natural (fine)"
+    "domain": "Structured"
   },
   "wds/vtab/eurosat": {
-    "domain": "Structured"
+    "domain": "Specialized"
   },
   "wds/vtab/flowers": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (single-domain)"
   },
   "wds/vtab/pets": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (single-domain)"
   },
   "wds/vtab/pcam": {
-    "domain": "Structured"
+    "domain": "Specialized"
   },
   "wds/vtab/resisc45": {
-    "domain": "Structured"
+    "domain": "Specialized"
   },
   "wds/vtab/svhn": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (single-domain)"
   },
   "cifar100-coarse": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "entity13": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (multi-domain)"
   },
   "entity30": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (multi-domain)"
   },
   "living17": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (multi-domain)"
   },
   "nonliving26": {
-    "domain": "Natural (fine)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/imagenet1k": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/imagenetv2": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/imagenet-a": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/imagenet-r": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   },
   "wds/imagenet_sketch": {
-    "domain": "Natural (coarse)"
+    "domain": "Natural (multi-domain)"
   }
 }
