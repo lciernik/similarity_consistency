@@ -138,12 +138,7 @@ def load_sim_matrix(path: Union[str, Path], allowed_models: List[str]) -> pd.Dat
         raise FileNotFoundError(f'{str(model_ids_fn)} does not exist.')
     sim_mat = torch.load(sim_mat_fn)
     df = pd.DataFrame(sim_mat, index=model_ids, columns=model_ids)
-
-    # available_models = sorted(list(set(model_ids).intersection(allowed_models)))
-    # df = df.loc[available_models, available_models]
-
     df = df.loc[allowed_models, allowed_models]
-
     return df
 
 
@@ -183,19 +178,16 @@ def load_model_configs_and_allowed_models(
     with open(path, 'r') as f:
         model_configs = json.load(f)
 
-    for mid in exclude_models:
-        if mid in model_configs.keys():
-            model_configs.pop(mid)
-
-    if exclude_alignment:
-        allowed_models = sorted([k for k, v in model_configs.items() if v['alignment'] is None])
-    else:
-        allowed_models = sorted(list(model_configs.keys()))
-
+    print(f"Nr. models original={len(model_configs)}")
+    models_to_exclude = [k for k, v in model_configs.items() if (exclude_alignment and v['alignment'] is not None) or (k in exclude_models)]
+    if models_to_exclude:
+        for k in models_to_exclude:
+            model_configs.pop(k)
+        print(f"Nr. models after exclusion={len(model_configs)}")
+    
     model_configs = pd.DataFrame(model_configs).T
-    model_configs = model_configs.loc[allowed_models]
-
-    model_configs = model_configs.reset_index().sort_values(['objective', 'index']).set_index('index')
+    model_configs = model_configs.reset_index().sort_values([sort_by, 'index']).set_index('index')
+    
     allowed_models = model_configs.index.tolist()
 
     return model_configs, allowed_models
