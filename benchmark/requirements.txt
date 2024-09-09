@@ -6,7 +6,7 @@ open_clip_torch>=2.24.0
 pycocoevalcap
 webdataset>=0.2.31
 transformers
-thingsvision==2.6.8
+thingsvision==2.6.9
 dreamsim==0.1.2
 slurmpy
 timm>=0.9.16
