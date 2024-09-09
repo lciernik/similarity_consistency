@@ -73,17 +73,5 @@
   },
   "wds/imagenet1k": {
     "domain": "Natural (multi-domain)"
-  },
-  "wds/imagenetv2": {
-    "domain": "Natural (multi-domain)"
-  },
-  "wds/imagenet-a": {
-    "domain": "Natural (multi-domain)"
-  },
-  "wds/imagenet-r": {
-    "domain": "Natural (multi-domain)"
-  },
-  "wds/imagenet_sketch": {
-    "domain": "Natural (multi-domain)"
   }
 }
