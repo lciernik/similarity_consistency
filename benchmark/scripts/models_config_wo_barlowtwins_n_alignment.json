@@ -672,25 +672,6 @@
         "size_fmt": "325.7M",
         "size_class": "large"
     },
-    "vit_large_patch14_clip_224.laion2b": {
-        "model_name": "vit_large_patch14_clip_224.laion2b",
-        "source": "timm",
-        "model_parameters": {
-            "extract_cls_token": true,
-            "token_extraction": "cls_token"
-        },
-        "module_name": "norm",
-        "objective": "Image-Text",
-        "dataset": "LAION2B",
-        "architecture_class": "Transformer",
-        "architecture": "ViT",
-        "embedding_dim": 1024,
-        "alignment": null,
-        "dataset_class": "XLarge DS",
-        "size": 303966976,
-        "size_fmt": "304.0M",
-        "size_class": "large"
-    },
     "vit_huge_patch14_224.orig_in21k": {
         "model_name": "vit_huge_patch14_224.orig_in21k",
         "source": "timm",

@@ -1,4 +1,5 @@
 import os
+import warnings
 
 from clip_benchmark.utils.utils import retrieve_model_dataset_results
 
@@ -21,20 +22,24 @@ def retrieve_performance(model_id: str, dataset_id: str, metric_column: str = 't
     # filter regularization method
     if 'regularization' not in df.columns:
         raise ValueError(f"Regularization was not available yet.")
-            
+
     df = df[df.regularization == regularization]
 
     if len(df) == 0:
         raise ValueError(f'No results available for {dataset_id=}, {model_id=} and {regularization=}.')
 
     # TODO: Remove manually filtering for seeds
-    df = df[df['seed'].isin([0,1,2])]
-    
+    if df['seed'].nunique() > 3:
+        warnings.warn(f"More than 3 seeds ({df['seed'].unique()}) available for {model_id=} and {dataset_id=}. "
+                      f"We will filter for the first 3 seeds.")
+    df = df[df['seed'].isin([0, 1, 2])]
+
     performance = df.groupby(HYPER_PARAM_COLS)[metric_column].mean()
-    
+
     # TODO: Remove allowing for more than one configuration setting
-    if len(performance)>1:
+    if len(performance) > 1:
         print(performance)
-        raise ValueError('Experiment setup did not consider more configurations than one. Something is fishy ...')
-    
+        raise ValueError('We have more than one configuration setting for the model and dataset. Since we are only '
+                         'considering one configuration setting per regularization method, we do not proceed.')
+
     return performance.max()
