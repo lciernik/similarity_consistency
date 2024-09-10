@@ -1,8 +1,0 @@
-wds/cars
-wds/vtab/caltech101
-wds/vtab/pets
-wds/country211
-wds/vtab/diabetic_retinopathy
-wds/vtab/pcam
-cifar100-coarse
-living17

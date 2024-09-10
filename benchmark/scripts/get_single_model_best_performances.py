@@ -37,7 +37,12 @@ for dataset in datasets:
         max_performance = {}
         for model_key in models.keys():
             try:
-                performance = retrieve_performance(model_id=model_key, dataset_id=dataset, regularization=reg_method)
+                performance = retrieve_performance(
+                    model_id=model_key, 
+                    dataset_id=dataset, 
+                    regularization=reg_method, 
+                    allow_db_results=False
+                    )
                 max_performance[model_key] = performance
             except (pd.errors.DatabaseError, FileNotFoundError) as e:
                 print(e)

@@ -1,8 +1,0 @@
-wds/voc2007
-wds/stl10
-wds/vtab/flowers
-wds/gtsrb
-wds/vtab/cifar100
-wds/vtab/eurosat
-wds/vtab/svhn
-entity30
