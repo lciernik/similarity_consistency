@@ -52,11 +52,12 @@ available_data = [
 ]
 
 ds_name_mapping = {
-    'imagenet-subset-10k': 'ImageNet (natural)',
-    'wds_vtab_flowers': 'Flowers (single domain)',
-    'wds_vtab_pets': 'Pets (single domain)',
-    'wds_vtab_eurosat': 'Eurosat (structured)',
-    'wds_vtab_pcam': 'PCAM (structured)'
+    'wds_imagenet1k': 'ImageNet1k',
+    'imagenet-subset-10k': 'ImageNet1k',
+    'wds_vtab_flowers': 'Flowers',
+    'wds_vtab_pets': 'Pets',
+    'wds_vtab_eurosat': 'Eurosat',
+    'wds_vtab_pcam': 'PCAM'
 }
 
 cat_name_mapping = {
