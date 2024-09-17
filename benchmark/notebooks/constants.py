@@ -45,10 +45,14 @@ exclude_models = []
 exclude_models_w_mae = ['mae-vit-base-p16', 'mae-vit-large-p16', 'mae-vit-huge-p14']
 
 available_data = [
-    'agg_spearmanr_all_ds_wo_swav_pirl_timm_clip.csv',
-    'agg_spearmanr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
-    'agg_pearsonr_all_ds_wo_swav_pirl_timm_clip.csv',
-    'agg_pearsonr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
+    # 'agg_spearmanr_all_ds_wo_swav_pirl_timm_clip.csv',
+    # 'agg_spearmanr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
+    # 'agg_pearsonr_all_ds_wo_swav_pirl_timm_clip.csv',
+    # 'agg_pearsonr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
+    'agg_pearsonr_all_ds.csv',
+    'agg_pearsonr_all_ds_wo_mae.csv',
+    'agg_spearmanr_all_ds.csv',
+    'agg_spearmanr_all_ds_wo_mae.csv'
 ]
 
 ds_name_mapping = {
@@ -60,7 +64,15 @@ ds_name_mapping = {
     'wds_vtab_pcam': 'PCAM'
 }
 
+model_categories = ['objective', 'architecture_class', 'dataset_class', 'size_class']
+model_cat_mapping = {'objective': 'Objective', 'architecture_class': 'Architecture', 'dataset_class': 'Dataset diversity',
+                     'size_class': 'Model size'}
+model_ca_orig_mapping = {v:k for k,v in model_cat_mapping.items()}
+
+model_size_order = ['small', 'medium', 'large', 'xlarge']
+
 cat_name_mapping = {
+    'All': 'All',
     'Image-Text': 'Img-Txt',
     'Self-Supervised': 'SSL',
     'Supervised': 'Sup',
@@ -75,3 +87,19 @@ cat_name_mapping = {
     'medium': 'medium',
     'large': 'large',
 }
+
+model_config_file = '../scripts/models_config_wo_alignment.json'
+
+ds_info_file = '../scripts/dataset_info.json'
+
+## FONTSIZES 
+fontsizes = {
+    'title': 13,
+    'legend': 12,
+    'label': 12,
+    'ticks': 11,
+}
+
+
+
+

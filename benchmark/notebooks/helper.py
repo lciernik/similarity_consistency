@@ -191,3 +191,17 @@ def load_model_configs_and_allowed_models(
     allowed_models = model_configs.index.tolist()
 
     return model_configs, allowed_models
+
+
+def load_ds_info(path):
+    with open(path, 'r') as f:
+        ds_info = json.load(f)
+    ds_info = {k.replace('/', '_'): v for k, v in ds_info.items()}
+    ds_info = pd.DataFrame(ds_info).T
+    return ds_info
+
+
+def get_fmt_name(ds, ds_info):
+    return ds_info.loc[ds]['name'] + ' (' + ds_info.loc[ds]['domain'] + ')' 
+
+

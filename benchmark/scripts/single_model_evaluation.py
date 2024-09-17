@@ -54,7 +54,8 @@ if __name__ == "__main__":
                        --train_split train \
                        --test_split test \
                        --val_proportion {val_proportion} \
-                       --seed {' '.join(hyper_params['seeds'])} 
+                       --seed {' '.join(hyper_params['seeds'])} \
+                       --force_train
         """
 
         run_job(
