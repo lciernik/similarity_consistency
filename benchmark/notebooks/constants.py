@@ -100,6 +100,20 @@ fontsizes = {
     'ticks': 11,
 }
 
+cat_color_mapping = {'Img-Txt': '#1f77b4',
+ 'SSL': '#ff7f0e',
+ 'Sup': '#2ca02c',
+ 'CNN': '#d62728',
+ 'TX': '#9467bd',
+ 'IN1k': '#8c564b',
+ 'IN21k': '#e377c2',
+ 'Large DS': '#7f7f7f',
+ 'XLarge DS': '#bcbd22',
+ 'small': '#17becf',
+ 'medium': '#66c2a5',
+ 'large': '#fc8d62',
+ 'xlarge': '#8da0cb'}
+
 
 
 

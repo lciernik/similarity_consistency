@@ -97,10 +97,10 @@
   },
   "wds/imagenet1k": {
     "domain": "Natural (multi-domain)",
-    "name": "ImageNet-1K"
+    "name": "ImageNet-1k"
   },
   "imagenet-subset-10k": {
     "domain": "Natural (multi-domain)",
-    "name": "ImageNet-1K"
+    "name": "ImageNet-1k"
   }
 }
