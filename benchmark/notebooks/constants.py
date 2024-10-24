@@ -1,3 +1,9 @@
+from pathlib import Path 
+
+
+BASE_PATH_PROJECT = Path('/home/space/diverse_priors')
+BASE_PATH_RESULTS = BASE_PATH_PROJECT / 'results'
+
 sim_metric_name_mapping = {
     'cka_kernel_rbf_unbiased_sigma_0.2': 'CKA RBF 0.2',
     'cka_kernel_rbf_unbiased_sigma_0.4': 'CKA RBF 0.4',
@@ -115,5 +121,5 @@ cat_color_mapping = {'Img-Txt': '#1f77b4',
  'xlarge': '#8da0cb'}
 
 
-
+cm = 0.393701
 

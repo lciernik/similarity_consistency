@@ -205,3 +205,12 @@ def get_fmt_name(ds, ds_info):
     return ds_info.loc[ds]['name'] + ' (' + ds_info.loc[ds]['domain'] + ')' 
 
 
+
+def pp_storing_path(path, save):
+    if not isinstance(path, Path):
+        path = Path(path)
+    if save:
+        path.mkdir(parents=True, exist_ok=True)
+        print()
+    return path
+    
