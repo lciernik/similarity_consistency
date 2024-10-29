@@ -1,17 +1,17 @@
 from pathlib import Path
 
+########################################################################
+## DEFINE BASEPATHS
 BASE_PATH_PROJECT = Path('/home/space/diverse_priors')
 BASE_PATH_RESULTS = BASE_PATH_PROJECT / 'results'
 
-sim_metric_name_mapping = {
-    'cka_kernel_rbf_unbiased_sigma_0.2': 'CKA RBF 0.2',
-    'cka_kernel_rbf_unbiased_sigma_0.4': 'CKA RBF 0.4',
-    'cka_kernel_rbf_unbiased_sigma_0.6': 'CKA RBF 0.6',
-    'cka_kernel_rbf_unbiased_sigma_0.8': 'CKA RBF 0.8',
-    'cka_kernel_linear_unbiased': 'CKA linear',
-    'rsa_method_correlation_corr_method_pearson': 'RSA pearson',
-    'rsa_method_correlation_corr_method_spearman': 'RSA spearman',
-}
+########################################################################
+## Path to the model config file
+model_config_file = '../scripts/models_config_wo_alignment.json'
+ds_info_file = '../scripts/dataset_info.json'
+
+########################################################################
+## DEFINE CONSTANT LISTS
 
 similarity_metrics = [
     'cka_kernel_rbf_unbiased_sigma_0.2',
@@ -34,6 +34,44 @@ anchors = [
     'mae-vit-large-p16'
 ]
 
+exclude_models = []
+
+exclude_models_w_mae = ['mae-vit-base-p16', 'mae-vit-large-p16', 'mae-vit-huge-p14']
+
+available_data = [
+    'agg_pearsonr_all_ds.csv',
+    'agg_pearsonr_all_ds_with_rsa.csv',
+    'agg_pearsonr_all_ds_wo_mae.csv',
+    'agg_spearmanr_all_ds.csv',
+    'agg_spearmanr_all_ds_with_rsa.csv',
+    'agg_spearmanr_all_ds_wo_mae.csv'
+]
+
+model_categories = ['objective', 'architecture_class', 'dataset_class', 'size_class']
+
+model_size_order = ['small', 'medium', 'large', 'xlarge']
+
+########################################################################
+## DEFINE NAME MAPPINGS
+sim_metric_name_mapping = {
+    'cka_kernel_rbf_unbiased_sigma_0.2': 'CKA RBF 0.2',
+    'cka_kernel_rbf_unbiased_sigma_0.4': 'CKA RBF 0.4',
+    'cka_kernel_rbf_unbiased_sigma_0.6': 'CKA RBF 0.6',
+    'cka_kernel_rbf_unbiased_sigma_0.8': 'CKA RBF 0.8',
+    'cka_kernel_linear_unbiased': 'CKA linear',
+    'rsa_method_correlation_corr_method_pearson': 'RSA pearson',
+    'rsa_method_correlation_corr_method_spearman': 'RSA spearman',
+}
+
+ds_name_mapping = {
+    'wds_imagenet1k': 'ImageNet1k',
+    'imagenet-subset-10k': 'ImageNet1k',
+    'wds_vtab_flowers': 'Flowers',
+    'wds_vtab_pets': 'Pets',
+    'wds_vtab_eurosat': 'Eurosat',
+    'wds_vtab_pcam': 'PCAM'
+}
+
 anchor_name_mapping = {
     'OpenCLIP_RN50_openai': 'OpenCLIP RN50',
     'OpenCLIP_ViT-L-14_openai': 'OpenCLIP ViT-L',
@@ -45,37 +83,11 @@ anchor_name_mapping = {
     'mae-vit-large-p16': 'MAE ViT-L'
 }
 
-exclude_models = []
-
-exclude_models_w_mae = ['mae-vit-base-p16', 'mae-vit-large-p16', 'mae-vit-huge-p14']
-
-available_data = [
-    # 'agg_spearmanr_all_ds_wo_swav_pirl_timm_clip.csv',
-    # 'agg_spearmanr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
-    # 'agg_pearsonr_all_ds_wo_swav_pirl_timm_clip.csv',
-    # 'agg_pearsonr_all_ds_wo_mae_swav_pirl_timm_clip.csv',
-    'agg_pearsonr_all_ds.csv',
-    'agg_pearsonr_all_ds_wo_mae.csv',
-    'agg_spearmanr_all_ds.csv',
-    'agg_spearmanr_all_ds_wo_mae.csv'
-]
-
-ds_name_mapping = {
-    'wds_imagenet1k': 'ImageNet1k',
-    'imagenet-subset-10k': 'ImageNet1k',
-    'wds_vtab_flowers': 'Flowers',
-    'wds_vtab_pets': 'Pets',
-    'wds_vtab_eurosat': 'Eurosat',
-    'wds_vtab_pcam': 'PCAM'
-}
-
-model_categories = ['objective', 'architecture_class', 'dataset_class', 'size_class']
 model_cat_mapping = {'objective': 'Objective', 'architecture_class': 'Architecture',
                      'dataset_class': 'Dataset diversity',
                      'size_class': 'Model size'}
-model_ca_orig_mapping = {v: k for k, v in model_cat_mapping.items()}
 
-model_size_order = ['small', 'medium', 'large', 'xlarge']
+model_ca_orig_mapping = {v: k for k, v in model_cat_mapping.items()}
 
 cat_name_mapping = {
     'All': 'All',
@@ -94,11 +106,8 @@ cat_name_mapping = {
     'large': 'large',
 }
 
-model_config_file = '../scripts/models_config_wo_alignment.json'
-
-ds_info_file = '../scripts/dataset_info.json'
-
-## FONTSIZES 
+########################################################################
+## PLOTTING CONSTANTS
 fontsizes = {
     'title': 13,
     'legend': 12,
