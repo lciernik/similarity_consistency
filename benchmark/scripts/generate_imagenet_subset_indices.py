@@ -8,6 +8,7 @@ import torch
 from tqdm import tqdm
 
 from helper import format_path
+from project_location import FEATURES_ROOT, SUBSET_ROOT
 
 
 def main(args):
@@ -45,13 +46,13 @@ if __name__ == "__main__":
     # Note we use as default the path to the extracted features and targets of ImageNet1k with any model.
     # The targets are for all models the same, so we can use any model's targets.
     parser.add_argument('--imagenet_targets_root',
-                        default='/home/space/diverse_priors/features/wds_imagenet1k/dinov2-vit-large-p14',
+                        default=os.path.join(FEATURES_ROOT, 'wds_imagenet1k/dinov2-vit-large-p14'),
                         help='Root directory of the extracted features and targets for ImageNet1k.')
     parser.add_argument('--samples-per-class', default=10, type=int)
     parser.add_argument('--split', default='train', choices=['train', 'test'])
     parser.add_argument('--seed', default=42, type=int, help='Random seed for reproducibility.')
     parser.add_argument('--output_root_dir',
-                        default='/home/space/diverse_priors/datasets/imagenet-subset-{num_samples_class}k',
+                        default=os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k'),
                         help='Root directory for the output features and targets.')
     args = parser.parse_args()
 

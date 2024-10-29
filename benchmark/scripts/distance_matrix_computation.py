@@ -1,37 +1,28 @@
 import argparse
 import json
 import os
-
+from project_location import DATASETS_ROOT, SUBSET_ROOT, FEATURES_ROOT, MODEL_SIM_ROOT 
 from helper import load_models, parse_datasets
 from slurm import run_job
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--models_config', type=str, default='./filtered_models_config.json')
-parser.add_argument('--datasets', type=str, nargs='+', default='./webdatasets_wo_imagenet.txt',
+parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')
+parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_insub10k.txt',
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing "
                          "dataset names.")
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
-
 DATASETS = parse_datasets(args.datasets)
 
-BASE_PROJECT_PATH = "/home/space/diverse_priors"
-DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
-SUBSET_ROOT = os.path.join(DATASETS_ROOT, 'subsets')
-FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
-MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
-OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'model_similarities')
-
-SIM_METRIC_CONFIG = "./similarity_metric_config_local_global.json"
+SIM_METRIC_CONFIG = "./configs/similarity_metric_config_local_global.json"
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    if 'SegmentAnything_vit_b' in models.keys():
-        models.pop('SegmentAnything_vit_b')
+
     model_keys = ' '.join(models.keys())
 
     num_jobs = len(DATASETS)
@@ -48,7 +39,7 @@ if __name__ == "__main__":
                       clip_benchmark --dataset {datasets} \
                                      --dataset_root {DATASETS_ROOT} \
                                      --feature_root {FEATURES_ROOT} \
-                                     --output {OUTPUT_ROOT} \
+                                     --output {MODEL_SIM_ROOT} \
                                      --task=model_similarity \
                                      --model_key {model_keys} \
                                      --models_config_file {MODELS_CONFIG} \
@@ -69,7 +60,7 @@ if __name__ == "__main__":
             job_name=f"{exp_dict['sim_method'].capitalize()}",
             job_cmd=job_cmd,
             partition=partition,
-            log_dir=f'{OUTPUT_ROOT}/logs',
+            log_dir=f'{MODEL_SIM_ROOT}/logs',
             num_jobs_in_array=num_jobs,
             mem=mem
         )

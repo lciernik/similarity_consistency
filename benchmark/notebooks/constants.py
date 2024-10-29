@@ -1,14 +1,19 @@
 from pathlib import Path
 
+from scripts.project_location import BASE_PATH_PROJECT as bpp
+from scripts.project_location import RESULTS_ROOT as bpr
+
 ########################################################################
 ## DEFINE BASEPATHS
-BASE_PATH_PROJECT = Path('/home/space/diverse_priors')
-BASE_PATH_RESULTS = BASE_PATH_PROJECT / 'results'
+BASE_PATH_PROJECT = Path(bpp)
+BASE_PATH_RESULTS = Path(bpr)
 
 ########################################################################
 ## Path to the model config file
-model_config_file = '../scripts/models_config_wo_alignment.json'
-ds_info_file = '../scripts/dataset_info.json'
+model_config_file = '../scripts/configs/models_config_wo_alignment.json'
+ds_info_file = '../scripts/configs/dataset_info.json'
+ds_list_sim_file  = '../scripts/configs/webdatasets_w_insub10k.txt'
+ds_list_perf_file  = '../scripts/configs/webdatasets_w_in1k.txt'
 
 ########################################################################
 ## DEFINE CONSTANT LISTS

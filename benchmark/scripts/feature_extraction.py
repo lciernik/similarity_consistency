@@ -2,12 +2,13 @@ import os
 
 from helper import load_models, parse_datasets
 from slurm import run_job
+from project_location import DATASETS_ROOT, FEATURES_ROOT
 
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')
+parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_in1k.txt',
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 args = parser.parse_args()
 
@@ -15,15 +16,9 @@ MODELS_CONFIG = args.models_config
 
 DATASETS = " ".join(parse_datasets(args.datasets))
 
-BASE_PROJECT_PATH = "/home/space/diverse_priors"
-DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
-FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
-
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    if "SegmentAnything_vit_b" in models.keys():
-        models.pop('SegmentAnything_vit_b')
 
     model_keys = list(models.keys())
 

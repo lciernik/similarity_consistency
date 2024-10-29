@@ -12,8 +12,9 @@ from tqdm import tqdm
 
 from clip_benchmark.utils.utils import load_features_targets
 from helper import load_models, format_path
+from project_location import DATASETS_ROOT, FEATURES_ROOT, SUBSET_ROOT
 
-MODELS_CONFIG = "./models_config.json"
+MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 
 
 def main(args):
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     models, n_models = load_models(MODELS_CONFIG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--features_root', default='/home/space/diverse_priors/features/wds_imagenet1k',
+    parser.add_argument('--features_root', default=os.path.join(FEATURES_ROOT, 'wds_imagenet1k'),
                         help='Root directory of the extracted features and targets for ImageNet1k.')
     parser.add_argument('--model_key', nargs='+', default=list(models.keys()),
                         help='Model key(s) for which the features are extracted.')
@@ -66,10 +67,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples_class', default=10, type=int,
                         help='Number of samples per class in the subset.')
     parser.add_argument('--subset_idxs',
-                        default='/home/space/diverse_priors/datasets/imagenet-subset-{num_samples_class}k/imagenet-{num_samples_class}k-{split}.json',
+                        default=os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k/imagenet-{num_samples_class}k-{split}.json'),
                         help='Path to the subset indices file.')
     parser.add_argument('--output_root_dir',
-                        default='/home/space/diverse_priors/features/imagenet-subset-{num_samples_class}k',
+                        default=os.path.join(FEATURES_ROOT, 'imagenet-subset-{num_samples_class}k'),
                         help='Root directory for the output features and targets.')
     args = parser.parse_args()
 
