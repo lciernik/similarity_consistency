@@ -56,7 +56,7 @@ if __name__ == "__main__":
                         help='Root directory for the output features and targets.')
     args = parser.parse_args()
 
-    for i in [1, 5, 10, 20, 30 , 40]:
+    for i in [1, 5, 10, 20, 30, 40]:
         for split in ['train', 'test']:
             print(f"Run generate_imagenet_subset_indices with {i} samples per class on the {split} split ...")
             args.samples_per_class = i

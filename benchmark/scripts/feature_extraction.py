@@ -1,10 +1,8 @@
-import os
+import argparse
 
 from helper import load_models, parse_datasets
-from slurm import run_job
 from project_location import DATASETS_ROOT, FEATURES_ROOT
-
-import argparse
+from slurm import run_job
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')

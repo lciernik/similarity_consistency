@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from clip_benchmark.utils.utils import load_features_targets
 from helper import load_models, format_path
-from project_location import DATASETS_ROOT, FEATURES_ROOT, SUBSET_ROOT
+from project_location import FEATURES_ROOT, SUBSET_ROOT
 
 MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 
@@ -37,7 +37,8 @@ def main(args):
         try:
             features, targets = load_features_targets(args.features_root, model_id, args.split)
         except FileNotFoundError as e:
-            print(f'\nFeatures or targets of wds_imagenet1k not found for model {model_id} and idxes at:\n{idxs_fn}. Skipping...')
+            print(
+                f'\nFeatures or targets of wds_imagenet1k not found for model {model_id} and idxes at:\n{idxs_fn}. Skipping...')
             print(f'>> Error: {e}\n')
             continue
 
@@ -67,7 +68,8 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples_class', default=10, type=int,
                         help='Number of samples per class in the subset.')
     parser.add_argument('--subset_idxs',
-                        default=os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k/imagenet-{num_samples_class}k-{split}.json'),
+                        default=os.path.join(SUBSET_ROOT,
+                                             'imagenet-subset-{num_samples_class}k/imagenet-{num_samples_class}k-{split}.json'),
                         help='Path to the subset indices file.')
     parser.add_argument('--output_root_dir',
                         default=os.path.join(FEATURES_ROOT, 'imagenet-subset-{num_samples_class}k'),

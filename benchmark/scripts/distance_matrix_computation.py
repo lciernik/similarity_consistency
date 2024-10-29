@@ -1,8 +1,8 @@
 import argparse
 import json
-import os
-from project_location import DATASETS_ROOT, SUBSET_ROOT, FEATURES_ROOT, MODEL_SIM_ROOT 
+
 from helper import load_models, parse_datasets
+from project_location import DATASETS_ROOT, SUBSET_ROOT, FEATURES_ROOT, MODEL_SIM_ROOT
 from slurm import run_job
 
 parser = argparse.ArgumentParser()

@@ -44,7 +44,6 @@ def get_hyperparams(num_seeds=3, size="small"):
             fewshot_ks=['-1'],
             fewshot_epochs=['20'],
             reg_lambda='1e-2',
-            # regularization=["weight_decay", "L1", "L2"],
             regularization=["weight_decay"],
             seeds=[str(num) for num in range(num_seeds)],
         )
