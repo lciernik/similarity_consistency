@@ -10,6 +10,9 @@ import pandas as pd
 import seaborn as sns
 import torch
 
+from notebooks.constants import ds_info_file
+from scripts.helper import parse_datasets
+
 
 def plot_r_coeff_distribution(df, sim_met_col, r_x, r_y='gap', ds_col='dataset'):
     r_vals = []
@@ -179,15 +182,16 @@ def load_model_configs_and_allowed_models(
         model_configs = json.load(f)
 
     print(f"Nr. models original={len(model_configs)}")
-    models_to_exclude = [k for k, v in model_configs.items() if (exclude_alignment and v['alignment'] is not None) or (k in exclude_models)]
+    models_to_exclude = [k for k, v in model_configs.items() if
+                         (exclude_alignment and v['alignment'] is not None) or (k in exclude_models)]
     if models_to_exclude:
         for k in models_to_exclude:
             model_configs.pop(k)
         print(f"Nr. models after exclusion={len(model_configs)}")
-    
+
     model_configs = pd.DataFrame(model_configs).T
     model_configs = model_configs.reset_index().sort_values([sort_by, 'index']).set_index('index')
-    
+
     allowed_models = model_configs.index.tolist()
 
     return model_configs, allowed_models
@@ -201,9 +205,18 @@ def load_ds_info(path):
     return ds_info
 
 
-def get_fmt_name(ds, ds_info):
-    return ds_info.loc[ds]['name'] + ' (' + ds_info.loc[ds]['domain'] + ')' 
+def load_all_datasetnames_n_info(path, verbose=False):
+    ds_list = parse_datasets(path)
+    ds_list = list(map(lambda x: x.replace('/', '_'), ds_list))
+    if verbose:
+        print(ds_list, len(ds_list))
 
+    ds_info = load_ds_info(ds_info_file)
+    return ds_list, ds_info
+
+
+def get_fmt_name(ds, ds_info):
+    return ds_info.loc[ds]['name'] + ' (' + ds_info.loc[ds]['domain'] + ')'
 
 
 def pp_storing_path(path, save):
@@ -213,4 +226,3 @@ def pp_storing_path(path, save):
         path.mkdir(parents=True, exist_ok=True)
         print()
     return path
-    
