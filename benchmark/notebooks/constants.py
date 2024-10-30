@@ -88,8 +88,12 @@ anchor_name_mapping = {
     'mae-vit-large-p16': 'MAE ViT-L'
 }
 
-model_cat_mapping = {'objective': 'Objective', 'architecture_class': 'Architecture',
-                     'dataset_class': 'Dataset diversity',
+# model_cat_mapping = {'objective': 'Objective', 'architecture_class': 'Architecture',
+#                      'dataset_class': 'Dataset diversity',
+#                      'size_class': 'Model size'}
+
+model_cat_mapping = {'objective': 'Training objective', 'architecture_class': 'Architecture',
+                     'dataset_class': 'Training data',
                      'size_class': 'Model size'}
 
 model_ca_orig_mapping = {v: k for k, v in model_cat_mapping.items()}
