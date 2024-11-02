@@ -92,7 +92,8 @@ anchor_name_mapping = {
 #                      'dataset_class': 'Dataset diversity',
 #                      'size_class': 'Model size'}
 
-model_cat_mapping = {'objective': 'Training objective', 'architecture_class': 'Architecture',
+model_cat_mapping = {'objective': 'Training objective', 
+                     'architecture_class': 'Architecture',
                      'dataset_class': 'Training data',
                      'size_class': 'Model size'}
 
@@ -103,8 +104,8 @@ cat_name_mapping = {
     'Image-Text': 'Img-Txt',
     'Self-Supervised': 'SSL',
     'Supervised': 'Sup',
-    'Large DS': 'Large DS',
-    'XLarge DS': 'XLarge DS',
+    'Large DS': 'Large',
+    'XLarge DS': 'XLarge',
     'ImageNet1k': 'IN1k',
     'ImageNet21k': 'IN21k',
     'Convolutional': 'CNN',
@@ -118,18 +119,19 @@ cat_name_mapping = {
 ########################################################################
 ## PLOTTING CONSTANTS
 fontsizes = {
-    'title': 13,
-    'legend': 12,
-    'label': 12,
-    'ticks': 11,
+    'title': 14,
+    'legend': 13,
+    'label': 13,
+    'ticks': 12,
 }
 
-fontsizes_cvpr = {
-    'title': 13,
-    'legend': 12,
-    'label': 12,
-    'ticks': 11,
+fontsizes_cols = {
+    'title': 18,
+    'legend': 17,
+    'label': 17,
+    'ticks': 16,
 }
+
 
 cat_color_mapping = {'Img-Txt': '#1f77b4',
                      'SSL': '#ff7f0e',
@@ -140,6 +142,8 @@ cat_color_mapping = {'Img-Txt': '#1f77b4',
                      'IN21k': '#e377c2',
                      'Large DS': '#7f7f7f',
                      'XLarge DS': '#bcbd22',
+                     'Large': '#7f7f7f',
+                     'XLarge': '#bcbd22',
                      'small': '#17becf',
                      'medium': '#66c2a5',
                      'large': '#fc8d62',
