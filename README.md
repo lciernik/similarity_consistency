@@ -60,7 +60,7 @@ Let's assume we want to sample `num_samples` model sets of size `k`.
 Then, we can do that with the following command.
 
 ```bash
-python clip_benchmark/sample_models.py \
+python sim_consistency/sample_models.py \
   --num_models <k> \
   --sampling strategies top-k random cluster one-cluster \
   --num_samples <num_samples> \
