@@ -13,7 +13,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 304368640,
         "size_fmt": "304.4M",
         "size_class": "large"
@@ -32,7 +32,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": "gLocal",
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 304368640,
         "size_fmt": "304.4M",
         "size_class": "large"
@@ -88,7 +88,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 88046592,
         "size_fmt": "88.0M",
         "size_class": "small"
@@ -184,7 +184,7 @@
         "architecture": "ResNet",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 102007137,
         "size_fmt": "102.0M",
         "size_class": "medium"
@@ -203,7 +203,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -222,7 +222,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -241,7 +241,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -260,7 +260,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -279,7 +279,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -298,7 +298,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": "gLocal",
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -317,7 +317,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -336,7 +336,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": "gLocal",
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -355,7 +355,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 203155970,
         "size_fmt": "203.2M",
         "size_class": "medium"
@@ -374,7 +374,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 1136435841,
         "size_fmt": "1.1B",
         "size_class": "xlarge"
@@ -393,7 +393,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 1366621569,
         "size_fmt": "1.4B",
         "size_class": "xlarge"
@@ -412,7 +412,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 427755457,
         "size_fmt": "427.8M",
         "size_class": "xlarge"
@@ -431,7 +431,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 149691137,
         "size_fmt": "149.7M",
         "size_class": "medium"
@@ -852,7 +852,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 303966976,
         "size_fmt": "304.0M",
         "size_class": "large"
@@ -890,7 +890,7 @@
         "architecture": "ViT",
         "embedding_dim": 1280,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 632077824,
         "size_fmt": "632.1M",
         "size_class": "xlarge"
@@ -1122,7 +1122,7 @@
         "architecture": "EfficientNet",
         "embedding_dim": 640,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 62143440,
         "size_fmt": "62.1M",
         "size_class": "small"
@@ -1277,7 +1277,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 384,
         "size": 22056576,
         "size_fmt": "22.1M",
@@ -1296,7 +1296,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 768,
         "size": 86580480,
         "size_fmt": "86.6M",
@@ -1315,7 +1315,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 1536,
         "size": 1136480768,
         "size_fmt": "1.1B",

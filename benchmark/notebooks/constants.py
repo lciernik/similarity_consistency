@@ -12,8 +12,8 @@ BASE_PATH_RESULTS = Path(bpr)
 ## Path to the model config file
 model_config_file = '../scripts/configs/models_config_wo_alignment.json'
 ds_info_file = '../scripts/configs/dataset_info.json'
-ds_list_sim_file  = '../scripts/configs/webdatasets_w_insub10k.txt'
-ds_list_perf_file  = '../scripts/configs/webdatasets_w_in1k.txt'
+ds_list_sim_file = '../scripts/configs/webdatasets_w_insub10k.txt'
+ds_list_perf_file = '../scripts/configs/webdatasets_w_in1k.txt'
 
 ########################################################################
 ## DEFINE CONSTANT LISTS
@@ -92,7 +92,7 @@ anchor_name_mapping = {
 #                      'dataset_class': 'Dataset diversity',
 #                      'size_class': 'Model size'}
 
-model_cat_mapping = {'objective': 'Training objective', 
+model_cat_mapping = {'objective': 'Training objective',
                      'architecture_class': 'Architecture',
                      'dataset_class': 'Training data',
                      'size_class': 'Model size'}
@@ -131,7 +131,6 @@ fontsizes_cols = {
     'label': 17,
     'ticks': 16,
 }
-
 
 cat_color_mapping = {'Img-Txt': '#1f77b4',
                      'SSL': '#ff7f0e',
