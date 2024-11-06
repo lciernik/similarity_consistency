@@ -157,7 +157,8 @@ our results by following steps:
 
 1. Run aggregation notebooks:
    - All `notebooks/aggregate_*` notebooks
-   - For consistency computation of **specific model set pairs**: `notebooks/aggregate_consistencies_for_specific_model_set_pairs.ipynb`
+   - 🔥 For consistency computation of **specific model set pairs** 🔥: 
+     `notebooks/aggregate_consistencies_for_specific_model_set_pairs.ipynb`
 2. Run section-specific notebooks to generate figures
    - Results saved in `results/plots/`
 
