@@ -3,8 +3,9 @@
 # Exit on error
 set -e
 
-test_model_config="test_scripts/test_models_config.json"
-test_datasets="test_scripts/test_webdatasetst_w_in10k.txt"
+CURRENT_DIR=$(pwd)
+test_model_config="${CURRENT_DIR}/test_models_config.json"
+test_datasets="${CURRENT_DIR}/test_webdatasets_w_in10k.txt"
 
 cd ..
 

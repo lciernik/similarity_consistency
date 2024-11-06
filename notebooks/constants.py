@@ -1,4 +1,7 @@
+import sys
 from pathlib import Path
+
+sys.path.append('..')
 
 from scripts.project_location import BASE_PATH_PROJECT as bpp
 from scripts.project_location import RESULTS_ROOT as bpr
