@@ -36,22 +36,22 @@ if __name__ == "__main__":
 
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                       export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                      clip_benchmark --dataset {datasets} \
-                                     --dataset_root {DATASETS_ROOT} \
-                                     --feature_root {FEATURES_ROOT} \
-                                     --output {MODEL_SIM_ROOT} \
-                                     --task=model_similarity \
-                                     --model_key {model_keys} \
-                                     --models_config_file {MODELS_CONFIG} \
-                                     --train_split train \
-                                     --sim_method {exp_dict['sim_method']} \
-                                     --sim_kernel {exp_dict['sim_kernel']} \
-                                     --rsa_method {exp_dict['rsa_method']} \
-                                     --corr_method {exp_dict['corr_method']} \
-                                     --sigma {exp_dict['sigma']} \
-                                     --max_workers {max_workers} \
-                                     --use_ds_subset \
-                                     --subset_root {SUBSET_ROOT}
+                      sim_consistency --dataset {datasets} \
+                                      --dataset_root {DATASETS_ROOT} \
+                                      --feature_root {FEATURES_ROOT} \
+                                      --output {MODEL_SIM_ROOT} \
+                                      --task=model_similarity \
+                                      --model_key {model_keys} \
+                                      --models_config_file {MODELS_CONFIG} \
+                                      --train_split train \
+                                      --sim_method {exp_dict['sim_method']} \
+                                      --sim_kernel {exp_dict['sim_kernel']} \
+                                      --rsa_method {exp_dict['rsa_method']} \
+                                      --corr_method {exp_dict['corr_method']} \
+                                      --sigma {exp_dict['sigma']} \
+                                      --max_workers {max_workers} \
+                                      --use_ds_subset \
+                                      --subset_root {SUBSET_ROOT}
                         """
         partition = 'gpu-2d' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
         mem = 150

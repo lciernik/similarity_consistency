@@ -1,0 +1,5 @@
+wds/stl10
+wds/vtab/flowers
+wds/vtab/dtd
+wds/vtab/cifar10
+imagenet-subset-10k

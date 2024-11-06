@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Define the path to the text file containing repository names
-# file_path="./vtab_ds_origname.txt"
-file_path="./other_clf_ds_origname.txt"
+# file_path="./clip_benchmark_clf_datasets.txt"
+ file_path="./test_download_ds.txt"
 
 # Check if the file exists
 if [ ! -f "$file_path" ]; then
@@ -10,7 +10,9 @@ if [ ! -f "$file_path" ]; then
     exit 1
 fi
 
-cd /home/space/diverse_priors/datasets/wds
+## Pass as argument the path to the directory where the repositories will be cloned, e.g.,
+# [BASEPATH_PROJECT]/datasets/wds
+cd $1
 
 git lfs install
 

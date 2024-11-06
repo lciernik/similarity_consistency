@@ -10,7 +10,7 @@ from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "../models_config.json"
-# DATASETS = "./webdatasets_test.txt"
+# DATASETS = "./test_webdatasetst.txt"
 DATASETS = "wds/vtab/cifar10"
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')

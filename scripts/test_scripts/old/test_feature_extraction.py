@@ -9,7 +9,7 @@ from slurm import run_job
 from helper import load_models, get_hyperparams
 
 MODELS_CONFIG = "../models_config.json"
-DATASETS = "./webdatasets_test.txt"
+DATASETS = "./test_webdatasetst.txt"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets"
 
 # Create new test experiment folder

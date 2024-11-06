@@ -1,9 +1,0 @@
-wds_cars
-wds_country211
-wds_fer2013
-wds_fgvc_aircraft
-wds_food101
-wds_gtsrb
-wds_sun397
-wds_voc2007
-wds_stl10

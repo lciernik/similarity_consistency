@@ -27,26 +27,26 @@ if __name__ == "__main__":
     for i, (key, _) in enumerate(models.items()):
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-        clip_benchmark --dataset {DATASETS} \
-                       --dataset_root {DATASETS_ROOT} \
-                       --feature_root {FEATURES_ROOT} \
-                       --model_root {MODELS_ROOT} \
-                       --output_root {RESULTS_ROOT} \
-                       --task=linear_probe \
-                       --mode=single_model \
-                       --model_key {key} \
-                       --models_config_file {MODELS_CONFIG} \
-                       --batch_size=1024 \
-                       --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
-                       --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
-                       --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
-                       --reg_lambda {hyper_params['reg_lambda']} \
-                       --regularization {' '.join(hyper_params['regularization'])} \
-                       --train_split train \
-                       --test_split test \
-                       --val_proportion {val_proportion} \
-                       --seed {' '.join(hyper_params['seeds'])} \
-                       --force_train
+        sim_consistency --dataset {DATASETS} \
+                        --dataset_root {DATASETS_ROOT} \
+                        --feature_root {FEATURES_ROOT} \
+                        --model_root {MODELS_ROOT} \
+                        --output_root {RESULTS_ROOT} \
+                        --task=linear_probe \
+                        --mode=single_model \
+                        --model_key {key} \
+                        --models_config_file {MODELS_CONFIG} \
+                        --batch_size=1024 \
+                        --fewshot_k {' '.join(hyper_params['fewshot_ks'])} \
+                        --fewshot_lr {' '.join(hyper_params['fewshot_lrs'])} \
+                        --fewshot_epochs {' '.join(hyper_params['fewshot_epochs'])} \
+                        --reg_lambda {hyper_params['reg_lambda']} \
+                        --regularization {' '.join(hyper_params['regularization'])} \
+                        --train_split train \
+                        --test_split test \
+                        --val_proportion {val_proportion} \
+                        --seed {' '.join(hyper_params['seeds'])} \
+                        --force_train
         """
 
         run_job(

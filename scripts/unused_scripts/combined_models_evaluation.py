@@ -55,7 +55,7 @@ if __name__ == "__main__":
         print(f"Submitting Job with model_key{' '.join(model_set)}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
                 export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-                clip_benchmark --dataset {DATASETS} \
+                sim_consistency --dataset {DATASETS} \
                                --dataset_root {DATASETS_ROOT} \
                                --feature_root {FEATURES_ROOT} \
                                --model_root {MODELS_ROOT} \

@@ -10,7 +10,7 @@ from slurm import run_job
 from helper import load_models, get_hyperparams, prepare_for_combined_usage
 
 MODELS_CONFIG = "../models_config.json"
-DATASETS = "imagenet-subset-10k"  # "./webdatasets_test.txt"
+DATASETS = "imagenet-subset-10k"  # "./test_webdatasetst.txt"
 DATASETS_ROOT = "/home/space/diverse_priors/datasets"
 
 BASE_PATH_EXP = "/home/lciernik/projects/divers-priors/diverse_priors/benchmark/scripts/test_scripts/test_results/2024_05_26_17_26" # Path to a previous run with single model evaluation for vgg16 vgg19 seresnet50 and resnet50 resnet152

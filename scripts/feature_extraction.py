@@ -25,16 +25,16 @@ if __name__ == "__main__":
         print(f"Running feature extraction for {key}")
         job_cmd = f"""export XLA_PYTHON_CLIENT_PREALLOCATE=false && \
         export XLA_PYTHON_CLIENT_ALLOCATOR=platform && \
-        clip_benchmark --dataset {DATASETS} \
-                       --dataset_root {DATASETS_ROOT} \
-                       --feature_root {FEATURES_ROOT} \
-                       --task=feature_extraction \
-                       --model_key {key} \
-                       --models_config_file {MODELS_CONFIG} \
-                       --batch_size=64 \
-                       --train_split train \
-                       --test_split test \
-                       --num_workers=0
+        sim_consistency --dataset {DATASETS} \
+                        --dataset_root {DATASETS_ROOT} \
+                        --feature_root {FEATURES_ROOT} \
+                        --task=feature_extraction \
+                        --model_key {key} \
+                        --models_config_file {MODELS_CONFIG} \
+                        --batch_size=64 \
+                        --train_split train \
+                        --test_split test \
+                        --num_workers=0
         """
 
         run_job(

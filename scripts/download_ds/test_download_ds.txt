@@ -1,0 +1,4 @@
+wds_stl10
+wds_vtab-flowers
+wds_vtab-dtd
+wds_vtab-cifar10
