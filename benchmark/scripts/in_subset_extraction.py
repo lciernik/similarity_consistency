@@ -1,16 +1,16 @@
 import os
 
 from helper import load_models
+from project_location import FEATURES_ROOT as feat_root
+from project_location import SUBSET_ROOT
 from slurm import run_job
 
-MODELS_CONFIG = "./new_models_config.json"
+MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 
-PROJECT_PATH = "/home/space/diverse_priors"
-
-FEATURES_ROOT = os.path.join(PROJECT_PATH, 'features', 'wds_imagenet1k')
-SUBSET_IDXS = os.path.join(PROJECT_PATH, 'datasets', 'imagenet-subset-{num_samples_class}k',
+FEATURES_ROOT = os.path.join(feat_root, 'wds_imagenet1k')
+SUBSET_IDXS = os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k',
                            'imagenet-{num_samples_class}k-{split}.json')
-OUTPUT_ROOT = os.path.join(PROJECT_PATH, 'features', 'imagenet-subset-{num_samples_class}k')
+OUTPUT_ROOT = os.path.join(feat_root, 'imagenet-subset-{num_samples_class}k')
 
 if __name__ == "__main__":
 
@@ -18,10 +18,7 @@ if __name__ == "__main__":
 
     model_keys = ' '.join(models.keys())
 
-    # model_keys = "Kakaobrain_Align"
-
-    # nr_samples = [1, 5, 10, 20, 30, 40]
-    nr_samples = [10]
+    nr_samples = [1, 5, 10, 20, 30, 40]
 
     for num_samples_class in nr_samples:
         for split in ['train', 'test']:

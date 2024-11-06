@@ -59,8 +59,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--models_config', type=str, default='./models_config.json')
-    parser.add_argument('--out_fn', type=str, default='./models_config.json')
+    parser.add_argument('--models_config', type=str, default="./configs/models_config_wo_alignment.json")
+    parser.add_argument('--out_fn', type=str, default="./configs/models_config_wo_alignment.json")
     parser.add_argument('--verbose', action='store_true')
     args = parser.parse_args()
     main(args)

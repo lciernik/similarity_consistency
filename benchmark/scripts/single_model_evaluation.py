@@ -1,30 +1,21 @@
-import os
-import json
-from slurm import run_job
-from helper import load_models, get_hyperparams, parse_datasets
-
 import argparse
 
+from helper import load_models, get_hyperparams, parse_datasets
+from project_location import DATASETS_ROOT, FEATURES_ROOT, MODELS_ROOT, RESULTS_ROOT
+from slurm import run_job
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--models_config', type=str, default='./models_config.json')
-parser.add_argument('--datasets', type=str, nargs='+', default=['wds/imagenet1k', 'wds/imagenetv2', 'wds/imagenet-a', 'wds/imagenet-r', 'wds/imagenet_sketch'],
+parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')
+parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_in1k.txt',
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing dataset names.")
 args = parser.parse_args()
 
 MODELS_CONFIG = args.models_config
 DATASETS = " ".join(parse_datasets(args.datasets))
 
-BASE_PROJECT_PATH = "/home/space/diverse_priors"
-DATASETS_ROOT = os.path.join(BASE_PROJECT_PATH, 'datasets')
-FEATURES_ROOT = os.path.join(BASE_PROJECT_PATH, 'features')
-MODELS_ROOT = os.path.join(BASE_PROJECT_PATH, 'models')
-OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'results')
-
 if __name__ == "__main__":
     # Retrieve the configuration of all models we intend to evaluate.
     models, n_models = load_models(MODELS_CONFIG)
-    if 'SegmentAnything_vit_b' in models.keys():
-        models.pop('SegmentAnything_vit_b')
 
     # Extracting hyperparameters for evaluation: learning rate, few-shot k samples, epoch numbers, and seeds.
     hyper_params, num_jobs = get_hyperparams(num_seeds=3, size='imagenet1k')
@@ -40,7 +31,7 @@ if __name__ == "__main__":
                        --dataset_root {DATASETS_ROOT} \
                        --feature_root {FEATURES_ROOT} \
                        --model_root {MODELS_ROOT} \
-                       --output_root {OUTPUT_ROOT} \
+                       --output_root {RESULTS_ROOT} \
                        --task=linear_probe \
                        --mode=single_model \
                        --model_key {key} \
@@ -54,13 +45,14 @@ if __name__ == "__main__":
                        --train_split train \
                        --test_split test \
                        --val_proportion {val_proportion} \
-                       --seed {' '.join(hyper_params['seeds'])} 
+                       --seed {' '.join(hyper_params['seeds'])} \
+                       --force_train
         """
 
         run_job(
             job_name=f"probe_{key}",
             job_cmd=job_cmd,
             partition='gpu-2d',
-            log_dir=f'{OUTPUT_ROOT}/logs',
+            log_dir=f'{RESULTS_ROOT}/logs',
             num_jobs_in_array=num_jobs
         )

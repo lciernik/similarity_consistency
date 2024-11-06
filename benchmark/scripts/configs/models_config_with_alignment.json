@@ -13,7 +13,26 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
+        "size": 304368640,
+        "size_fmt": "304.4M",
+        "size_class": "large"
+    },
+    "dinov2-vit-large-p14_gLocal": {
+        "model_name": "dinov2-vit-large-p14",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "LVD-142M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignment": "gLocal",
+        "dataset_class": "Large",
         "size": 304368640,
         "size_fmt": "304.4M",
         "size_class": "large"
@@ -35,6 +54,63 @@
         "dataset_class": "ImageNet1k",
         "size": 85798656,
         "size_fmt": "85.8M",
+        "size_class": "small"
+    },
+    "dino-vit-base-p16_gLocal": {
+        "model_name": "dino-vit-base-p16",
+        "source": "ssl",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal",
+        "dataset_class": "ImageNet1k",
+        "size": 85798656,
+        "size_fmt": "85.8M",
+        "size_class": "small"
+    },
+    "DreamSim_open_clip_vitb32": {
+        "model_name": "DreamSim",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "open_clip_vitb32"
+        },
+        "module_name": "model.mlp",
+        "objective": "Image-Text",
+        "dataset": "LAION400M + NIGHTS",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 512,
+        "alignment": null,
+        "dataset_class": "Large",
+        "size": 88046592,
+        "size_fmt": "88.0M",
+        "size_class": "small"
+    },
+    "DreamSim_dino_vitb16": {
+        "model_name": "DreamSim",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "dino_vitb16",
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "model.mlp",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k + NIGHTS",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 0,
+        "size_fmt": "0",
         "size_class": "small"
     },
     "mae-vit-base-p16": {
@@ -108,7 +184,7 @@
         "architecture": "ResNet",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 102007137,
         "size_fmt": "102.0M",
         "size_class": "medium"
@@ -127,7 +203,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -146,7 +222,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -165,7 +241,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 149620737,
         "size_fmt": "149.6M",
         "size_class": "medium"
@@ -184,7 +260,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -203,7 +279,26 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
+    },
+    "OpenCLIP_ViT-L-14_laion400m_e32_gLocal": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion400m_e32"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION400M",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal",
+        "dataset_class": "Large",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -222,7 +317,26 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
+        "size": 427616513,
+        "size_fmt": "427.6M",
+        "size_class": "xlarge"
+    },
+    "OpenCLIP_ViT-L-14_laion2b_s32b_b82k_gLocal": {
+        "model_name": "OpenCLIP",
+        "source": "custom",
+        "model_parameters": {
+            "variant": "ViT-L-14",
+            "dataset": "laion2b_s32b_b82k"
+        },
+        "module_name": "visual",
+        "objective": "Image-Text",
+        "dataset": "LAION2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 768,
+        "alignment": "gLocal",
+        "dataset_class": "XLarge",
         "size": 427616513,
         "size_fmt": "427.6M",
         "size_class": "xlarge"
@@ -241,7 +355,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 203155970,
         "size_fmt": "203.2M",
         "size_class": "medium"
@@ -260,7 +374,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 1136435841,
         "size_fmt": "1.1B",
         "size_class": "xlarge"
@@ -279,7 +393,7 @@
         "architecture": "ViT",
         "embedding_dim": 1024,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 1366621569,
         "size_fmt": "1.4B",
         "size_class": "xlarge"
@@ -298,7 +412,7 @@
         "architecture": "ViT",
         "embedding_dim": 768,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 427755457,
         "size_fmt": "427.8M",
         "size_class": "xlarge"
@@ -317,7 +431,7 @@
         "architecture": "ViT",
         "embedding_dim": 512,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 149691137,
         "size_fmt": "149.7M",
         "size_class": "medium"
@@ -335,6 +449,24 @@
         "architecture": "VGG",
         "embedding_dim": 4096,
         "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 138357544,
+        "size_fmt": "138.4M",
+        "size_class": "medium"
+    },
+    "vgg16_gLocal": {
+        "model_name": "vgg16",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "classifier.3",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "VGG",
+        "embedding_dim": 4096,
+        "alignment": "gLocal",
         "dataset_class": "ImageNet1k",
         "size": 138357544,
         "size_fmt": "138.4M",
@@ -371,6 +503,24 @@
         "architecture": "ResNet",
         "embedding_dim": 2048,
         "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 25557032,
+        "size_fmt": "25.6M",
+        "size_class": "small"
+    },
+    "resnet50_gLocal": {
+        "model_name": "resnet50",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignment": "gLocal",
         "dataset_class": "ImageNet1k",
         "size": 25557032,
         "size_fmt": "25.6M",
@@ -596,6 +746,22 @@
         "size_fmt": "23.5M",
         "size_class": "small"
     },
+    "barlowtwins-rn50": {
+        "model_name": "barlowtwins-rn50",
+        "source": "ssl",
+        "model_parameters": {},
+        "module_name": "avgpool",
+        "objective": "Self-Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 23508032,
+        "size_fmt": "23.5M",
+        "size_class": "small"
+    },
     "vit_base_patch16_224": {
         "model_name": "vit_base_patch16_224",
         "source": "timm",
@@ -672,6 +838,25 @@
         "size_fmt": "325.7M",
         "size_class": "large"
     },
+    "vit_large_patch14_clip_224.laion2b": {
+        "model_name": "vit_large_patch14_clip_224.laion2b",
+        "source": "timm",
+        "model_parameters": {
+            "extract_cls_token": true,
+            "token_extraction": "cls_token"
+        },
+        "module_name": "norm",
+        "objective": "Image-Text",
+        "dataset": "LAION2B",
+        "architecture_class": "Transformer",
+        "architecture": "ViT",
+        "embedding_dim": 1024,
+        "alignment": null,
+        "dataset_class": "XLarge",
+        "size": 303966976,
+        "size_fmt": "304.0M",
+        "size_class": "large"
+    },
     "vit_huge_patch14_224.orig_in21k": {
         "model_name": "vit_huge_patch14_224.orig_in21k",
         "source": "timm",
@@ -705,7 +890,7 @@
         "architecture": "ViT",
         "embedding_dim": 1280,
         "alignment": null,
-        "dataset_class": "XLarge DS",
+        "dataset_class": "XLarge",
         "size": 632077824,
         "size_fmt": "632.1M",
         "size_class": "xlarge"
@@ -937,7 +1122,7 @@
         "architecture": "EfficientNet",
         "embedding_dim": 640,
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "size": 62143440,
         "size_fmt": "62.1M",
         "size_class": "small"
@@ -1092,7 +1277,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 384,
         "size": 22056576,
         "size_fmt": "22.1M",
@@ -1111,7 +1296,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 768,
         "size": 86580480,
         "size_fmt": "86.6M",
@@ -1130,7 +1315,7 @@
         "architecture_class": "Transformer",
         "architecture": "ViT",
         "alignment": null,
-        "dataset_class": "Large DS",
+        "dataset_class": "Large",
         "embedding_dim": 1536,
         "size": 1136480768,
         "size_fmt": "1.1B",

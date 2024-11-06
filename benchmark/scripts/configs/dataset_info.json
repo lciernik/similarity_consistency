@@ -1,0 +1,106 @@
+{
+  "wds/fer2013": {
+    "domain": "Structured",
+    "name": "FER2013"
+  },
+  "wds/voc2007": {
+    "domain": "Natural (multi-domain)",
+    "name": "PASCAL VOC 2007"
+  },
+  "wds/cars": {
+    "domain": "Natural (single-domain)",
+    "name": "Stanford Cars"
+  },
+  "wds/fgvc_aircraft": {
+    "domain": "Natural (single-domain)",
+    "name": "FGVC Aircraft"
+  },
+  "wds/stl10": {
+    "domain": "Natural (multi-domain)",
+    "name": "STL-10"
+  },
+  "wds/gtsrb": {
+    "domain": "Natural (single-domain)",
+    "name": "GTSRB"
+  },
+  "wds/country211": {
+    "domain": "Natural (multi-domain)",
+    "name": "Country-211"
+  },
+  "wds/vtab/caltech101": {
+    "domain": "Natural (multi-domain)",
+    "name": "Caltech-101"
+  },
+  "wds/vtab/cifar10": {
+    "domain": "Natural (multi-domain)",
+    "name": "CIFAR-10"
+  },
+  "wds/vtab/cifar100": {
+    "domain": "Natural (multi-domain)",
+    "name": "CIFAR-100"
+  },
+  "wds/vtab/diabetic_retinopathy": {
+    "domain": "Specialized",
+    "name": "Diabetic Retinopathy"
+  },
+  "wds/vtab/dmlab": {
+    "domain": "Structured",
+    "name": "Dmlab"
+  },
+  "wds/vtab/dtd": {
+    "domain": "Structured",
+    "name": "DTD"
+  },
+  "wds/vtab/eurosat": {
+    "domain": "Specialized",
+    "name": "EuroSAT"
+  },
+  "wds/vtab/flowers": {
+    "domain": "Natural (single-domain)",
+    "name": "Flowers"
+  },
+  "wds/vtab/pets": {
+    "domain": "Natural (single-domain)",
+    "name": "Pets"
+  },
+  "wds/vtab/pcam": {
+    "domain": "Specialized",
+    "name": "PCAM"
+  },
+  "wds/vtab/resisc45": {
+    "domain": "Specialized",
+    "name": "RESISC45"
+  },
+  "wds/vtab/svhn": {
+    "domain": "Natural (single-domain)",
+    "name": "SVHN"
+  },
+  "cifar100-coarse": {
+    "domain": "Natural (multi-domain)",
+    "name": "CIFAR-100 (coarse)"
+  },
+  "entity13": {
+    "domain": "Natural (multi-domain)",
+    "name": "Entity-13"
+  },
+  "entity30": {
+    "domain": "Natural (multi-domain)",
+    "name": "Entity-30"
+  },
+  "living17": {
+    "domain": "Natural (multi-domain)",
+    "name": "Living-17"
+  },
+  "nonliving26": {
+    "domain": "Natural (multi-domain)",
+    "name": "Nonliving-26"
+  },
+  "wds/imagenet1k": {
+    "domain": "Natural (multi-domain)",
+    "name": "ImageNet-1k"
+  },
+  "imagenet-subset-10k": {
+    "domain": "Natural (multi-domain)",
+    "name": "ImageNet-1k"
+  }
+}

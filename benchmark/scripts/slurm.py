@@ -14,27 +14,6 @@ def run_job(
 ):
     if apptainer:
         raise NotImplementedError("No apptainer container available for now.")
-        # squash_data_dir = '/tmp'
-        # copy_cmd = ["echo 'Copy data to /tmp'",
-        #             "cp -r /home/space/datasets/histopathology/anomaly-detection/squash/* /tmp",
-        #             "ls -l /tmp"]
-        # copy_cmd = '&&'.join(copy_cmd)
-        #
-        # submit_cmd = f"""
-        # {copy_cmd} && apptainer run --nv \
-        #      -B /home/space/datasets/histopathology/anomaly-detection/colon/20x/splits:/squash/colon/20x/splits \
-        #      -B /home/space/datasets/histopathology/anomaly-detection/stomach/20x/splits:/squash/stomach/20x/splits \
-        #      -B /home/space/datasets/histopathology/anomaly-detection/splits:/squash/splits \
-        #      -B {squash_data_dir}/colon/20x/normal/colon_HE_l01_vS007_normal_20x_80ua_images_sn_sl.sqfs:/squash/colon/20x/normal/colon_HE_l01_vS007_normal_20x_80ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/colon/20x/anomaly/colon_HE_l01_vS009_anomaly_hc_20x_80ua_images_sn_sl.sqfs:/squash/colon/20x/anomaly/colon_HE_l01_vS009_anomaly_hc_20x_80ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/stomach/20x/normal/stomach_normal_HE_l01_vS005_20x_80ua_images_sn_sl.sqfs:/squash/stomach/20x/normal/stomach_normal_HE_l01_vS005_20x_80ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/stomach/20x/anomaly/stomach_HE_l01_vS005_anomaly_hc_20x_80ua_images_sn_sl.sqfs:/squash/stomach/20x/anomaly/stomach_HE_l01_vS005_anomaly_hc_20x_80ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/oe/outlier_exposure_HE_l01_vS001_20x_images_sn_sl.sqfs:/squash/oe/outlier_exposure_HE_l01_vS001_20x_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/oe-v2/20x/outlier_exposure_HE_l01_vS002_20x_10ua_images_sn_sl.sqfs:/squash/oe-v2/20x/outlier_exposure_HE_l01_vS002_20x_10ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/oe-small-intestine/colon_mixed_HE_l01_vS007_20x_80ua_images_sn_sl.sqfs:/squash/oe-small-intestine/colon_mixed_HE_l01_vS007_20x_80ua_images_sn_sl:image-src=/ \
-        #      -B {squash_data_dir}/oe-small-intestine/stomach_mixed_HE_l01_vS005_20x_80ua_images_sn_sl.sqfs:/squash/oe-small-intestine/stomach_mixed_HE_l01_vS005_20x_80ua_images_sn_sl:image-src=/ \
-        #      container.sif {job_cmd}
-        # """
     else:
         submit_cmd = job_cmd
 
@@ -47,7 +26,6 @@ def run_job(
     slurm_options = {
         "partition": partition,
         "cpus-per-task": num_cpus,
-        # "exclude": "head22",
         "nodes": 1,
         "chdir": "./",
         "output": f"{log_dir}/run_%A/%a.out",
