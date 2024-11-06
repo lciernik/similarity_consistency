@@ -18,3 +18,4 @@ wds_vtab-pcam
 wds_vtab-resisc45
 wds_vtab-svhn
 wds_imagenet1k
+

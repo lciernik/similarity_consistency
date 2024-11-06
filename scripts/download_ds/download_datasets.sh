@@ -1,8 +1,10 @@
 #!/bin/bash
 
 # Define the path to the text file containing repository names
-# file_path="./clip_benchmark_clf_datasets.txt"
- file_path="./test_download_ds.txt"
+CURRENT_DIR=$(pwd)
+# file_path="${CURRENT_DIR}/clip_benchmark_clf_datasets.txt"
+file_path="${CURRENT_DIR}/test_download_ds.txt"
+echo "$file_path"
 
 # Check if the file exists
 if [ ! -f "$file_path" ]; then

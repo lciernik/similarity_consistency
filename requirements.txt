@@ -1,3 +1,4 @@
+numpy<2.0
 torch>=1.8.1
 torchvision>=0.8.9
 tqdm>=2
@@ -10,3 +11,4 @@ thingsvision==2.6.10
 dreamsim==0.1.2
 slurmpy
 timm>=0.9.16
+notebook

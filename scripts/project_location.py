@@ -1,7 +1,8 @@
 import os
 
 ## DEFINE BASEPATHS
-BASE_PATH_PROJECT = '/home/space/diverse_priors'
+# BASE_PATH_PROJECT = '/home/space/diverse_priors'
+BASE_PATH_PROJECT = '/home/lciernik/projects/divers-priors/results_local/test_pipeline_061124'
 
 ### DEFINE SUBFOLDERS
 
