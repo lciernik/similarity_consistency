@@ -112,6 +112,8 @@ cat_name_mapping = {
     'Supervised': 'Sup',
     'Large DS': 'Large',
     'XLarge DS': 'XLarge',
+    'Large': 'Large',
+    'XLarge': 'XLarge',
     'ImageNet1k': 'IN1k',
     'ImageNet21k': 'IN21k',
     'Convolutional': 'CNN',
