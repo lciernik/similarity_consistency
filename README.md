@@ -45,7 +45,7 @@ datasets and linking those similarities to differences in task behavior.
       See [How to Run](#how-to-run))
 - 📓 `notebooks/`
     - Jupyter notebooks for analysis and visualization.
-      Each notebook is named according to its corresponding paper section and can be used to reproduce our findings.
+      Each notebook is named according to its corresponding paper section and can be used to reproduce our findings 🧪 .
 
 
 ### Project structure
