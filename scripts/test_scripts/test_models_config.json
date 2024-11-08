@@ -1,0 +1,111 @@
+{
+  "dinov2-vit-small-p14": {
+    "model_name": "dinov2-vit-small-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "norm",
+    "objective": "Self-Supervised",
+    "dataset": "LVD-142M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "Large",
+    "embedding_dim": 384,
+    "size": 22056576,
+    "size_fmt": "22.1M",
+    "size_class": "small"
+  },
+  "simclr-rn50": {
+    "model_name": "simclr-rn50",
+    "source": "ssl",
+    "model_parameters": {},
+    "module_name": "avgpool",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Convolutional",
+    "architecture": "ResNet",
+    "embedding_dim": 2048,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 23508032,
+    "size_fmt": "23.5M",
+    "size_class": "small"
+  },
+  "OpenCLIP_RN50_openai": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "RN50",
+      "dataset": "openai"
+    },
+    "module_name": "visual",
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Convolutional",
+    "architecture": "ResNet",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 102007137,
+    "size_fmt": "102.0M",
+    "size_class": "medium"
+  },
+  "OpenCLIP_ViT-B-16_openai": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-B-16",
+      "dataset": "openai"
+    },
+    "module_name": "visual",
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 512,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 149620737,
+    "size_fmt": "149.6M",
+    "size_class": "medium"
+  },
+  "vgg16": {
+    "model_name": "vgg16",
+    "source": "torchvision",
+    "model_parameters": {
+      "weights": "DEFAULT"
+    },
+    "module_name": "classifier.3",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Convolutional",
+    "architecture": "VGG",
+    "embedding_dim": 4096,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 138357544,
+    "size_fmt": "138.4M",
+    "size_class": "medium"
+  },
+  "resnet50": {
+    "model_name": "resnet50",
+    "source": "torchvision",
+    "model_parameters": {
+      "weights": "DEFAULT"
+    },
+    "module_name": "avgpool",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Convolutional",
+    "architecture": "ResNet",
+    "embedding_dim": 2048,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 25557032,
+    "size_fmt": "25.6M",
+    "size_class": "small"
+  }
+}

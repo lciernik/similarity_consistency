@@ -1,1 +1,111 @@
-.idea
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+
+# Distribution / packaging
+dist/
+build/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.pytest_cache/
+cover/
+test_results/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# Environment
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+python?.?/
+
+# Documentation
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Logs and databases
+*.log
+*.sqlite
+*.db
+pip-log.txt
+pip-delete-this-directory.txt
+
+# SLURM related
+slurm-*.out
+slurm-scripts/
+logs/
+
+# Project specific directories
+features/
+root/
+cifar-100*/
+probe_benchmark/data/
+downloads/
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Data and model files
+*.pkl
+*.h5
+*.pth
+*.onnx
+*.mlmodel
+*.caffemodel
+*.pt
+*.bin
+
+# Local development
+local_settings.py
+*.local
+*.bak
