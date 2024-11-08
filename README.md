@@ -51,13 +51,13 @@ datasets and linking those similarities to differences in task behavior.
 ### Project structure
 
 The code relies on a specific directory structure for data organization.
-All paths are configured created in `scripts/project_location.py`.
+All paths are configured and created in `scripts/project_location.py`.
 
 ```plaintext
 project_root/
 ├── datasets/           # Raw and subsetted datasets
 ├── features/           # Extracted model features
-├── model_similarities/ # Representation  similarity matrices for given dataset, set of models and similarity metric
+├── model_similarities/ # Representation  similarity matrices for a given dataset, set of models, and similarity metric
 ├── models/             # Trained linear probe models
 └── results/            # Evaluation results and experiments
 ```
@@ -114,13 +114,13 @@ between the models.
         python generate_imagenet_subset_indices.py 
      ```
      It will generate the indices for the ImageNet-1k subset datasets and store them in `[PROJECT_ROOT]/datasets/subset`.
-  2. Create the new ImageNet-1k subsets, by slicing the precomputed features:
+  2. Create the new ImageNet-1k subsets by slicing the precomputed features:
      ```bash
         cd scripts
         python in_subset_extraction.py
      ```
      It will create the ImageNet-1k subsets and store them in `[PROJECT_ROOT]/datasets/imagenet-subset-{X}k` 
-     (`X` indicating the total nr. of samples).
+     (`X` indicates the total nr. of samples).
 - **Remaining Datasets**: Run the jupyter notebook `notebooks/check_wds_sizes_n_get_subsets.ipynb` to check the dataset sizes and create
     subsets of the datasets if needed. The indices for the subsets are stored in `[PROJECT_ROOT]/datasets/subset`. 
 
