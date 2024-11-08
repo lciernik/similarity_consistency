@@ -99,7 +99,7 @@ python feature_extraction.py \
        --datasets ./configs/webdatasets_w_in1k.txt
 ```
 
-### 2. Model Similarities
+### 2. Model Similarities 🔄
 The computation of the model similarities is a crucial step in our analysis. It consists of two parts: 
 Dataset subsampling and model similarity computation. The first part is necessary to ensure that the datasets have a
 maximum of 10k samples (see paper for justification), while the second part computes the representational similarities 
