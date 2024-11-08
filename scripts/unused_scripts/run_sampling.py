@@ -1,13 +1,13 @@
 import os
+import sys
 from typing import List
 
-import pandas as pd
-
+sys.path.append('..')
 from helper import load_models
 from slurm import run_job
 
 # MODELS_CONFIG = "./models_config.json" 
-MODELS_CONFIG = "./filtered_models_config.json" 
+MODELS_CONFIG = "./filtered_models_config.json"
 BASE_PROJECT_PATH = "/home/space/diverse_priors"
 OUTPUT_ROOT = os.path.join(BASE_PROJECT_PATH, 'sampling')
 CLUSTERING_ROOT = os.path.join(BASE_PROJECT_PATH, 'clustering')
@@ -79,7 +79,6 @@ if __name__ == "__main__":
                     continue
 
                 for lbl_assign_method in LBL_ASSIGN_METHODS:
-
                     # run 'cluster_best' and 'cluster_random'
                     assignment_path = os.path.join(CLUSTERING_ROOT,
                                                    DATASET,

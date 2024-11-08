@@ -18,19 +18,19 @@ datasets"* ([arXiv](https://arxiv.org/abs/xxxx.xxxxx)).
 
 </p>
 
-*The Platonic Representation Hypothesis* claims that recent foundation models are converging to a shared representation
-space as a function of their downstream task performance, irrespective of the objectives and data modalities used to
-train these models . Representational similarity is generally measured for individual datasets
-and is not necessarily consistent across datasets. Thus, one may wonder whether this convergence of model
-representations is confounded by the datasets commonly used in machine learning. Here, we propose a systematic way
-to measure how representational similarity between models varies with the set of stimuli used to construct the 
-representations.
-We find that the objective function is the most crucial factor in determining the consistency of representational
-similarities across datasets. Specifically, self-supervised vision models, but not image classification or image-text
-models, learn representations whose relative pairwise similarities generalize from one dataset to another.
-Moreover, the correspondence between representational similarities and the models' task behavior varies by dataset type,
-being most strongly pronounced for single-domain datasets. Our work provides a framework for systematically measuring
-similarities of model representations across datasets and linking those similarities to differences in task behavior.
+[*The Platonic Representation Hypothesis*](https://phillipi.github.io/prh/#what_converging_to) claims that recent 
+foundation models are converging to a shared representation space as a function of their downstream task performance, 
+irrespective of the objectives and data modalities used to train these models. Representational similarity is generally 
+measured for individual datasets and is not necessarily consistent across datasets. Thus, one may wonder whether this 
+convergence of model representations is confounded by the datasets commonly used in machine learning. 
+Here, we propose a systematic way to measure how representational similarity between models varies with the set of 
+stimuli used to construct the representations. We find that the objective function is the most crucial factor in 
+determining the consistency of representational similarities across datasets. Specifically, self-supervised vision 
+models learn representations whose relative pairwise similarities generalize better from one dataset to another compared 
+to those of image classification or image-text models. Moreover, the correspondence between representational 
+similarities and the models' task behavior is dataset-dependent, being most strongly pronounced for single-domain 
+datasets. Our work provides a framework for systematically measuring similarities of model representations across 
+datasets and linking those similarities to differences in task behavior.
 
 ## Repository and project overview
 
@@ -51,7 +51,7 @@ similarities of model representations across datasets and linking those similari
 ### Project structure
 
 The code relies on a specific directory structure for data organization.
-All paths are configured in `scripts/project_location.py`.
+All paths are configured created in `scripts/project_location.py`.
 
 ```plaintext
 project_root/
@@ -64,13 +64,16 @@ project_root/
 
 ## How to install?
 
-1. Install the package: `pip install .`
-2. Configure the project location as described in the [Project structure](#project-structure) section.
+1. Nagivate to the repository root directory.
+2. Install the package: `pip install .`
+3. Configure the project location as described in the [Project structure](#project-structure) section.
    You can define the paths in the `scripts/project_location.py` file and run it. It will create the necessary directories.
 
 ## How to run?
+⚠️ **Disclaimer**: Scripts are designed for SLURM clusters and are computationally expensive. For local reproduction, 
+we recommend downloading our intermediate results [here](https://tubcloud.tu-berlin.de/s/iTmTwqnao3fxH2t) (after step **4.1**) and proceeding directly to [step 4.2](#4-how-to-reproduce-our-results).
 
-### 0. Download datasets
+### 0. Download datasets 💾
 
 - Create the webdatasets directory `[PROJECT_ROOT]/datasets/wds`
 - Download the datasets using the script `scripts/download_ds/download_webdatasets.sh`.
@@ -83,11 +86,11 @@ bash download_webdatasets.sh [PROJECT_ROOT]/datasets/wds
 **NOTE**: Scripts download datasets from `huggingface.co`. A Hugging Face account may be required -
 see [download guide](https://huggingface.co/docs/hub/datasets-downloading#using-git).
 
-### 1. Feature Extraction
+### 1. Feature Extraction 🔍
 
 Running the script `scripts/feature_extraction.py` will extract features from the models specified in the
 `models_config` file for the datasets specified in the `datasets` file. The script launches a SLURM job for each model
-separately. It saves the extracted features in the project's `features` directory.
+separately. It saves the extracted features in `[PROJECT_ROOT]/features` directory.
 
 ```bash 
 cd scripts
@@ -126,7 +129,7 @@ between the models.
 
 Running the script `scripts/distance_matrix_computation.py` will compute the representational similarities between the
 models for each dataset and similarity metric specified in `scripts/configs/similarity_metric_config_local_global.json`.
-It saves the computed similarity matrices in the project's `model_similarities` directory.
+It saves the computed similarity matrices in `[PROJECT_ROOT]/model_similarities` directory.
 
 ```bash 
 cd scripts
@@ -136,11 +139,12 @@ python distance_matrix_computation.py \
 ```
 
 
-### 3. Linear Probing (Single model downstream task evaluation)
+### 3. Linear Probing (Single model downstream task evaluation) 📈 
 
 Running the script `scripts/single_model_evaluation.py` will train a linear probe on the extracted features for each
 model and dataset specified in the `models_config` and `datasets` files, respectively. 
-It saves the trained models in the project's `models` directory and the evaluation results in the `results` directory.
+It saves the trained models in `[PROJECT_ROOT]/models` and the evaluation results in the 
+`[PROJECT_ROOT]` directory.
 
 ```bash 
 cd scripts
@@ -150,13 +154,13 @@ python single_model_evaluation.py \
 ```
 **Note**: The script automatically launches separate SLURM jobs for each model to enable parallel processing.
 
-### 4. How to reproduce our results?
+### 4. How to reproduce our experiments? 🧪 
 
 After having extracted the features, computed the model similarities, and trained the linear probes, you can reproduce
 our results by following steps:
 
 1. Run aggregation notebooks:
-   - All `notebooks/aggregate_*` notebooks
+   - All `notebooks/aggregate_*` notebooks: store the results in `[PROJECT_ROOT]/ results/aggregated/`
    - 🔥 For consistency computation of **specific model set pairs** 🔥: 
      `notebooks/aggregate_consistencies_for_specific_model_set_pairs.ipynb`
 2. Run section-specific notebooks to generate figures

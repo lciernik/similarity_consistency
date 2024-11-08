@@ -1,7 +1,7 @@
 import os
 
 ## DEFINE BASEPATHS
-BASE_PATH_PROJECT = '/home/space/diverse_priors'
+BASE_PATH_PROJECT = ''  # TODO: Add the path to the project folder
 
 ### DEFINE SUBFOLDERS
 
@@ -17,9 +17,7 @@ MODEL_SIM_ROOT = os.path.join(BASE_PATH_PROJECT, 'model_similarities')
 
 RESULTS_ROOT = os.path.join(BASE_PATH_PROJECT, 'results')
 
-
 if __name__ == "__main__":
-    # Check if all paths exist and create them if not
     paths = [
         DATASETS_ROOT,
         SUBSET_ROOT,
@@ -28,6 +26,8 @@ if __name__ == "__main__":
         MODEL_SIM_ROOT,
         RESULTS_ROOT
     ]
+    if not BASE_PATH_PROJECT:
+        raise ValueError("Please set the BASE_PATH_PROJECT variable in project_location.py to the project folder path.")
 
     for path in paths:
         if not os.path.exists(path):
@@ -35,4 +35,3 @@ if __name__ == "__main__":
             print(f"Created directory: {path}")
         else:
             print(f"Directory already exists: {path}")
-

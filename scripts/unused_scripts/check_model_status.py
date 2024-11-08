@@ -1,16 +1,19 @@
 import argparse
 import json
 import os
-from itertools import product
+import sys
 
 from sim_consistency.utils.path_maker import PathMaker
 from sim_consistency.utils.utils import get_combination
+
+sys.path.append('..')
 from helper import load_models, get_hyperparams, parse_datasets
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./models_config.json')
 parser.add_argument('--dataset', type=str, default='wds/imagenet1k')
-parser.add_argument('--generate_json', type=str, default=[], nargs='+', choices=['', 'features', 'probe', 'predictions'])
+parser.add_argument('--generate_json', type=str, default=[], nargs='+',
+                    choices=['', 'features', 'probe', 'predictions'])
 parser.add_argument('--quiet', dest='verbose', action="store_true", help="suppress verbose messages")
 args = parser.parse_args()
 
@@ -44,7 +47,7 @@ if __name__ == "__main__":
         for i, (key, _) in enumerate(models.items()):
             # Using Pathmaker:
             for fewshot_k, fewshot_epochs, seed, regularization in combs:
-              
+
                 # Prepare args
                 args.mode = "single_model"
                 args.dataset_root = DATASETS_ROOT
@@ -82,8 +85,9 @@ if __name__ == "__main__":
                 pred_path = pm._get_results_dirs()
                 if not os.path.exists(f"{pred_path}/predictions.pkl"):
                     not_finished_pred[key] = pred_path
-                    print(f"Did not find predictions with {dataset=}, {key=}, {fewshot_k=}, {fewshot_epochs=}, {seed=}, {regularization=}")
-        
+                    print(
+                        f"Did not find predictions with {dataset=}, {key=}, {fewshot_k=}, {fewshot_epochs=}, {seed=}, {regularization=}")
+
         if args.verbose:
             print("\nModels without features:")
             print("\n".join(not_finished_features.keys()))
@@ -94,13 +98,13 @@ if __name__ == "__main__":
             print("\nModels without predictions:")
             print("\n".join(not_finished_pred.keys()))
 
-        if args.generate_json: 
-            if "features" in args.generate_json and len(not_finished_features.keys()) > 0 :
+        if args.generate_json:
+            if "features" in args.generate_json and len(not_finished_features.keys()) > 0:
                 with open(f"models_configs/not_finished_features_{pp_dataset}.json", "w") as f:
                     json.dump({k: models[k] for k in not_finished_features.keys()}, f, indent=4)
-            if "probe" in args.generate_json and len(not_finished_probe.keys())>0 :
+            if "probe" in args.generate_json and len(not_finished_probe.keys()) > 0:
                 with open(f"models_configs/not_finished_probe_{pp_dataset}.json", "w") as f:
                     json.dump({k: models[k] for k in not_finished_probe.keys()}, f, indent=4)
-            if "predictions" in args.generate_json and len(not_finished_pred.keys())>0:
+            if "predictions" in args.generate_json and len(not_finished_pred.keys()) > 0:
                 with open(f"models_configs/not_finished_pred_{pp_dataset}.json", "w") as f:
                     json.dump({k: models[k] for k in not_finished_pred.keys()}, f, indent=4)

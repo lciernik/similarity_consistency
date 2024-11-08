@@ -4,7 +4,7 @@
 
 from setuptools import setup, find_packages
 
-with open('README_clip_benchmark.md') as readme_file:
+with open('README.md') as readme_file:
     readme = readme_file.read()
 
 with open('HISTORY.md') as history_file:

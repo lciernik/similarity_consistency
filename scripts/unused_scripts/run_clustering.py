@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from slurm import run_job
 from helper import load_models
 
