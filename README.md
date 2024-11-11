@@ -2,7 +2,7 @@
 
 This repository contains the code and experiments for the paper
 *"Training objective drives the consistency of representational similarity across
-datasets"* ([arXiv](https://arxiv.org/abs/xxxx.xxxxx)).
+datasets"* ([arXiv](http://arxiv.org/abs/2411.05561)). 
 
 ## Table of Contents
 
@@ -175,11 +175,14 @@ our results by following steps:
 If you find this work interesting or useful in your research, please cite our paper:
 
 ```bibtex
-@article{author2024title,
-    title={Paper Title},
-    author={Author, First and Second, Author},
-    journal={Journal Name},
-    year={2024}
+@misc{ciernik2024trainingobjectivedrivesconsistency,
+      title={Training objective drives the consistency of representational similarity across datasets}, 
+      author={Laure Ciernik and Lorenz Linhardt and Marco Morik and Jonas Dippel and Simon Kornblith and Lukas Muttenthaler},
+      year={2024},
+      eprint={2411.05561},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2411.05561}, 
 }
 ```
 
