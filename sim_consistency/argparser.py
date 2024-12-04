@@ -84,7 +84,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
 
     ### Model similarity
     aa('--sim_method', type=str, default="cka",
-       choices=['cka', 'rsa'], help="Method to use for model similarity task.")
+       choices=['cka', 'rsa', 'gromov'], help="Method to use for model similarity task.")
     aa('--sim_kernel', type=str, default="linear",
        choices=['linear', 'rbf'], help="Kernel used during CKA. Ignored if sim_method is rsa.")
     aa('--rsa_method', type=str, default="correlation",
