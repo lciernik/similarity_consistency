@@ -13,4 +13,4 @@ slurmpy
 timm>=0.9.16
 notebook
 seaborn
-
+POT

@@ -2,9 +2,12 @@ import json
 import os
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Tuple, List, Optional
 
 import numpy as np
+import ot
+from scipy.spatial.distance import cdist
 from thingsvision.core.cka import get_cka
 from thingsvision.core.rsa import compute_rdm, correlate_rdms
 from tqdm import tqdm
@@ -152,6 +155,113 @@ class RSAModelSimilarity(BaseModelSimilarity):
             return f"rsa_method_{self.rsa_method}_corr_method_{self.corr_method}"
         else:
             return f"rsa_method_{self.rsa_method}"
+
+
+class GWModelSimilarity(BaseModelSimilarity):
+    def __init__(
+            self,
+            feature_root: str,
+            subset_root: Optional[str],
+            split: str = 'train',
+            device: str = 'cuda',
+            cost_fun: str = 'euclidian',
+            fixed_coupling: bool = False,
+            loss_fun: str = 'square_loss',
+            max_workers: int = 4,
+            store_coupling: bool = False,
+            output_root: Optional[str] = None,
+    ) -> None:
+        super().__init__(feature_root=feature_root, subset_root=subset_root, split=split, device=device,
+                         max_workers=max_workers)
+
+        self.output_root = None
+
+        if store_coupling:
+            assert output_root is not None, "Output root should be provided for storing coupling matrices"
+            self.output_root = Path(output_root)
+            assert self.output_root.exists(), "Output root path does not exist"
+
+        self.store_coupling = store_coupling
+
+        if cost_fun not in ['euclidian', 'cosine']:
+            raise ValueError(f"Unknown cost function: {cost_fun}")
+        else:
+            self.cost_fun = cost_fun
+
+        if loss_fun not in ['square_loss', 'kl_loss']:
+            raise ValueError(f"Unknown loss function: {loss_fun}")
+        else:
+            self.loss_fun = loss_fun
+
+        self.fixed_coupling = fixed_coupling
+
+    def _prepare_sim_matrix(self) -> np.ndarray:
+        return np.zeros((len(self.model_ids_with_idx), len(self.model_ids_with_idx)))
+
+    def _load_feature(self, model_id: str) -> np.ndarray:
+        features = load_features(self.feature_root, model_id, self.split, self.subset_indices).numpy()
+        C_mat = cdist(features.numpy(), features, metric=self.cost_fun)
+        C_mat /= C_mat.max()
+        return C_mat
+
+    def get_name(self):
+        return f"gw_sim_cost_{'fixed_coupling' if self.fixed_coupling else 'learned_coupling'}_fun_{self.cost_fun}_loss_fun_{self.loss_fun}"
+
+    def store_coupling_matrix(self, model1: str, model2: str, coupling_matrix: np.ndarray) -> None:
+        if self.store_coupling:
+            output_path = self.output_root / f"{model1}_{model2}_coupling.npy"
+            np.save(output_path, coupling_matrix)
+
+    def _comput_gromov_distance(self, C1: np.ndarray, C2: np.ndarray, T: np.ndarray) -> float:
+        # simple get_backend as the full one will be handled in gromov_wasserstein
+        nx = ot.backend.get_backend(C1, C2)
+
+        # init marginals if set as None
+        p = ot.utils.unif(C1.shape[0], type_as=C1)
+        q = ot.utils.unif(C2.shape[0], type_as=C1)
+
+        if self.loss_fun == "square_loss":
+            gC1 = 2 * C1 * nx.outer(p, p) - 2 * nx.dot(T, nx.dot(C2, T.T))
+            gC2 = 2 * C2 * nx.outer(q, q) - 2 * nx.dot(T.T, nx.dot(C1, T))
+        elif self.loss_fun == "kl_loss":
+            gC1 = nx.log(C1 + 1e-15) * nx.outer(p, p) - nx.dot(
+                T, nx.dot(nx.log(C2 + 1e-15), T.T)
+            )
+            gC2 = -nx.dot(T.T, nx.dot(C1, T)) / (C2 + 1e-15) + nx.outer(q, q)
+
+        gw = nx.set_gradients(
+            gw,
+            (p, q, C1, C2),
+            (
+                log_gw["u"] - nx.mean(log_gw["u"]),
+                log_gw["v"] - nx.mean(log_gw["v"]),
+                gC1,
+                gC2,
+            ),
+        )
+
+    def compute_similarity_matrix(self) -> np.ndarray:
+        dist_matrix = self._prepare_sim_matrix()
+        for idx1, model1 in tqdm(self.model_ids_with_idx, desc=f"Computing CKA matrix"):
+            C_i = load_features(self.feature_root, model1, self.split, self.subset_indices)
+            for idx2, model2 in self.model_ids_with_idx:
+                if idx1 >= idx2:
+                    continue
+                C_j = load_features(self.feature_root, model2, self.split, self.subset_indices)
+
+                assert C_i.shape[0] == C_j.shape[0], \
+                    (f"Number of samples should be equal for both models. (model1: {model1}, model2: {model2},"
+                     f"feature_root: {self.feature_root})")
+
+                if self.fixed_coupling:
+                    T = np.eye(C_i.shape[0])
+
+                else:
+                    gw_dist, log_gw = ot.gromov.gromov_wasserstein2(C_i, C_j, loss_fun=self.loss_fun, log=True)
+
+                self.store_coupling_matrix(model1, model2, log_gw['T'])
+                dist_matrix[idx1, idx2] = gw_dist
+                dist_matrix[idx2, idx1] = gw_dist
 
 
 def compute_sim_matrix(
