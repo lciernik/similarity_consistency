@@ -1,6 +1,7 @@
 import argparse
 import json
 import os
+from random import choices
 from typing import Tuple, List
 
 from sim_consistency.tasks.linear_probe import Regularization
@@ -98,6 +99,15 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--use_ds_subset', action="store_true", help="Compute model similarities on precomputed subset of the dataset.")
     aa('--subset_root', type=str, help="Path to the root folder where the dataset subset indices are stored. "
                                        "Only used if use_ds_subset is True.")
+
+    # Gromov Wasserstein Parameter:
+    aa('--gromov_cost_fun', type=str, default='euclidean', help='The cost function used for gromov Wasserstein distance',
+       choices=['euclidean','cosine'])
+    aa('--gromov_type', type=str, default='fixed_coupling', help='The type of gromov Wasserstein distance',
+       choices=['fixed_coupling', 'full_gromov', 'sampled_gromov', 'entropic_gromov'])
+    aa('--gromov_loss_fun', type=str, default='square_loss', help='The loss function used for gromov Wasserstein distance',
+       choices=['square_loss', 'kl_loss'])
+    aa('--gromov_store_coupling', type=bool, default=False, help='Store the coupling matrix for gromov Wasserstein distance')
 
     # STORAGE
     aa('--output_root', default="results", type=str,
