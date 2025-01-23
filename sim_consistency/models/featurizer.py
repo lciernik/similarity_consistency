@@ -19,10 +19,11 @@ class Featurizer(torch.nn.Module):
         return image_features
 
     def feature_extraction(
-            self,
-            train_dataloader: DataLoader,
-            eval_dataloader: DataLoader,
-            feature_dir: str, device: str
+        self,
+        train_dataloader: DataLoader,
+        eval_dataloader: DataLoader,
+        feature_dir: str,
+        device: str,
     ):
         """
         Extract features from the dataset using the featurizer model and store them in the feature_dir
@@ -49,8 +50,18 @@ class Featurizer(torch.nn.Module):
                         features = torch.cat(features)
                         targets = torch.cat(targets)
 
-                        torch.save(features, os.path.join(feature_dir, f'features{save_str}_cache_{num_cached}.pt'))
-                        torch.save(targets, os.path.join(feature_dir, f'targets{save_str}_cache_{num_cached}.pt'))
+                        torch.save(
+                            features,
+                            os.path.join(
+                                feature_dir, f"features{save_str}_cache_{num_cached}.pt"
+                            ),
+                        )
+                        torch.save(
+                            targets,
+                            os.path.join(
+                                feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
+                            ),
+                        )
                         num_cached += 1
                         features = []
                         targets = []
@@ -58,21 +69,39 @@ class Featurizer(torch.nn.Module):
             if len(features) > 0:
                 features = torch.cat(features)
                 targets = torch.cat(targets)
-                torch.save(features, os.path.join(feature_dir, f'features{save_str}_cache_{num_cached}.pt'))
-                torch.save(targets, os.path.join(feature_dir, f'targets{save_str}_cache_{num_cached}.pt'))
+                torch.save(
+                    features,
+                    os.path.join(
+                        feature_dir, f"features{save_str}_cache_{num_cached}.pt"
+                    ),
+                )
+                torch.save(
+                    targets,
+                    os.path.join(
+                        feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
+                    ),
+                )
                 num_cached += 1
 
-            features = torch.load(os.path.join(feature_dir, f'features{save_str}_cache_0.pt'))
-            targets = torch.load(os.path.join(feature_dir, f'targets{save_str}_cache_0.pt'))
+            features = torch.load(
+                os.path.join(feature_dir, f"features{save_str}_cache_0.pt")
+            )
+            targets = torch.load(
+                os.path.join(feature_dir, f"targets{save_str}_cache_0.pt")
+            )
             for k in range(1, num_cached):
-                next_features = torch.load(os.path.join(feature_dir, f'features{save_str}_cache_{k}.pt'))
-                next_targets = torch.load(os.path.join(feature_dir, f'targets{save_str}_cache_{k}.pt'))
+                next_features = torch.load(
+                    os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt")
+                )
+                next_targets = torch.load(
+                    os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt")
+                )
                 features = torch.cat((features, next_features))
                 targets = torch.cat((targets, next_targets))
 
             for k in range(num_cached):
-                os.remove(os.path.join(feature_dir, f'features{save_str}_cache_{k}.pt'))
-                os.remove(os.path.join(feature_dir, f'targets{save_str}_cache_{k}.pt'))
+                os.remove(os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt"))
+                os.remove(os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt"))
 
-            torch.save(features, os.path.join(feature_dir, f'features{save_str}.pt'))
-            torch.save(targets, os.path.join(feature_dir, f'targets{save_str}.pt'))
+            torch.save(features, os.path.join(feature_dir, f"features{save_str}.pt"))
+            torch.save(targets, os.path.join(feature_dir, f"targets{save_str}.pt"))
