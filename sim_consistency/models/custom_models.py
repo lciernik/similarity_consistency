@@ -31,8 +31,8 @@ class CustomModelPlaces(Custom):
         }
         if self.model_name == 'densenet161_places365':
             state_dict = {
-                re.sub(r'\.(\d+)\.', r'\1\.', k): v
-                for k, v in checkpoint["state_dict"].items()
+                re.sub(r'\.(\d+)\.', r'\1.', k): v
+                for k, v in state_dict.items()
                 }
 
         model.load_state_dict(state_dict)
