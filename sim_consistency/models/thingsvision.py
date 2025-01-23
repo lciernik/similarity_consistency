@@ -67,8 +67,7 @@ def load_thingsvision_model(
     module_name: str,
     feature_alignment: Optional[str] = None,
 ):
-    print(f"Loading model {model_name} from {source}")
-    print(CUSTOM_MODELS)
+    
     if model_name in CUSTOM_MODELS:
         extractor = get_extractor_from_model(
             model=CustomModelPlaces(model_name, device=device).create_model(),
