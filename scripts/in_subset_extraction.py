@@ -6,7 +6,7 @@ from project_location import SUBSET_ROOT
 from slurm import run_job
 
 # MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
-MODELS_CONFIG = "test_scripts/test_models_config.json"
+MODELS_CONFIG = "./configs/models_config_places_vs_in1k.json"
 
 FEATURES_ROOT = os.path.join(feat_root, 'wds_imagenet1k')
 SUBSET_IDXS = os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k',
