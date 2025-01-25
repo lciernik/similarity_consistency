@@ -240,7 +240,10 @@ def run(args):
 
     if args.verbose:
         print(
-            f"\nRunning '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n"
+            f"\n--------------------------------------------------------------------------------\n"
+            f"--------------------------------------------------------------------------------\n"
+            f"Running '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n"
+            f"--  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --\n"
         )
 
     base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, results_dir)
