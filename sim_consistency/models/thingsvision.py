@@ -3,6 +3,7 @@ import zlib
 from typing import Union, Dict, Optional
 
 import torch
+import torch.nn.functional as F
 from thingsvision import get_extractor, get_extractor_from_model
 from .custom_models import CustomModelPlaces, CUSTOM_MODELS
 
@@ -27,6 +28,16 @@ class ThingsvisionModel:
                 batch=x,
                 flatten_acts=self._flatten_acts,
                 # flatten 2D feature maps from an early convolutional or attention layer
+            )
+        if len(features.shape) > 2 and "densenet161" in self._extractor.model_name:
+            features = F.relu(features, inplace=True)
+            features = F.adaptive_avg_pool2d(features, (1, 1))
+            features = torch.flatten(features, 1)
+        elif len(features.shape) > 2:
+            raise ValueError(
+                f"Features have more than 2 dimensions: {features.shape}. "
+                f"Please set `flatten_acts=True` (current value {self._flatten_acts=}) or "
+                f"adjust handling of postprocessing of features for the model {self._extractor.model_name}."
             )
 
         features = features.to(torch.float32)
@@ -89,6 +100,8 @@ def load_thingsvision_model(
         and model_parameters["extract_cls_token"]
         or "token_extraction" in model_parameters
     ):
+        flatten_acts = False
+    elif "densenet161" in model_name:
         flatten_acts = False
 
     model = ThingsvisionModel(

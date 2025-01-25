@@ -24,6 +24,8 @@ class Featurizer(torch.nn.Module):
         eval_dataloader: DataLoader,
         feature_dir: str,
         device: str,
+        use_cache: bool = True,
+        num_batches_in_cache: int = 100,
     ):
         """
         Extract features from the dataset using the featurizer model and store them in the feature_dir
@@ -32,12 +34,31 @@ class Featurizer(torch.nn.Module):
         for save_str, loader in zip(splits, [train_dataloader, eval_dataloader]):
             if loader is None:
                 continue
+
+            num_cached = 0
+            if use_cache:
+                while os.path.exists(
+                    os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt")
+                ) and os.path.exists(
+                    os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt")
+                ):
+                    num_cached += 1
+                print(f"\nFound {num_cached} cached feature and target files in {feature_dir=}.\n")
+
             features = []
             targets = []
-            num_batches_tracked = 0
-            num_cached = 0
+            num_batches_tracked = num_cached * num_batches_in_cache
             with torch.no_grad():
-                for images, target in tqdm(loader):
+                for batch_idx, (images, target) in enumerate(
+                    tqdm(
+                        loader,
+                        total=len(loader),
+                        desc=f"Extracting features for {save_str}",
+                    )
+                ):
+                    if batch_idx < num_batches_tracked:
+                        continue
+
                     images = images.to(device)
 
                     feature = self.forward(images)
@@ -46,22 +67,14 @@ class Featurizer(torch.nn.Module):
                     targets.append(target)
 
                     num_batches_tracked += 1
-                    if (num_batches_tracked % 100) == 0:
+                    # If we have reached the number of batches to cache, save the features and targets and reset the lists
+                    if (num_batches_tracked % num_batches_in_cache) == 0:
                         features = torch.cat(features)
                         targets = torch.cat(targets)
 
-                        torch.save(
-                            features,
-                            os.path.join(
-                                feature_dir, f"features{save_str}_cache_{num_cached}.pt"
-                            ),
-                        )
-                        torch.save(
-                            targets,
-                            os.path.join(
-                                feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
-                            ),
-                        )
+                        torch.save(features, os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt"))
+                        torch.save(targets, os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt"))
+                        
                         num_cached += 1
                         features = []
                         targets = []
@@ -69,35 +82,49 @@ class Featurizer(torch.nn.Module):
             if len(features) > 0:
                 features = torch.cat(features)
                 targets = torch.cat(targets)
-                torch.save(
-                    features,
-                    os.path.join(
-                        feature_dir, f"features{save_str}_cache_{num_cached}.pt"
-                    ),
-                )
-                torch.save(
-                    targets,
-                    os.path.join(
-                        feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
-                    ),
-                )
+                torch.save(features, os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt"))
+                torch.save(targets, os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt"))
                 num_cached += 1
 
-            features = torch.load(
-                os.path.join(feature_dir, f"features{save_str}_cache_0.pt")
-            )
-            targets = torch.load(
-                os.path.join(feature_dir, f"targets{save_str}_cache_0.pt")
-            )
-            for k in range(1, num_cached):
+            # features = torch.load(
+            #     os.path.join(feature_dir, f"features{save_str}_cache_0.pt")
+            # )
+            # targets = torch.load(
+            #     os.path.join(feature_dir, f"targets{save_str}_cache_0.pt")
+            # )
+            # for k in tqdm(range(1, num_cached), desc="Concatenating cached features"):
+            #     next_features = torch.load(
+            #         os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt")
+            #     )
+            #     next_targets = torch.load(
+            #         os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt")
+            #     )
+            #     features = torch.cat((features, next_features))
+            #     targets = torch.cat((targets, next_targets))
+
+            features_list = []
+            targets_list = []
+
+            for k in tqdm(
+                range(num_cached),
+                total=num_cached,
+                desc="Loading cached features and targets",
+            ):
                 next_features = torch.load(
-                    os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt")
+                    os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt"),
+                    map_location="cpu",
                 )
+                features_list.append(next_features)
+
                 next_targets = torch.load(
-                    os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt")
+                    os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt"),
+                    map_location="cpu",
                 )
-                features = torch.cat((features, next_features))
-                targets = torch.cat((targets, next_targets))
+                targets_list.append(next_targets)
+
+            print("Concatenating loaded features and targets")
+            features = torch.cat(features_list)
+            targets = torch.cat(targets_list)
 
             for k in range(num_cached):
                 os.remove(os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt"))

@@ -3,6 +3,7 @@ import re
 import torch
 import torchvision.models as models
 from thingsvision.custom_models.custom import Custom
+import torch.nn as nn
 
 PRETRAINED_MODEL_PATH = Path("/home/space/diverse_priors/pretrained_models")
 
@@ -29,11 +30,10 @@ class CustomModelPlaces(Custom):
             str.replace(k, "module.", ""): v
             for k, v in checkpoint["state_dict"].items()
         }
-        if self.model_name == 'densenet161_places365':
+        if self.model_name == "densenet161_places365":
             state_dict = {
-                re.sub(r'\.(\d+)\.', r'\1.', k): v
-                for k, v in state_dict.items()
-                }
+                re.sub(r"\.(\d+)\.", r"\1.", k): v for k, v in state_dict.items()
+            }
 
         model.load_state_dict(state_dict)
         return model
