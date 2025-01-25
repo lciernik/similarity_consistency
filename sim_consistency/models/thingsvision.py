@@ -29,7 +29,7 @@ class ThingsvisionModel:
                 flatten_acts=self._flatten_acts,
                 # flatten 2D feature maps from an early convolutional or attention layer
             )
-        if len(features.shape) > 2 and ("densenet161" in self._extractor.model_name or "custom" in self._extractor.model_name):
+        if len(features.shape) > 2 and "densenet161" in self._extractor.model_name:
             features = F.relu(features, inplace=True)
             features = F.adaptive_avg_pool2d(features, (1, 1))
             features = torch.flatten(features, 1)
@@ -85,6 +85,7 @@ def load_thingsvision_model(
             device=device,
             backend="pt",
         )
+        extractor.model_name = model_name
     else:
         extractor = get_extractor(
             model_name=model_name,
