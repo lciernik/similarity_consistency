@@ -38,18 +38,25 @@ class Featurizer(torch.nn.Module):
             num_cached = 0
             if use_cache:
                 while os.path.exists(
-                    os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt")
+                    os.path.join(
+                        feature_dir, f"features{save_str}_cache_{num_cached}.pt"
+                    )
                 ) and os.path.exists(
-                    os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt")
+                    os.path.join(
+                        feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
+                    )
                 ):
                     num_cached += 1
-                print(f"\nFound {num_cached} cached feature and target files in {feature_dir=}.\n")
+                if num_cached > 0:
+                    print(
+                        f"\nFound {num_cached} cached feature{save_str} and target{save_str} files in {feature_dir=}.\n"
+                    )
 
             features = []
             targets = []
             num_batches_tracked = num_cached * num_batches_in_cache
             with torch.no_grad():
-                for batch_idx, (images, target) in enumerate(loader):
+                for batch_idx, (images, target) in enumerate(tqdm(loader)):
                     if batch_idx < num_batches_tracked:
                         continue
 
@@ -66,9 +73,19 @@ class Featurizer(torch.nn.Module):
                         features = torch.cat(features)
                         targets = torch.cat(targets)
 
-                        torch.save(features, os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt"))
-                        torch.save(targets, os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt"))
-                        
+                        torch.save(
+                            features,
+                            os.path.join(
+                                feature_dir, f"features{save_str}_cache_{num_cached}.pt"
+                            ),
+                        )
+                        torch.save(
+                            targets,
+                            os.path.join(
+                                feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
+                            ),
+                        )
+
                         num_cached += 1
                         features = []
                         targets = []
@@ -76,25 +93,19 @@ class Featurizer(torch.nn.Module):
             if len(features) > 0:
                 features = torch.cat(features)
                 targets = torch.cat(targets)
-                torch.save(features, os.path.join(feature_dir, f"features{save_str}_cache_{num_cached}.pt"))
-                torch.save(targets, os.path.join(feature_dir, f"targets{save_str}_cache_{num_cached}.pt"))
+                torch.save(
+                    features,
+                    os.path.join(
+                        feature_dir, f"features{save_str}_cache_{num_cached}.pt"
+                    ),
+                )
+                torch.save(
+                    targets,
+                    os.path.join(
+                        feature_dir, f"targets{save_str}_cache_{num_cached}.pt"
+                    ),
+                )
                 num_cached += 1
-
-            # features = torch.load(
-            #     os.path.join(feature_dir, f"features{save_str}_cache_0.pt")
-            # )
-            # targets = torch.load(
-            #     os.path.join(feature_dir, f"targets{save_str}_cache_0.pt")
-            # )
-            # for k in tqdm(range(1, num_cached), desc="Concatenating cached features"):
-            #     next_features = torch.load(
-            #         os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt")
-            #     )
-            #     next_targets = torch.load(
-            #         os.path.join(feature_dir, f"targets{save_str}_cache_{k}.pt")
-            #     )
-            #     features = torch.cat((features, next_features))
-            #     targets = torch.cat((targets, next_targets))
 
             features_list = []
             targets_list = []
@@ -102,7 +113,7 @@ class Featurizer(torch.nn.Module):
             for k in tqdm(
                 range(num_cached),
                 total=num_cached,
-                desc="Loading cached features and targets",
+                desc=f"Loading cached features{save_str} and targets{save_str}",
             ):
                 next_features = torch.load(
                     os.path.join(feature_dir, f"features{save_str}_cache_{k}.pt"),
@@ -116,7 +127,7 @@ class Featurizer(torch.nn.Module):
                 )
                 targets_list.append(next_targets)
 
-            print("Concatenating loaded features and targets")
+            print(f"Concatenating loaded features{save_str} and targets{save_str}")
             features = torch.cat(features_list)
             targets = torch.cat(targets_list)
 
