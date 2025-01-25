@@ -49,13 +49,7 @@ class Featurizer(torch.nn.Module):
             targets = []
             num_batches_tracked = num_cached * num_batches_in_cache
             with torch.no_grad():
-                for batch_idx, (images, target) in enumerate(
-                    tqdm(
-                        loader,
-                        total=len(loader),
-                        desc=f"Extracting features for {save_str}",
-                    )
-                ):
+                for batch_idx, (images, target) in enumerate(loader):
                     if batch_idx < num_batches_tracked:
                         continue
 
