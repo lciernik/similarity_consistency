@@ -7,22 +7,37 @@ from itertools import product
 
 import torch
 
-from sim_consistency.argparser import get_parser_args, prepare_args, prepare_combined_args, load_model_configs_args
-from sim_consistency.data import (get_feature_combiner_cls)
+from sim_consistency.argparser import (
+    get_parser_args,
+    prepare_args,
+    prepare_combined_args,
+    load_model_configs_args,
+)
+from sim_consistency.data import get_feature_combiner_cls
 from sim_consistency.data.builder import get_dataset_class_filter
 from sim_consistency.data.data_utils import get_extraction_model_n_dataloader
-from sim_consistency.tasks import compute_sim_matrix
-from sim_consistency.tasks.linear_probe_evaluator import (SingleModelEvaluator, CombinedModelEvaluator,
-                                                          EnsembleModelEvaluator)
+from sim_consistency.tasks import get_similarity_metric
+from sim_consistency.tasks.linear_probe_evaluator import (
+    SingleModelEvaluator,
+    CombinedModelEvaluator,
+    EnsembleModelEvaluator,
+)
 from sim_consistency.utils.path_maker import PathMaker
-from sim_consistency.utils.utils import (as_list,
-                                         get_list_of_datasets,
-                                         map_to_probe_dataset,
-                                         prepare_ds_name,
-                                         world_info_from_env,
-                                         set_all_random_seeds, prepare_device, get_combination, get_list_of_models,
-                                         save_results, get_base_evaluator_args, check_existing_results,
-                                         check_force_train)
+from sim_consistency.utils.utils import (
+    as_list,
+    get_list_of_datasets,
+    map_to_probe_dataset,
+    prepare_ds_name,
+    world_info_from_env,
+    set_all_random_seeds,
+    prepare_device,
+    get_combination,
+    get_list_of_models,
+    save_results,
+    get_base_evaluator_args,
+    check_existing_results,
+    check_force_train,
+)
 
 
 def main():
@@ -39,7 +54,7 @@ def main():
         traceback.print_exc()
 
         # Append the args.model_key to the failed_models.txt file
-        with open(os.path.join(base.output_root, 'failed_models.txt'), 'a') as f:
+        with open(os.path.join(base.output_root, "failed_models.txt"), "a") as f:
 
             array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
             task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
@@ -61,34 +76,61 @@ def main_model_sim(base):
     model_ids = as_list(base.model_key)
 
     feature_root = os.path.join(base.feature_root, dataset_name)
-    subset_root = os.path.join(base.subset_root, dataset_name) if base.use_ds_subset else None
+    subset_root = (
+        os.path.join(base.subset_root, dataset_name) if base.use_ds_subset else None
+    )
 
-    # Compute CKA matrix
-    sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
-                                                            feature_root=feature_root,
-                                                            model_ids=model_ids,
-                                                            split=train_split,
-                                                            subset_root=subset_root,
-                                                            kernel=base.sim_kernel,
-                                                            rsa_method=base.rsa_method,
-                                                            corr_method=base.corr_method,
-                                                            backend='torch',
-                                                            unbiased=base.unbiased,
-                                                            device=base.device,
-                                                            sigma=base.sigma,
-                                                            max_workers=base.max_workers)
-    # Save the similarity matrix
+    # Get similarity metric class
+    similarity_metric = get_similarity_metric(
+        sim_method=base.sim_method,
+        feature_root=feature_root,
+        model_ids=model_ids,
+        split=train_split,
+        subset_root=subset_root,
+        kernel=base.sim_kernel,
+        rsa_method=base.rsa_method,
+        corr_method=base.corr_method,
+        backend="torch",
+        unbiased=base.unbiased,
+        device=base.device,
+        sigma=base.sigma,
+        max_workers=base.max_workers,
+    )
+    method_slug = similarity_metric.get_name()
+
+    # Check if similarity matrix already exists and skip if so (unless force_compute is set)
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
+    out_path_sim_mat = os.path.join(out_path, f"similarity_matrix.pt")
+    out_path_ids = os.path.join(out_path, f"model_ids.txt")
+
+    if (
+        not base.force_compute
+        and os.path.exists(out_path_sim_mat)
+        and os.path.exists(out_path_sim_mat)
+    ):
+        if base.verbose:
+            print(
+                f"\nSimilarity matrix already exists at:\n{out_path_sim_mat=}\n"
+                f"Skipping computation ...\n"
+            )
+        return 0
+
+    # Compute similarity matrix
+    model_ids = similarity_metric.get_model_ids()
+    sim_matrix = similarity_metric.compute_similarity_matrix()
+
+    # Only create the output directory if the similarity matrix was successfully computed
     if not os.path.exists(out_path):
         os.makedirs(out_path, exist_ok=True)
         if base.verbose:
-            print(f'\nCreated path ({out_path}), where results are to be stored ...\n')
+            print(f"\nCreated path ({out_path}), where results are to be stored ...\n")
 
-    out_res = os.path.join(out_path, f'similarity_matrix.pt')
+    # Save the similarity matrix
+    torch.save(sim_matrix, out_path_sim_mat)
     if base.verbose:
-        print(f"\nDump {base.sim_method.upper()} matrix to: {out_res}\n")
-    torch.save(sim_matrix, out_res)
-    with open(os.path.join(out_path, f'model_ids.txt'), "w") as file:
+        print(f"\nDumped {base.sim_method.upper()} matrix to:\n{out_path_sim_mat=}\n")
+
+    with open(out_path_ids, "w") as file:
         for string in model_ids:
             file.write(string + "\n")
 
@@ -121,7 +163,7 @@ def main_eval(base):
 
     if base.mode in ["combined_models", "ensemble"]:
         # We combine all provided models and assume selection is done beforehand.
-        model_combinations = [models, ]
+        model_combinations = [models]
         runs = product(model_combinations, datasets)
         arg_fn = prepare_combined_args
     else:
@@ -148,10 +190,11 @@ def main_eval(base):
                 f"An error occurred during the run with: "
                 f"{model_info} and {dataset}. "
                 f"Continuing with the next run.",
-                flush=True)
+                flush=True,
+            )
             print(e, flush=True)
-            failed_path = os.path.join(base.output_root, 'failed_models.txt')
-            with open(failed_path, 'a') as f:
+            failed_path = os.path.join(base.output_root, "failed_models.txt")
+            with open(failed_path, "a") as f:
                 array_job_id = int(os.environ["SLURM_ARRAY_JOB_ID"])
                 task_id = int(os.environ["SLURM_ARRAY_TASK_ID"])
                 f.write(f"{base.model_key} LOGID {array_job_id}_{task_id} \n")
@@ -177,7 +220,9 @@ def run(args):
     dirs = path_maker.make_paths()
     feature_dirs, model_dirs, results_dir, single_prediction_dirs, model_ids = dirs
     if args.verbose:
-        print(f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, {single_prediction_dirs=}, {model_ids=}\n")
+        print(
+            f"\n{feature_dirs=}, {model_dirs=}, {results_dir=}, {single_prediction_dirs=}, {model_ids=}\n"
+        )
 
     if args.skip_existing and check_existing_results(results_dir):
         if args.verbose:
@@ -188,36 +233,45 @@ def run(args):
         dataset_root = os.path.join(
             args.dataset_root,
             "wds",
-            f"wds_{args.dataset.replace('wds/', '', 1).replace('/', '-')}"
+            f"wds_{args.dataset.replace('wds/', '', 1).replace('/', '-')}",
         )
     else:
         dataset_root = args.dataset_root
 
     if args.verbose:
-        print(f"\nRunning '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n")
+        print(
+            f"\nRunning '{task}' with mode '{mode}' on '{dataset_name}' with the model(s) '{model_ids}'\n"
+        )
 
     base_kwargs = get_base_evaluator_args(args, feature_dirs, model_dirs, results_dir)
 
-    if task == 'feature_extraction':
-        model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(args, dataset_root, task)
+    if task == "feature_extraction":
+        model, train_dataloader, eval_dataloader = get_extraction_model_n_dataloader(
+            args, dataset_root, task
+        )
         evaluator = SingleModelEvaluator(
             model=model,
             train_dataloader=train_dataloader,
             eval_dataloader=eval_dataloader,
-            **base_kwargs
+            **base_kwargs,
         )
 
         if args.verbose:
-            print(f"\nExtracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...\n")
+            print(
+                f"\nExtracting features for {model_ids} on {dataset_name} and storing them in {feature_dirs} ...\n"
+            )
 
         evaluator.ensure_feature_availability()
 
         if args.verbose:
-            print(f"\nFinished feature extraction for {model_ids} on {dataset_name} ...\n")
+            print(
+                f"\nFinished feature extraction for {model_ids} on {dataset_name} ...\n"
+            )
 
-
-    elif task == 'linear_probe':
-        base_kwargs["logit_filter"] = get_dataset_class_filter(args.dataset, args.device)
+    elif task == "linear_probe":
+        base_kwargs["logit_filter"] = get_dataset_class_filter(
+            args.dataset, args.device
+        )
 
         if mode == "single_model":
             evaluator = SingleModelEvaluator(**base_kwargs)
@@ -225,30 +279,34 @@ def run(args):
         elif mode == "combined_models":
 
             feature_combiner_cls = get_feature_combiner_cls(args.feature_combiner)
-            evaluator = CombinedModelEvaluator(feature_combiner_cls=feature_combiner_cls,
-                                               **base_kwargs)
+            evaluator = CombinedModelEvaluator(
+                feature_combiner_cls=feature_combiner_cls, **base_kwargs
+            )
         elif mode == "ensemble":
-            evaluator = EnsembleModelEvaluator(model_ids=model_ids,
-                                               single_prediction_dirs=single_prediction_dirs,
-                                               **base_kwargs)
+            evaluator = EnsembleModelEvaluator(
+                model_ids=model_ids,
+                single_prediction_dirs=single_prediction_dirs,
+                **base_kwargs,
+            )
         else:
             raise ValueError(
                 "Unsupported mode: {}. mode should be `single_model`, `combined_models`, or `ensemble`".format(
-                    mode))
+                    mode
+                )
+            )
 
         metrics = evaluator.evaluate()
 
         save_results(
-            args=args,
-            model_ids=model_ids,
-            metrics=metrics,
-            out_path=results_dir
+            args=args, model_ids=model_ids, metrics=metrics, out_path=results_dir
         )
 
     else:
         raise ValueError(
             "Unsupported task: {}. task should be `feature_extraction` or `linear_probe`".format(
-                task))
+                task
+            )
+        )
 
     return 0
 
