@@ -1,7 +1,7 @@
 import os
 
 ## DEFINE BASEPATHS
-BASE_PATH_PROJECT = ''  # TODO: Add the path to the project folder
+BASE_PATH_PROJECT = '/home/space/diverse_priors'  # TODO: Add the path to the project folder
 
 ### DEFINE SUBFOLDERS
 
