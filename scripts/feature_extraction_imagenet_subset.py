@@ -12,7 +12,7 @@ from tqdm import tqdm
 
 from sim_consistency.utils.utils import load_features_targets
 from helper import load_models, format_path
-from project_location import FEATURES_ROOT, SUBSET_ROOT
+from project_location import FEATURES_ROOT, SUBSET_ROOT, DATASETS_ROOT
 
 MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 
@@ -34,6 +34,15 @@ def main(args):
 
     print(f"For each model in model_keys (n={len(model_keys)}) extract the features ...")
     for model_id in tqdm(model_keys, desc=f"Extracting subset of features with {args.num_samples_class} per class."):
+        
+        feature_dir = os.path.join(out_path_root, model_id)
+        feat_fn = os.path.join(feature_dir, f'features_{args.split}.pt')
+        tar_fn = os.path.join(feature_dir, f'targets_{args.split}.pt')
+        if os.path.exists(feat_fn) and os.path.exists(tar_fn):
+            print(
+                f'\nFeatures and targets of subset with {args.num_samples_class=} already exist for {model_id=}. Skipping...')
+            continue
+
         try:
             features, targets = load_features_targets(args.features_root, model_id, args.split)
         except FileNotFoundError as e:
@@ -44,14 +53,13 @@ def main(args):
 
         features_subset = features[indices, :]
         targets_subset = targets[indices]
-
-        feature_dir = os.path.join(out_path_root, model_id)
+        
         if not os.path.exists(feature_dir):
             os.makedirs(feature_dir)
             print(f'Created directory {feature_dir}')
 
-        torch.save(features_subset, os.path.join(feature_dir, f'features_{args.split}.pt'))
-        torch.save(targets_subset, os.path.join(feature_dir, f'targets_{args.split}.pt'))
+        torch.save(features_subset, feat_fn)
+        torch.save(targets_subset, tar_fn)
         print(f'Saved {args.split} features and targets  for model {model_id} to {feature_dir}')
         print()
 
