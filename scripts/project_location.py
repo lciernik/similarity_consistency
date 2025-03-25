@@ -7,7 +7,7 @@ BASE_PATH_PROJECT = ''  # TODO: Add the path to the project folder
 
 DATASETS_ROOT = os.path.join(BASE_PATH_PROJECT, 'datasets')
 
-SUBSET_ROOT = os.path.join(DATASETS_ROOT, 'subsets')
+SUBSET_ROOT = os.path.join(DATASETS_ROOT, 'subsets_30k')
 
 FEATURES_ROOT = os.path.join(BASE_PATH_PROJECT, 'features')
 
@@ -15,7 +15,7 @@ MODELS_ROOT = os.path.join(BASE_PATH_PROJECT, 'models')
 
 MODEL_SIM_ROOT = os.path.join(BASE_PATH_PROJECT, 'model_similarities')
 
-RESULTS_ROOT = os.path.join(BASE_PATH_PROJECT, 'results')
+RESULTS_ROOT = os.path.join(BASE_PATH_PROJECT, 'results_rebuttal')
 
 if __name__ == "__main__":
     paths = [

@@ -7,7 +7,7 @@ from slurm import run_job
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')
-parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_insub10k.txt',
+parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_insub30k.txt',
                     help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing "
                          "dataset names.")
 args = parser.parse_args()
@@ -15,7 +15,8 @@ args = parser.parse_args()
 MODELS_CONFIG = args.models_config
 DATASETS = parse_datasets(args.datasets)
 
-SIM_METRIC_CONFIG = "./configs/similarity_metric_config_local_global.json"
+# SIM_METRIC_CONFIG = "./configs/similarity_metric_config_local_global.json"
+SIM_METRIC_CONFIG = "./configs/similarity_metric_config_rbf_local.json"
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 

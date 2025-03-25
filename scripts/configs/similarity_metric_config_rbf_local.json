@@ -1,0 +1,9 @@
+[
+  {
+    "sim_method": "cka",
+    "sim_kernel": "rbf",
+    "rsa_method": "correlation",
+    "corr_method": "pearson",
+    "sigma": 0.2
+  }
+]
