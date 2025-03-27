@@ -42,7 +42,8 @@ def run_job(
 
     if device == "gpu":
         slurm_options["gres"] = "gpu:1"
-        slurm_options["constraint"] = "'[80gb|40gb|h100]'"
+        # slurm_options["constraint"] = "'[80gb|40gb|h100]'"
+        slurm_options["constraint"] = "'[80gb|40gb]'"
 
     time_mapping = {
         "test": "00-00:15:00",

@@ -63,28 +63,44 @@ def main_model_sim(base):
     feature_root = os.path.join(base.feature_root, dataset_name)
     subset_root = os.path.join(base.subset_root, dataset_name) if base.use_ds_subset else None
 
-    # Compute CKA matrix
-    sim_matrix, model_ids, method_slug = compute_sim_matrix(sim_method=base.sim_method,
-                                                            feature_root=feature_root,
-                                                            model_ids=model_ids,
-                                                            split=train_split,
-                                                            subset_root=subset_root,
-                                                            kernel=base.sim_kernel,
-                                                            rsa_method=base.rsa_method,
-                                                            corr_method=base.corr_method,
-                                                            backend='torch',
-                                                            unbiased=base.unbiased,
-                                                            device=base.device,
-                                                            sigma=base.sigma,
-                                                            max_workers=base.max_workers)
-    # Save the similarity matrix
+    # Get model computation object
+    model_similarity = compute_sim_matrix(sim_method=base.sim_method,
+                                          feature_root=feature_root,
+                                          split=train_split,
+                                          subset_root=subset_root,
+                                          kernel=base.sim_kernel,
+                                          rsa_method=base.rsa_method,
+                                          corr_method=base.corr_method,
+                                          backend='torch',
+                                          unbiased=base.unbiased,
+                                          device=base.device,
+                                          sigma=base.sigma,
+                                          max_workers=base.max_workers)
+    
+    method_slug = model_similarity.get_name()
+
+    # Check if the similarity matrix already exists
     out_path = os.path.join(base.output_root, dataset_name, method_slug)
+    out_res = os.path.join(out_path, f'similarity_matrix.pt')
+    if os.path.exists(out_res):
+        if base.verbose:
+            print(f"Similarity matrix already exists in {out_res}. SKIPPING ...")
+        return 0
+    else:
+        if base.verbose:
+            print(f"Similarity matrix does not exist in {out_res}. Computing ...")
+    
+    # Compute the similarity matrix
+    model_similarity.load_model_ids(model_ids)
+    model_ids = model_similarity.get_model_ids()
+    sim_matrix = model_similarity.compute_similarity_matrix()
+    
+    # Save the similarity matrix
     if not os.path.exists(out_path):
         os.makedirs(out_path, exist_ok=True)
         if base.verbose:
             print(f'\nCreated path ({out_path}), where results are to be stored ...\n')
 
-    out_res = os.path.join(out_path, f'similarity_matrix.pt')
     if base.verbose:
         print(f"\nDump {base.sim_method.upper()} matrix to: {out_res}\n")
     torch.save(sim_matrix, out_res)

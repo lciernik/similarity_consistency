@@ -2,21 +2,26 @@ import argparse
 import json
 
 from helper import load_models, parse_datasets
-from project_location import DATASETS_ROOT, SUBSET_ROOT, FEATURES_ROOT, MODEL_SIM_ROOT
+from project_location import DATASETS_ROOT, SUBSET_ROOT
 from slurm import run_job
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--models_config', type=str, default='./configs/models_config_wo_alignment.json')
-parser.add_argument('--datasets', type=str, nargs='+', default='./configs/webdatasets_w_insub30k.txt',
-                    help="datasets can be a list of dataset names or a file (e.g., webdatasets.txt) containing "
-                         "dataset names.")
+parser.add_argument('--models_config', type=str, default='./configs/models_config_anchor_models.json')
+parser.add_argument('--max_seed', default=500, type=int,
+                    help='Maximum seed for the subset indices.')
 args = parser.parse_args()
 
+
+FEATURES_ROOT = "/home/space/diverse_priors/features_bootstrap"
+MODEL_SIM_ROOT = "/home/space/diverse_priors/model_similarities_bootstrap"
+
 MODELS_CONFIG = args.models_config
-DATASETS = parse_datasets(args.datasets)
+
+DATASETS = [ f"imagenet-subset-30k-seed-{seed}" for seed in range(args.max_seed)]
 
 # SIM_METRIC_CONFIG = "./configs/similarity_metric_config_local_global.json"
 SIM_METRIC_CONFIG = "./configs/similarity_metric_config_rbf_local.json"
+
 with open(SIM_METRIC_CONFIG, "r") as file:
     sim_method_config = json.load(file)
 
@@ -54,7 +59,7 @@ if __name__ == "__main__":
                                       --use_ds_subset \
                                       --subset_root {SUBSET_ROOT}
                         """
-        partition = 'gpu-5h' if exp_dict['sim_method'] == 'cka' else 'cpu-2d'
+        partition = 'gpu-9m' if exp_dict['sim_method'] == 'cka' else 'cpu-2h'
         mem = 64
 
         run_job(

@@ -1,7 +1,7 @@
 import os
 
 ## DEFINE BASEPATHS
-BASE_PATH_PROJECT = ''  # TODO: Add the path to the project folder
+BASE_PATH_PROJECT = '/home/space/diverse_priors'  # TODO: Add the path to the project folder
 
 ### DEFINE SUBFOLDERS
 
@@ -13,7 +13,7 @@ FEATURES_ROOT = os.path.join(BASE_PATH_PROJECT, 'features')
 
 MODELS_ROOT = os.path.join(BASE_PATH_PROJECT, 'models')
 
-MODEL_SIM_ROOT = os.path.join(BASE_PATH_PROJECT, 'model_similarities')
+MODEL_SIM_ROOT = os.path.join(BASE_PATH_PROJECT, 'model_similarities_rbf02')
 
 RESULTS_ROOT = os.path.join(BASE_PATH_PROJECT, 'results_rebuttal')
 

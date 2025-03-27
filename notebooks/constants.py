@@ -16,6 +16,7 @@ BASE_PATH_RESULTS = Path(bpr)
 model_config_file = '../scripts/configs/models_config_wo_alignment.json'
 ds_info_file = '../scripts/configs/dataset_info.json'
 ds_list_sim_file = '../scripts/configs/webdatasets_w_insub10k.txt'
+ds_list_sim_file_30k = '../scripts/configs/webdatasets_w_insub30k.txt'
 ds_list_perf_file = '../scripts/configs/webdatasets_w_in1k.txt'
 
 ########################################################################
@@ -74,10 +75,12 @@ sim_metric_name_mapping = {
 ds_name_mapping = {
     'wds_imagenet1k': 'ImageNet1k',
     'imagenet-subset-10k': 'ImageNet1k',
+    'imagenet-subset-30k': 'ImageNet1k',
     'wds_vtab_flowers': 'Flowers',
     'wds_vtab_pets': 'Pets',
     'wds_vtab_eurosat': 'Eurosat',
-    'wds_vtab_pcam': 'PCAM'
+    'wds_vtab_pcam': 'PCAM',
+    'wds_vtab_dtd': 'DTD'
 }
 
 anchor_name_mapping = {

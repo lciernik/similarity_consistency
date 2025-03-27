@@ -2,14 +2,14 @@ import os
 
 from helper import load_models
 from project_location import FEATURES_ROOT as feat_root
-from project_location import SUBSET_ROOT
+from project_location import DATASET_ROOT 
 from slurm import run_job
 
 # MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 MODELS_CONFIG = "test_scripts/test_models_config.json"
 
 FEATURES_ROOT = os.path.join(feat_root, 'wds_imagenet1k')
-SUBSET_IDXS = os.path.join(SUBSET_ROOT, 'imagenet-subset-{num_samples_class}k',
+SUBSET_IDXS = os.path.join(DATASET_ROOT, 'imagenet-subset-{num_samples_class}k',
                            'imagenet-{num_samples_class}k-{split}.json')
 OUTPUT_ROOT = os.path.join(feat_root, 'imagenet-subset-{num_samples_class}k')
 
@@ -19,6 +19,7 @@ if __name__ == "__main__":
 
     model_keys = ' '.join(models.keys())
 
+    nr_samples = []
     nr_samples = [1, 5, 10, 20, 30, 40]
 
     for num_samples_class in nr_samples:
