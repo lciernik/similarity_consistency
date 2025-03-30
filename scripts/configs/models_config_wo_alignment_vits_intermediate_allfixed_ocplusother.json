@@ -1,0 +1,691 @@
+{
+  "dinov2-vit-large-p14": {
+    "model_name": "dinov2-vit-large-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Self-Supervised",
+    "dataset": "LVD-142M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 304368640,
+    "size_fmt": "304.4M",
+    "size_class": "large"
+  },
+  "dino-vit-base-p16": {
+    "model_name": "dino-vit-base-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 85798656,
+    "size_fmt": "85.8M",
+    "size_class": "small"
+  },
+  "mae-vit-base-p16": {
+    "model_name": "mae-vit-base-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 86388480,
+    "size_fmt": "86.4M",
+    "size_class": "small"
+  },
+  "mae-vit-large-p16": {
+    "model_name": "mae-vit-large-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 303301632,
+    "size_fmt": "303.3M",
+    "size_class": "large"
+  },
+  "mae-vit-huge-p14": {
+    "model_name": "mae-vit-huge-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.15",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1280,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 630764800,
+    "size_fmt": "630.8M",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_ViT-B-16_openai": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-B-16",
+      "dataset": "openai"
+    },
+    "module_name": "visual.transformer.resblocks.5",
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 512,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 149620737,
+    "size_fmt": "149.6M",
+    "size_class": "medium"
+  },
+  "OpenCLIP_ViT-B-16_laion400m_e32": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-B-16",
+      "dataset": "laion400m_e32"
+    },
+    "module_name": "visual.transformer.resblocks.5",
+    "objective": "Image-Text",
+    "dataset": "LAION400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 512,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 149620737,
+    "size_fmt": "149.6M",
+    "size_class": "medium"
+  },
+  "OpenCLIP_ViT-B-16_laion2b_s34b_b88k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-B-16",
+      "dataset": "laion2b_s34b_b88k"
+    },
+    "module_name": "visual.transformer.resblocks.5",
+    "objective": "Image-Text",
+    "dataset": "LAION2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 512,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 149620737,
+    "size_fmt": "149.6M",
+    "size_class": "medium"
+  },
+  "OpenCLIP_ViT-L-14_openai": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-L-14",
+      "dataset": "openai"
+    },
+    "module_name": "visual.transformer.resblocks.11",
+    "objective": "Image-Text",
+    "dataset": "WIT-400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 427616513,
+    "size_fmt": "427.6M",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_ViT-L-14_laion400m_e32": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-L-14",
+      "dataset": "laion400m_e32"
+    },
+    "module_name": "visual.transformer.resblocks.11",
+    "objective": "Image-Text",
+    "dataset": "LAION400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 427616513,
+    "size_fmt": "427.6M",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_ViT-L-14_laion2b_s32b_b82k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-L-14",
+      "dataset": "laion2b_s32b_b82k"
+    },
+    "module_name": "visual.transformer.resblocks.11",
+    "objective": "Image-Text",
+    "dataset": "LAION2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 427616513,
+    "size_fmt": "427.6M",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_ViT-B-16-SigLIP_webli": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "ViT-B-16-SigLIP",
+      "dataset": "webli",
+      "token_extraction": "cls_token"
+    },
+    "module_name": "visual.trunk.blocks.5",
+    "objective": "Image-Text",
+    "dataset": "WebLI",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 203155970,
+    "size_fmt": "203.2M",
+    "size_class": "medium"
+  },
+  "OpenCLIP_EVA01-g-14_laion400m_s11b_b41k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "EVA01-g-14",
+      "dataset": "laion400m_s11b_b41k",
+      "token_extraction": "cls_token"
+    },
+    "module_name": "visual.trunk.blocks.19",
+    "objective": "Image-Text",
+    "dataset": "LAION400M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "Large",
+    "size": 1136435841,
+    "size_fmt": "1.1B",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_EVA01-g-14-plus_merged2b_s11b_b114k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "EVA01-g-14-plus",
+      "dataset": "merged2b_s11b_b114k",
+      "token_extraction": "cls_token"
+    },
+    "module_name": "visual.trunk.blocks.19",
+    "objective": "Image-Text",
+    "dataset": "Merged2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 1366621569,
+    "size_fmt": "1.4B",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_EVA02-L-14_merged2b_s4b_b131k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "EVA02-L-14",
+      "dataset": "merged2b_s4b_b131k",
+      "token_extraction": "cls_token"
+    },
+    "module_name": "visual.trunk.blocks.11",
+    "objective": "Image-Text",
+    "dataset": "Merged2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 427755457,
+    "size_fmt": "427.8M",
+    "size_class": "xlarge"
+  },
+  "OpenCLIP_EVA02-B-16_merged2b_s8b_b131k": {
+    "model_name": "OpenCLIP",
+    "source": "custom",
+    "model_parameters": {
+      "variant": "EVA02-B-16",
+      "dataset": "merged2b_s8b_b131k",
+      "token_extraction": "cls_token"
+    },
+    "module_name": "visual.trunk.blocks.5",
+    "objective": "Image-Text",
+    "dataset": "Merged2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 512,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 149691137,
+    "size_fmt": "149.7M",
+    "size_class": "medium"
+  },
+  "vit_base_patch16_224": {
+    "model_name": "vit_base_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 86567656,
+    "size_fmt": "86.6M",
+    "size_class": "small"
+  },
+  "vit_base_patch16_224.augreg_in21k": {
+    "model_name": "vit_base_patch16_224.augreg_in21k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 102595923,
+    "size_fmt": "102.6M",
+    "size_class": "medium"
+  },
+  "vit_large_patch16_224": {
+    "model_name": "vit_large_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 304326632,
+    "size_fmt": "304.3M",
+    "size_class": "large"
+  },
+  "vit_large_patch16_224.augreg_in21k": {
+    "model_name": "vit_large_patch16_224.augreg_in21k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 325690707,
+    "size_fmt": "325.7M",
+    "size_class": "large"
+  },
+  "vit_huge_patch14_224.orig_in21k": {
+    "model_name": "vit_huge_patch14_224.orig_in21k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.15",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1280,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 630764800,
+    "size_fmt": "630.8M",
+    "size_class": "xlarge"
+  },
+  "vit_huge_patch14_clip_224.laion2b": {
+    "model_name": "vit_huge_patch14_clip_224.laion2b",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.15",
+    "objective": "Image-Text",
+    "dataset": "LAION2B",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1280,
+    "alignment": null,
+    "dataset_class": "XLarge",
+    "size": 632077824,
+    "size_fmt": "632.1M",
+    "size_class": "xlarge"
+  },
+  "beit_base_patch16_224": {
+    "model_name": "beit_base_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k + ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 86530984,
+    "size_fmt": "86.5M",
+    "size_class": "small"
+  },
+  "beit_base_patch16_224.in22k_ft_in22k": {
+    "model_name": "beit_base_patch16_224.in22k_ft_in22k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 102557713,
+    "size_fmt": "102.6M",
+    "size_class": "medium"
+  },
+  "beit_large_patch16_224": {
+    "model_name": "beit_large_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k + ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 304430568,
+    "size_fmt": "304.4M",
+    "size_class": "large"
+  },
+  "beit_large_patch16_224.in22k_ft_in22k": {
+    "model_name": "beit_large_patch16_224.in22k_ft_in22k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 325792593,
+    "size_fmt": "325.8M",
+    "size_class": "large"
+  },
+  "deit3_base_patch16_224": {
+    "model_name": "deit3_base_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 86585320,
+    "size_fmt": "86.6M",
+    "size_class": "small"
+  },
+  "deit3_base_patch16_224.fb_in22k_ft_in1k": {
+    "model_name": "deit3_base_patch16_224.fb_in22k_ft_in1k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k + ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 768,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 86585320,
+    "size_fmt": "86.6M",
+    "size_class": "small"
+  },
+  "deit3_large_patch16_224": {
+    "model_name": "deit3_large_patch16_224",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "size": 304374760,
+    "size_fmt": "304.4M",
+    "size_class": "large"
+  },
+  "deit3_large_patch16_224.fb_in22k_ft_in1k": {
+    "model_name": "deit3_large_patch16_224.fb_in22k_ft_in1k",
+    "source": "timm",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Supervised",
+    "dataset": "ImageNet21k + ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "embedding_dim": 1024,
+    "alignment": null,
+    "dataset_class": "ImageNet21k",
+    "size": 304374760,
+    "size_fmt": "304.4M",
+    "size_class": "large"
+  },
+  "dino-xcit-small-12-p16": {
+    "model_name": "dino-xcit-small-12-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "embedding_dim": 384,
+    "size": 25868304,
+    "size_fmt": "25.9M",
+    "size_class": "small"
+  },
+  "dino-xcit-medium-24-p16": {
+    "model_name": "dino-xcit-medium-24-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.11",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "embedding_dim": 512,
+    "size": 83882752,
+    "size_fmt": "83.9M",
+    "size_class": "small"
+  },
+  "dino-vit-small-p16": {
+    "model_name": "dino-vit-small-p16",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "ImageNet1k",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "ImageNet1k",
+    "embedding_dim": 384,
+    "size": 21665664,
+    "size_fmt": "21.7M",
+    "size_class": "small"
+  },
+  "dinov2-vit-small-p14": {
+    "model_name": "dinov2-vit-small-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "LVD-142M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "Large",
+    "embedding_dim": 384,
+    "size": 22056576,
+    "size_fmt": "22.1M",
+    "size_class": "small"
+  },
+  "dinov2-vit-base-p14": {
+    "model_name": "dinov2-vit-base-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.5",
+    "objective": "Self-Supervised",
+    "dataset": "LVD-142M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "Large",
+    "embedding_dim": 768,
+    "size": 86580480,
+    "size_fmt": "86.6M",
+    "size_class": "small"
+  },
+  "dinov2-vit-giant-p14": {
+    "model_name": "dinov2-vit-giant-p14",
+    "source": "ssl",
+    "model_parameters": {
+      "extract_cls_token": true,
+      "token_extraction": "cls_token"
+    },
+    "module_name": "blocks.19",
+    "objective": "Self-Supervised",
+    "dataset": "LVD-142M",
+    "architecture_class": "Transformer",
+    "architecture": "ViT",
+    "alignment": null,
+    "dataset_class": "Large",
+    "embedding_dim": 1536,
+    "size": 1136480768,
+    "size_fmt": "1.1B",
+    "size_class": "xlarge"
+  }
+}
