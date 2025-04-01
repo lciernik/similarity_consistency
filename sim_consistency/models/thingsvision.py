@@ -25,6 +25,13 @@ class ThingsvisionModel:
                 flatten_acts=self._flatten_acts,
                 # flatten 2D feature maps from an early convolutional or attention layer
             )
+            if len(features.shape) == 3:
+                model_name = self._extractor.model_name
+                model_parameters = self._extractor.model_parameters
+                if model_name.startswith("OpenCLIP"):
+                    if "variant" in model_parameters and not self._module_name == "visual":
+                        if "SigLIP" not in model_parameters["variant"] and "ViT" in model_parameters["variant"]:
+                            features = features[0]
 
         features = features.to(torch.float32)
 
@@ -73,6 +80,10 @@ def load_thingsvision_model(
             or "token_extraction" in model_parameters
     ):
         flatten_acts = False
+    elif model_name.startswith("OpenCLIP"):
+        if "variant" in model_parameters and not module_name == "visual":
+            if "SigLIP" not in model_parameters["variant"] and "ViT" in model_parameters["variant"]:
+                flatten_acts = False
 
     model = ThingsvisionModel(
         extractor=extractor,
