@@ -38,7 +38,7 @@ anchors = [
     'resnet50',
     'vit_large_patch16_224',
     'simclr-rn50',
-    'dino-vit-base-p16',
+    # 'dino-vit-base-p16',
     'dinov2-vit-large-p14',
     'mae-vit-large-p16'
 ]
