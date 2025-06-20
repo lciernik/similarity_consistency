@@ -2,7 +2,7 @@
 
 This repository contains the code and experiments for the paper
 *"Objective drives the consistency of representational similarity across
-datasets"* accepted at ICML 2025. ([OpenReview]([https://openreview.net/forum?id=va3zmBXPat])). 
+datasets"* accepted at ICML 2025. ([OpenReview](https://openreview.net/forum?id=va3zmBXPat)). 
 
 ## Table of Contents
 
