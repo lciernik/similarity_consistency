@@ -1,8 +1,8 @@
 # Representational similarity consistency across datasets
 
 This repository contains the code and experiments for the paper
-*"Training objective drives the consistency of representational similarity across
-datasets"* ([arXiv](http://arxiv.org/abs/2411.05561)). 
+*"Objective drives the consistency of representational similarity across
+datasets"* accepted at ICML 2025. ([OpenReview]([https://openreview.net/forum?id=va3zmBXPat])). 
 
 ## Table of Contents
 
@@ -18,19 +18,7 @@ datasets"* ([arXiv](http://arxiv.org/abs/2411.05561)).
 
 </p>
 
-[*The Platonic Representation Hypothesis*](https://phillipi.github.io/prh/#what_converging_to) claims that recent 
-foundation models are converging to a shared representation space as a function of their downstream task performance, 
-irrespective of the objectives and data modalities used to train these models. Representational similarity is generally 
-measured for individual datasets and is not necessarily consistent across datasets. Thus, one may wonder whether this 
-convergence of model representations is confounded by the datasets commonly used in machine learning. 
-Here, we propose a systematic way to measure how representational similarity between models varies with the set of 
-stimuli used to construct the representations. We find that the objective function is the most crucial factor in 
-determining the consistency of representational similarities across datasets. Specifically, self-supervised vision 
-models learn representations whose relative pairwise similarities generalize better from one dataset to another compared 
-to those of image classification or image-text models. Moreover, the correspondence between representational 
-similarities and the models' task behavior is dataset-dependent, being most strongly pronounced for single-domain 
-datasets. Our work provides a framework for systematically measuring similarities of model representations across 
-datasets and linking those similarities to differences in task behavior.
+[*The Platonic Representation Hypothesis*](https://phillipi.github.io/prh/#what_converging_to) claims that recent foundation models are converging to a shared representation space as a function of their downstream task performance, irrespective of the objectives and data modalities used to train these models (Huh et al., 2024). Representational similarity is generally measured for individual datasets and is not necessarily consistent across datasets. Thus, one may wonder whether this convergence of model representations is confounded by the datasets commonly used in machine learning. Here, we propose a systematic way to measure how representational similarity between models varies with the set of stimuli used to construct the representations. We find that the objective function is a crucial factor in determining the consistency of representational similarities across datasets. Specifically, self-supervised vision models learn representations whose relative pairwise similarities generalize better from one dataset to another compared to those of image classification or image-text models. Moreover, the correspondence between representational similarities and the models' task behavior is dataset-dependent, being most strongly pronounced for single-domain datasets. Our work provides a framework for analyzing similarities of model representations across datasets and linking those similarities to differences in task behavior.
 
 ## Repository and project overview
 
