@@ -3,11 +3,15 @@ import zlib
 from typing import Union, Dict, Optional
 
 import torch
-from thingsvision import get_extractor
+import torch.nn.functional as F
+from thingsvision import get_extractor, get_extractor_from_model
+from .custom_models import CustomModelPlaces, CUSTOM_MODELS
 
 
 class ThingsvisionModel:
-    def __init__(self, extractor, module_name, feature_alignment=None, flatten_acts=False):
+    def __init__(
+        self, extractor, module_name, feature_alignment=None, flatten_acts=False
+    ):
         self._extractor = extractor
         self._module_name = module_name
         self._extractor.model = self._extractor.model.to(extractor.device)
@@ -18,12 +22,22 @@ class ThingsvisionModel:
 
     def encode_image(self, x):
         with self._extractor.batch_extraction(
-                self._module_name, output_type=self._output_type
+            self._module_name, output_type=self._output_type
         ) as e:
             features = e.extract_batch(
                 batch=x,
                 flatten_acts=self._flatten_acts,
                 # flatten 2D feature maps from an early convolutional or attention layer
+            )
+        if len(features.shape) > 2 and "densenet161" in self._extractor.model_name:
+            features = F.relu(features, inplace=True)
+            features = F.adaptive_avg_pool2d(features, (1, 1))
+            features = torch.flatten(features, 1)
+        elif len(features.shape) > 2:
+            raise ValueError(
+                f"Features have more than 2 dimensions: {features.shape}. "
+                f"Please set `flatten_acts=True` (current value {self._flatten_acts=}) or "
+                f"adjust handling of postprocessing of features for the model {self._extractor.model_name}."
             )
 
         features = features.to(torch.float32)
@@ -38,7 +52,13 @@ class ThingsvisionModel:
                         alignment_type=self._alignment_type,
                     )
                     is_aligned = True
-                except (zipfile.BadZipFile, FileNotFoundError, EOFError, zlib.error, ValueError) as e:
+                except (
+                    zipfile.BadZipFile,
+                    FileNotFoundError,
+                    EOFError,
+                    zlib.error,
+                    ValueError,
+                ) as e:
                     print(f"Error: {e}", flush=True)
 
         return features
@@ -51,27 +71,38 @@ class ThingsvisionModel:
 
 
 def load_thingsvision_model(
-        model_name: str,
-        source: str,
-        device: Union[str, torch.device],
-        model_parameters: Dict,
-        module_name: str,
-        feature_alignment: Optional[str] = None,
+    model_name: str,
+    source: str,
+    device: Union[str, torch.device],
+    model_parameters: Dict,
+    module_name: str,
+    feature_alignment: Optional[str] = None,
 ):
-    extractor = get_extractor(
-        model_name=model_name,
-        source=source,
-        device=device,
-        pretrained=True,
-        model_parameters=model_parameters,
-    )
+    
+    if model_name in CUSTOM_MODELS:
+        extractor = get_extractor_from_model(
+            model=CustomModelPlaces(model_name, device=device).create_model(),
+            device=device,
+            backend="pt",
+        )
+        extractor.model_name = model_name
+    else:
+        extractor = get_extractor(
+            model_name=model_name,
+            source=source,
+            device=device,
+            pretrained=True,
+            model_parameters=model_parameters,
+        )
 
     flatten_acts = True
     if (
-            "extract_cls_token" in model_parameters
-            and model_parameters["extract_cls_token"]
-            or "token_extraction" in model_parameters
+        "extract_cls_token" in model_parameters
+        and model_parameters["extract_cls_token"]
+        or "token_extraction" in model_parameters
     ):
+        flatten_acts = False
+    elif "densenet161" in model_name:
         flatten_acts = False
 
     model = ThingsvisionModel(

@@ -98,6 +98,7 @@ def get_parser_args() -> Tuple[argparse.ArgumentParser, argparse.Namespace]:
     aa('--use_ds_subset', action="store_true", help="Compute model similarities on precomputed subset of the dataset.")
     aa('--subset_root', type=str, help="Path to the root folder where the dataset subset indices are stored. "
                                        "Only used if use_ds_subset is True.")
+    aa('--force_compute', action="store_true", help="Force computation of model similarities even if the file exists.")
 
     # STORAGE
     aa('--output_root', default="results", type=str,

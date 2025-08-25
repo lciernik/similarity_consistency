@@ -17,6 +17,14 @@ from project_location import FEATURES_ROOT, SUBSET_ROOT
 MODELS_CONFIG = "./configs/models_config_wo_alignment.json"
 
 
+def check_existance_of_features_targets(feature_dir, split):
+    file_paths = [
+        os.path.join(feature_dir, f'features_{split}.pt'),
+        os.path.join(feature_dir, f'targets_{split}.pt')
+    ]
+    return all([os.path.exists(fp) for fp in file_paths])
+
+
 def main(args):
     # Create output directory: replace {num_samples_class} and {split} in the path
     out_path_root = format_path(args.output_root_dir, args.num_samples_class, args.split)
@@ -34,6 +42,13 @@ def main(args):
 
     print(f"For each model in model_keys (n={len(model_keys)}) extract the features ...")
     for model_id in tqdm(model_keys, desc=f"Extracting subset of features with {args.num_samples_class} per class."):
+        # location of the extracted features and targets (output dir)
+        feature_dir = os.path.join(out_path_root, model_id)
+        if check_existance_of_features_targets(feature_dir, args.split):
+            print(f"Features and targets already exist for model {model_id} at {feature_dir}. Skipping...")
+            continue
+        
+        # Load features and targets for the model
         try:
             features, targets = load_features_targets(args.features_root, model_id, args.split)
         except FileNotFoundError as e:
@@ -41,11 +56,11 @@ def main(args):
                 f'\nFeatures or targets of wds_imagenet1k not found for model {model_id} and idxes at:\n{idxs_fn}. Skipping...')
             print(f'>> Error: {e}\n')
             continue
-
+        
+        # Subset the features and targets
         features_subset = features[indices, :]
         targets_subset = targets[indices]
 
-        feature_dir = os.path.join(out_path_root, model_id)
         if not os.path.exists(feature_dir):
             os.makedirs(feature_dir)
             print(f'Created directory {feature_dir}')

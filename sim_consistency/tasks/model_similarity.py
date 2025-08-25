@@ -79,6 +79,9 @@ class BaseModelSimilarity:
 
     def get_model_ids(self) -> List[str]:
         return self.model_ids
+    
+    def get_name(self) -> str:
+        return self.name.lower()
 
 
 class CKAModelSimilarity(BaseModelSimilarity):
@@ -199,3 +202,47 @@ def compute_sim_matrix(
     sim_mat = model_similarity.compute_similarity_matrix()
     method_slug = model_similarity.get_name()
     return sim_mat, model_ids, method_slug
+
+
+def get_similarity_metric(
+        sim_method: str,
+        feature_root: str,
+        model_ids: List[str],
+        split: str,
+        subset_root: Optional[str] = None,
+        kernel: str = 'linear',
+        rsa_method: str = 'correlation',
+        corr_method: str = 'spearman',
+        backend: str = 'torch',
+        unbiased: bool = True,
+        device: str = 'cuda',
+        sigma: Optional[float] = None,
+        max_workers: int = 4,
+) -> Tuple[np.ndarray, List[str], str]:
+    if sim_method == 'cka':
+        model_similarity = CKAModelSimilarity(
+            feature_root=feature_root,
+            subset_root=subset_root,
+            split=split,
+            device=device,
+            kernel=kernel,
+            backend=backend,
+            unbiased=unbiased,
+            sigma=sigma,
+            max_workers=max_workers
+        )
+    elif sim_method == 'rsa':
+        model_similarity = RSAModelSimilarity(
+            feature_root=feature_root,
+            subset_root=subset_root,
+            split=split,
+            device=device,
+            rsa_method=rsa_method,
+            corr_method=corr_method,
+            max_workers=max_workers
+        )
+    else:
+        raise ValueError(f"Unknown similarity method: {sim_method}")
+
+    model_similarity.load_model_ids(model_ids)
+    return model_similarity

@@ -1,2 +1,2 @@
-from .model_similarity import compute_sim_matrix
+from .model_similarity import get_similarity_metric
 

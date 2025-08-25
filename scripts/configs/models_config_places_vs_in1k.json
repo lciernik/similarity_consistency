@@ -1,0 +1,138 @@
+{
+    "alexnet_places365": {
+        "model_name": "alexnet_places365",
+        "source": "places365",
+        "model_parameters": {},
+        "module_name": "classifier.4",
+        "objective": "Supervised",
+        "dataset": "Places365",
+        "architecture_class": "Convolutional",
+        "architecture": "AlexNet",
+        "embedding_dim": 4096,
+        "alignment": null,
+        "dataset_class": "Places365",
+        "size": 61100840,
+        "size_fmt": "61.1M",
+        "size_class": "small"
+    },
+    "densenet161_places365": {
+        "model_name": "densenet161_places365",
+        "source": "places365",
+        "model_parameters": {},
+        "module_name": "features.norm5",
+        "objective": "Supervised",
+        "dataset": "Places365",
+        "architecture_class": "Convolutional",
+        "architecture": "DenseNet",
+        "embedding_dim": 2208,
+        "alignment": null,
+        "dataset_class": "Places365",
+        "size": 28681000,
+        "size_fmt": "28.7M",
+        "size_class": "small"
+    },
+    "resnet18_places365": {
+        "model_name": "resnet18_places365",
+        "source": "places365",
+        "model_parameters": {},
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "Places365",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 512,
+        "alignment": null,
+        "dataset_class": "Places365",
+        "size": 11689512,
+        "size_fmt": "11.7M",
+        "size_class": "small"
+    },
+    "resnet50_places365": {
+        "model_name": "resnet50_places365",
+        "source": "places365",
+        "model_parameters": {},
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignment": null,
+        "dataset_class": "Places365",
+        "size": 25557032,
+        "size_fmt": "25.6M",
+        "size_class": "small"
+    },
+    "alexnet": {
+        "model_name": "alexnet",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "classifier.4",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "AlexNet",
+        "embedding_dim": 4096,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 61100840,
+        "size_fmt": "61.1M",
+        "size_class": "small"
+    },
+    "densenet161": {
+        "model_name": "densenet161",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "features.norm5",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "DenseNet",
+        "embedding_dim": 2208,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 28681000,
+        "size_fmt": "28.7M",
+        "size_class": "small"
+    },
+    "resnet18": {
+        "model_name": "resnet18",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 512,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 11689512,
+        "size_fmt": "11.7M",
+        "size_class": "small"
+    },
+    "resnet50": {
+        "model_name": "resnet50",
+        "source": "torchvision",
+        "model_parameters": {
+            "weights": "DEFAULT"
+        },
+        "module_name": "avgpool",
+        "objective": "Supervised",
+        "dataset": "ImageNet1k",
+        "architecture_class": "Convolutional",
+        "architecture": "ResNet",
+        "embedding_dim": 2048,
+        "alignment": null,
+        "dataset_class": "ImageNet1k",
+        "size": 25557032,
+        "size_fmt": "25.6M",
+        "size_class": "small"
+    }
+}
